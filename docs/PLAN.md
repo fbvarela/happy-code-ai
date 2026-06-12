@@ -33,7 +33,7 @@ independiente. Spec: [`specs/spec-agent-artifact-manager.md`](specs/spec-agent-a
 
 - [x] **Modelo local** (`src/lib/local-generate.js`): generación client-side contra Ollama/LM Studio (API OpenAI-compatible, `response_format: json_object`), 0 tokens. Toggle + baseURL/model en el panel de generación; nota de CORS/`OLLAMA_ORIGINS` visible. (Pendiente: validar contra un Ollama real.)
 - [x] `POST /api/artifacts/:id/test` — crea rama `aam/test/<slug>-<ts>` desde la base, commitea el artefacto renderizado y abre PR opcional (Octokit). Botón "Probar en rama" + checkbox "Abrir PR" en el editor.
-- [ ] Git Data API: commit **multi-archivo** (skills con archivos de apoyo). **Diferido**: requiere extender el modelo (artefacto = 1 archivo hoy → necesita un array de archivos).
+- [x] Git Data API: commit **multi-archivo** (skills con archivos de apoyo). Columna `files jsonb` (migración 003), editor de "Archivos adicionales" (rutas relativas, comparten variables), renderer devuelve array, `commitFiles()` (blobs→tree→commit→ref) en publish y test. 1 archivo sigue por Contents API.
 - [ ] Limpieza de ramas de prueba (`aam/test/...`): manual / botón / auto al cerrar PR.
 
 ## Pendientes transversales / Open questions (del spec)

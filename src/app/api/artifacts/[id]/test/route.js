@@ -1,6 +1,6 @@
 import { requireAuth } from "@/utils/auth";
 import sql from "@/utils/db";
-import { octokitForUser } from "@/lib/github";
+import { octokitForUser, commitFiles } from "@/lib/github";
 import { getRenderer } from "@/lib/renderers";
 
 const slug = (s) =>
@@ -27,8 +27,11 @@ export async function POST(request, { params }) {
   const artifact = rows[0];
 
   const renderer = getRenderer(artifact.target);
-  const { path: defaultPath, content } = renderer.render(artifact, body?.values || {});
-  const filePath = (body?.path || defaultPath).replace(/^\/+/, "");
+  const { files: rendered } = renderer.render(artifact, body?.values || {});
+  const files = body?.path
+    ? [{ ...rendered[0], path: body.path.replace(/^\/+/, "") }, ...rendered.slice(1)]
+    : rendered;
+  const filePath = files[0].path;
 
   try {
     const octokit = await octokitForUser(session.userId);
@@ -47,20 +50,17 @@ export async function POST(request, { params }) {
       owner, repo: repoName, ref: `refs/heads/${testBranch}`, sha: baseRef.object.sha,
     });
 
-    // Commit the rendered artifact onto the test branch.
-    let sha;
-    try {
-      const { data } = await octokit.repos.getContent({ owner, repo: repoName, path: filePath, ref: testBranch });
-      if (!Array.isArray(data) && data.sha) sha = data.sha;
-    } catch (e) {
-      if (e.status !== 404) throw e;
+    // Commit the rendered artifact (1+ files) onto the test branch.
+    const message = `test: ${artifact.name} (${artifact.type}) via Happy Code`;
+    if (files.length > 1) {
+      await commitFiles(octokit, { owner, repo: repoName, branch: testBranch, message, files });
+    } else {
+      await octokit.repos.createOrUpdateFileContents({
+        owner, repo: repoName, path: filePath, message,
+        content: Buffer.from(files[0].content, "utf8").toString("base64"),
+        branch: testBranch,
+      });
     }
-    await octokit.repos.createOrUpdateFileContents({
-      owner, repo: repoName, path: filePath,
-      message: `test: ${artifact.name} (${artifact.type}) via Happy Code`,
-      content: Buffer.from(content, "utf8").toString("base64"),
-      sha, branch: testBranch,
-    });
 
     // Optionally open a PR for review.
     let prUrl;
@@ -73,7 +73,7 @@ export async function POST(request, { params }) {
       prUrl = pr.html_url;
     }
 
-    return Response.json({ branch: testBranch, base, path: filePath, prUrl: prUrl || null });
+    return Response.json({ branch: testBranch, base, path: filePath, paths: files.map((f) => f.path), prUrl: prUrl || null });
   } catch (err) {
     console.error("test publish failed:", err);
     const status = err.status === 409 ? 409 : 502;

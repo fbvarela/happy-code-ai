@@ -15,6 +15,7 @@ const EMPTY = {
   frontmatterText: "{}",
   body_template: "",
   variables: [],
+  files: [],
   tags: [],
 };
 
@@ -50,6 +51,7 @@ export default function ArtifactEditor({ id }) {
         frontmatterText: JSON.stringify(a.frontmatter ?? {}, null, 2),
         body_template: a.body_template ?? "",
         variables: a.variables ?? [],
+        files: a.files ?? [],
         tags: a.tags ?? [],
       });
       setLoading(false);
@@ -134,9 +136,21 @@ export default function ArtifactEditor({ id }) {
       frontmatterText: JSON.stringify(draft.frontmatter ?? {}, null, 2),
       body_template: draft.body_template ?? "",
       variables: draft.variables ?? [],
+      files: form.files,
       tags: draft.tags ?? [],
     });
     setValues({});
+  }
+
+  // ── Extra files editor ──
+  function addFile() {
+    set("files", [...form.files, { path: "", body_template: "" }]);
+  }
+  function updateFile(i, key, val) {
+    set("files", form.files.map((f, j) => (j === i ? { ...f, [key]: val } : f)));
+  }
+  function removeFile(i) {
+    set("files", form.files.filter((_, j) => j !== i));
   }
 
   // ── Publish to GitHub (edit mode) ──
@@ -203,6 +217,7 @@ export default function ArtifactEditor({ id }) {
       frontmatter,
       body_template: form.body_template,
       variables: form.variables.filter((v) => v.name.trim()),
+      files: form.files.filter((f) => f.path.trim()),
       tags: form.tags,
     };
   }
@@ -326,6 +341,26 @@ export default function ArtifactEditor({ id }) {
               <input style={{ ...input, flex: 1 }} placeholder="nombre" value={v.name} onChange={(e) => updateVar(i, "name", e.target.value)} />
               <input style={{ ...input, flex: 1 }} placeholder="valor por defecto" value={v.default} onChange={(e) => updateVar(i, "default", e.target.value)} />
               <button className="btn btn-ghost" type="button" onClick={() => removeVar(i)} style={{ minHeight: 44, padding: "0 10px" }}>×</button>
+            </div>
+          ))}
+        </div>
+
+        {/* Extra files (e.g. a skill's helper files) */}
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <strong style={{ fontSize: "0.9rem" }}>Archivos adicionales</strong>
+            <button className="btn btn-ghost" type="button" onClick={addFile} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem" }}>+ Añadir</button>
+          </div>
+          <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 6 }}>
+            Se commitean junto al principal (rutas relativas a la carpeta del artefacto). Comparten las mismas variables.
+          </p>
+          {form.files.map((f, i) => (
+            <div key={i} style={{ display: "grid", gap: 4, marginBottom: 8, border: "1px solid var(--line)", borderRadius: 8, padding: 8 }}>
+              <div style={{ display: "flex", gap: 6 }}>
+                <input style={{ ...input, flex: 1, minHeight: 36 }} placeholder="ruta, p. ej. scripts/run.sh" value={f.path} onChange={(e) => updateFile(i, "path", e.target.value)} />
+                <button className="btn btn-ghost" type="button" onClick={() => removeFile(i)} style={{ minHeight: 36, padding: "0 10px" }}>×</button>
+              </div>
+              <textarea style={{ ...input, minHeight: 70, fontFamily: "monospace" }} placeholder="contenido (plantilla Handlebars)" value={f.body_template} onChange={(e) => updateFile(i, "body_template", e.target.value)} />
             </div>
           ))}
         </div>

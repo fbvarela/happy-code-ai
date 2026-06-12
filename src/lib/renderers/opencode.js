@@ -41,14 +41,32 @@ function pathFor(type, name) {
   }
 }
 
+function dirOf(p) {
+  const i = p.lastIndexOf("/");
+  return i === -1 ? "" : p.slice(0, i);
+}
+
 export const opencodeRenderer = {
   target: "opencode",
-  /** render(artifact, values) -> { path, content } */
+  /** render(artifact, values) -> { files: [{path, content}], path, content }
+   *  `path`/`content` are the primary file (back-compat); `files` includes it
+   *  plus any extra files (artifact.files), placed relative to the primary's dir. */
   render(artifact, values = {}) {
     const body = renderTemplate(artifact.body_template, artifact.variables, values);
     const content = MARKDOWN_TYPES.has(artifact.type)
       ? frontmatterBlock(artifact.frontmatter) + body
       : body; // mcp / config_snippet are raw JSON
-    return { path: pathFor(artifact.type, artifact.name), content };
+    const primaryPath = pathFor(artifact.type, artifact.name);
+
+    const files = [{ path: primaryPath, content }];
+    const baseDir = dirOf(primaryPath);
+    for (const f of artifact.files || []) {
+      if (!f || !f.path) continue;
+      const rel = String(f.path).replace(/^\/+/, "");
+      const full = baseDir ? `${baseDir}/${rel}` : rel;
+      files.push({ path: full, content: renderTemplate(f.body_template, artifact.variables, values) });
+    }
+
+    return { files, path: primaryPath, content };
   },
 };
