@@ -1,0 +1,32 @@
+{
+  "name": "happy-code-ai",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "next lint",
+    "db:migrate": "node --env-file=.env.local scripts/db-migrate.mjs"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^1.0.0",
+    "@ducanh2912/next-pwa": "^10.2.9",
+    "@neondatabase/serverless": "^0.10.4",
+    "@octokit/rest": "^21.0.0",
+    "@tailwindcss/postcss": "^4.2.2",
+    "ai": "^4.0.0",
+    "handlebars": "^4.7.8",
+    "iron-session": "^8.0.4",
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.2.2",
+    "uuid": "^13.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.0.0"
+  }
+}
