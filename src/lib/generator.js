@@ -1,10 +1,30 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGroq } from "@ai-sdk/groq";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { ARTIFACT_TYPES, TYPE_LABELS } from "@/lib/artifact-types";
 
-// Default to the most capable model; override per-deploy if cost-sensitive.
-const MODEL = process.env.GENERATOR_MODEL || "claude-opus-4-8";
+/** Pick the cloud generator provider by available key:
+ *  Anthropic (best) first, then Groq (fast + cheap) as fallback. */
+function selectProvider() {
+  if (process.env.ANTHROPIC_API_KEY) {
+    const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    return {
+      name: "anthropic",
+      model: anthropic(process.env.GENERATOR_MODEL || "claude-opus-4-8"),
+      cache: true, // prompt-cache the system prefix
+    };
+  }
+  if (process.env.GROQ_API_KEY) {
+    const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
+    return {
+      name: "groq",
+      model: groq(process.env.GROQ_MODEL || "llama-3.3-70b-versatile"),
+      cache: false,
+    };
+  }
+  return null;
+}
 
 // Schema the model must fill. Kept tight so the response stays short (token-cheap).
 const genSchema = z.object({
@@ -29,7 +49,7 @@ const genSchema = z.object({
 });
 
 export function isConfigured() {
-  return !!process.env.ANTHROPIC_API_KEY;
+  return !!(process.env.ANTHROPIC_API_KEY || process.env.GROQ_API_KEY);
 }
 
 function systemPrompt(target) {
@@ -52,17 +72,20 @@ function systemPrompt(target) {
 /** Generate an artifact draft from a natural-language description.
  *  Returns the draft object (NOT persisted). */
 export async function generateArtifact({ prompt, type, target = "opencode" }) {
-  const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const provider = selectProvider();
+  if (!provider) throw new Error("No generator provider configured");
+
+  const systemMessage = { role: "system", content: systemPrompt(target) };
+  // Prompt caching is Anthropic-only; skip it for Groq.
+  if (provider.cache) {
+    systemMessage.providerOptions = { anthropic: { cacheControl: { type: "ephemeral" } } };
+  }
 
   const { object, usage } = await generateObject({
-    model: anthropic(MODEL),
+    model: provider.model,
     schema: genSchema,
     messages: [
-      {
-        role: "system",
-        content: systemPrompt(target),
-        providerOptions: { anthropic: { cacheControl: { type: "ephemeral" } } },
-      },
+      systemMessage,
       {
         role: "user",
         content:
@@ -75,5 +98,5 @@ export async function generateArtifact({ prompt, type, target = "opencode" }) {
   // Honor the requested type if the user pinned one.
   if (type) object.type = type;
   object.target = target;
-  return { draft: object, usage };
+  return { draft: object, usage, provider: provider.name };
 }
