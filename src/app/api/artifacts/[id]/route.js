@@ -33,6 +33,7 @@ export async function PUT(request, { params }) {
       frontmatter   = ${JSON.stringify(a.frontmatter)}::jsonb,
       body_template = ${a.body_template},
       variables     = ${JSON.stringify(a.variables)}::jsonb,
+      files         = ${JSON.stringify(a.files)}::jsonb,
       tags          = ${a.tags},
       version       = version + 1,
       updated_at    = now()

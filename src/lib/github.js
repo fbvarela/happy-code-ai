@@ -46,3 +46,38 @@ export async function octokitForUser(userId) {
   if (!rows.length) throw new Error("User not found");
   return octokitFor(decrypt(rows[0].access_token));
 }
+
+/** Commit multiple files atomically via the Git Data API (no clone).
+ *  files: [{ path, content }]. Branch is created/assumed to exist; if omitted,
+ *  the repo's default branch is used. Returns { commit, branch }. */
+export async function commitFiles(octokit, { owner, repo, branch, message, files }) {
+  let targetBranch = branch;
+  if (!targetBranch) {
+    const { data } = await octokit.repos.get({ owner, repo });
+    targetBranch = data.default_branch;
+  }
+
+  const { data: ref } = await octokit.git.getRef({ owner, repo, ref: `heads/${targetBranch}` });
+  const latestSha = ref.object.sha;
+  const { data: baseCommit } = await octokit.git.getCommit({ owner, repo, commit_sha: latestSha });
+
+  const blobs = [];
+  for (const f of files) {
+    const { data: blob } = await octokit.git.createBlob({
+      owner, repo,
+      content: Buffer.from(f.content, "utf8").toString("base64"),
+      encoding: "base64",
+    });
+    blobs.push({ path: f.path.replace(/^\/+/, ""), mode: "100644", type: "blob", sha: blob.sha });
+  }
+
+  const { data: tree } = await octokit.git.createTree({
+    owner, repo, base_tree: baseCommit.tree.sha, tree: blobs,
+  });
+  const { data: commit } = await octokit.git.createCommit({
+    owner, repo, message, tree: tree.sha, parents: [latestSha],
+  });
+  await octokit.git.updateRef({ owner, repo, ref: `heads/${targetBranch}`, sha: commit.sha });
+
+  return { commit: commit.html_url, branch: targetBranch };
+}

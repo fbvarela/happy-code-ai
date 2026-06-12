@@ -43,10 +43,10 @@ export async function POST(request) {
   const a = parsed.data;
 
   const rows = await sql`
-    INSERT INTO artifacts (user_id, name, type, target, frontmatter, body_template, variables, tags)
+    INSERT INTO artifacts (user_id, name, type, target, frontmatter, body_template, variables, files, tags)
     VALUES (${session.userId}, ${a.name}, ${a.type}, ${a.target},
             ${JSON.stringify(a.frontmatter)}::jsonb, ${a.body_template},
-            ${JSON.stringify(a.variables)}::jsonb, ${a.tags})
+            ${JSON.stringify(a.variables)}::jsonb, ${JSON.stringify(a.files)}::jsonb, ${a.tags})
     RETURNING *`;
 
   await snapshotVersion(rows[0]);

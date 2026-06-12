@@ -1,6 +1,6 @@
 import { requireAuth } from "@/utils/auth";
 import sql from "@/utils/db";
-import { octokitForUser } from "@/lib/github";
+import { octokitForUser, commitFiles } from "@/lib/github";
 import { getRenderer } from "@/lib/renderers";
 
 /** POST /api/artifacts/:id/publish
@@ -23,15 +23,24 @@ export async function POST(request, { params }) {
   const artifact = rows[0];
 
   const renderer = getRenderer(artifact.target);
-  const { path: defaultPath, content } = renderer.render(artifact, body?.values || {});
-  const filePath = (body?.path || defaultPath).replace(/^\/+/, "");
+  const { files: rendered } = renderer.render(artifact, body?.values || {});
+  // Optional override applies to the primary file path only.
+  const files = body?.path
+    ? [{ ...rendered[0], path: body.path.replace(/^\/+/, "") }, ...rendered.slice(1)]
+    : rendered;
   const branch = body?.branch || undefined;
   const message = body?.message || `Add ${artifact.name} (${artifact.type}) via Happy Code`;
 
   try {
     const octokit = await octokitForUser(session.userId);
 
-    // Look up existing file sha (required to update in place).
+    // Multiple files → atomic commit via Git Data API. Single file → Contents API.
+    if (files.length > 1) {
+      const out = await commitFiles(octokit, { owner, repo: repoName, branch, message, files });
+      return Response.json({ path: files[0].path, paths: files.map((f) => f.path), branch: out.branch, commit: out.commit });
+    }
+
+    const filePath = files[0].path;
     let sha;
     try {
       const { data } = await octokit.repos.getContent({ owner, repo: repoName, path: filePath, ref: branch });
@@ -39,22 +48,14 @@ export async function POST(request, { params }) {
     } catch (e) {
       if (e.status !== 404) throw e; // 404 = new file, fine
     }
-
     const res = await octokit.repos.createOrUpdateFileContents({
-      owner,
-      repo: repoName,
-      path: filePath,
-      message,
-      content: Buffer.from(content, "utf8").toString("base64"),
-      sha,
-      branch,
+      owner, repo: repoName, path: filePath, message,
+      content: Buffer.from(files[0].content, "utf8").toString("base64"),
+      sha, branch,
     });
-
     return Response.json({
-      path: filePath,
-      branch: branch || null,
-      commit: res.data.commit?.html_url,
-      contentUrl: res.data.content?.html_url,
+      path: filePath, branch: branch || null,
+      commit: res.data.commit?.html_url, contentUrl: res.data.content?.html_url,
     });
   } catch (err) {
     console.error("publish failed:", err);
