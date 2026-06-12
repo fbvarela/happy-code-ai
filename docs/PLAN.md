@@ -21,13 +21,13 @@ independiente. Spec: [`specs/spec-agent-artifact-manager.md`](specs/spec-agent-a
 - [x] Biblioteca: lista + búsqueda por nombre/tag + filtro por tipo. Clonar y borrar (confirmación inline, sin diálogo nativo).
 - [x] Validación con Zod (`src/lib/artifacts.js`), render compartido (`src/lib/render.js`).
 
-## Fase 2 — Generador (LLMProvider) + Publish
+## Fase 2 — Generador (LLMProvider) + Publish (HECHO)
 
-- [ ] Interfaz `LLMProvider.generate(prompt, schema)`.
-- [ ] `ClaudeProvider` (Vercel AI SDK · `generateObject` + Zod, prompt caching).
-- [ ] `POST /api/generate` — NL → artefacto estructurado.
-- [ ] `OpenCodeRenderer` (Strategy): `render(artifact, values) → { path, content }`.
-- [ ] `GET /api/repos` (Octokit) + `POST /api/artifacts/:id/publish` (Contents API, 1 archivo).
+- [x] Generador Claude (`src/lib/generator.js`): Vercel AI SDK · `generateObject` + Zod, salida estructurada corta, **prompt caching** del system prompt (`providerOptions.anthropic.cacheControl`). Modelo configurable (`GENERATOR_MODEL`, default `claude-opus-4-8`).
+- [x] `POST /api/generate` — NL → artefacto estructurado (no persiste). 503 si no hay `ANTHROPIC_API_KEY`.
+- [x] `OpenCodeRenderer` (Strategy, `src/lib/renderers/`): `render(artifact, values) → { path, content }`; frontmatter YAML para markdown, JSON crudo para mcp/config; ruta por tipo.
+- [x] `GET /api/repos` (Octokit) + `POST /api/artifacts/:id/publish` (Contents API, 1 archivo, con `sha` para update; manejo 409).
+- [x] UI: panel "Generar con IA" (modo nuevo) + panel "Publicar en GitHub" (modo edición) en el editor.
 
 ## Fase 3 — Local provider + Test en repo + multi-archivo
 

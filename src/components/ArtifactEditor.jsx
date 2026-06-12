@@ -26,6 +26,11 @@ export default function ArtifactEditor({ id }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
+  // Generation (new mode) + publish (edit mode) state.
+  const [genPrompt, setGenPrompt] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [pub, setPub] = useState({ repos: null, repo: "", branch: "", path: "", busy: false, result: null, error: null });
+
   useEffect(() => {
     if (isNew) return;
     (async () => {
@@ -86,6 +91,62 @@ export default function ArtifactEditor({ id }) {
   }
   function removeVar(i) {
     set("variables", form.variables.filter((_, j) => j !== i));
+  }
+
+  // ── Generate from natural language (new mode) ──
+  async function generate() {
+    if (!genPrompt.trim()) return;
+    setGenerating(true);
+    setError(null);
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: genPrompt, type: form.type, target: form.target }),
+    });
+    setGenerating(false);
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      setError(e.error || "No se pudo generar.");
+      return;
+    }
+    const { draft } = await res.json();
+    setForm({
+      name: draft.name || "",
+      type: draft.type || form.type,
+      target: draft.target || form.target,
+      frontmatterText: JSON.stringify(draft.frontmatter ?? {}, null, 2),
+      body_template: draft.body_template ?? "",
+      variables: draft.variables ?? [],
+      tags: draft.tags ?? [],
+    });
+    setValues({});
+  }
+
+  // ── Publish to GitHub (edit mode) ──
+  async function loadRepos() {
+    if (pub.repos) return;
+    const res = await fetch("/api/repos");
+    const repos = res.ok ? await res.json() : [];
+    setPub((p) => ({ ...p, repos, repo: repos[0]?.full_name || "" }));
+  }
+  async function publish() {
+    setPub((p) => ({ ...p, busy: true, error: null, result: null }));
+    const res = await fetch(`/api/artifacts/${id}/publish`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        repo: pub.repo,
+        branch: pub.branch || undefined,
+        path: pub.path || undefined,
+        values,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setPub((p) => ({ ...p, busy: false, error: data.message || data.error || "Error al publicar" }));
+      return;
+    }
+    setPub((p) => ({ ...p, busy: false, result: data }));
   }
 
   // ── Live preview (0 tokens, client-side Handlebars) ──
@@ -150,6 +211,24 @@ export default function ArtifactEditor({ id }) {
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" }}>
       {/* ── Form column ── */}
       <div style={{ display: "grid", gap: 14 }}>
+        {isNew && (
+          <div className="card" style={{ padding: 14, background: "var(--cream)" }}>
+            <div style={{ fontSize: "0.85rem", fontWeight: 600, marginBottom: 6 }}>Generar con IA</div>
+            <textarea
+              style={{ ...input, minHeight: 60 }}
+              value={genPrompt}
+              onChange={(e) => setGenPrompt(e.target.value)}
+              placeholder="p. ej. un subagente que escribe tests JUnit5 + Mockito siguiendo mis convenciones"
+            />
+            <button className="btn btn-bark" type="button" onClick={generate} disabled={generating} style={{ marginTop: 8 }}>
+              {generating ? "Generando…" : "Generar borrador"}
+            </button>
+            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 6 }}>
+              Rellena el formulario; revísalo y guárdalo. O rellena los campos a mano (0 tokens).
+            </p>
+          </div>
+        )}
+
         <Field label="Nombre">
           <input style={input} value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="test-writer" />
         </Field>
@@ -244,6 +323,37 @@ export default function ArtifactEditor({ id }) {
         }}>
           {preview.text || "(vacío)"}
         </pre>
+
+        {!isNew && (
+          <div style={{ marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
+            <strong style={{ fontSize: "0.9rem" }}>Publicar en GitHub</strong>
+            {pub.repos === null ? (
+              <div style={{ marginTop: 8 }}>
+                <button className="btn btn-ghost" type="button" onClick={loadRepos} style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem" }}>
+                  Cargar mis repos
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+                <select style={input} value={pub.repo} onChange={(e) => setPub((p) => ({ ...p, repo: e.target.value }))}>
+                  {pub.repos.map((r) => <option key={r.full_name} value={r.full_name}>{r.full_name}{r.private ? " (privado)" : ""}</option>)}
+                </select>
+                <input style={input} placeholder="rama (vacío = por defecto)" value={pub.branch} onChange={(e) => setPub((p) => ({ ...p, branch: e.target.value }))} />
+                <input style={input} placeholder="ruta (vacío = la del renderer)" value={pub.path} onChange={(e) => setPub((p) => ({ ...p, path: e.target.value }))} />
+                <button className="btn btn-bark" type="button" onClick={publish} disabled={pub.busy || !pub.repo}>
+                  {pub.busy ? "Publicando…" : "Publicar (commit)"}
+                </button>
+                {pub.error && <p style={{ color: "var(--clay)", fontSize: "0.8rem" }}>{pub.error}</p>}
+                {pub.result && (
+                  <p style={{ fontSize: "0.8rem" }}>
+                    ✓ <code>{pub.result.path}</code> —{" "}
+                    {pub.result.commit && <a href={pub.result.commit} target="_blank" rel="noreferrer">ver commit</a>}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
