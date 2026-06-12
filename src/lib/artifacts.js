@@ -11,6 +11,13 @@ export const variableSchema = z.object({
   required: z.boolean().optional().default(false),
 });
 
+// Extra files committed alongside the primary (e.g. a skill's helper scripts).
+// `path` is relative to the artifact's directory; `body_template` is Handlebars.
+export const fileSchema = z.object({
+  path: z.string().min(1).max(200),
+  body_template: z.string().default(""),
+});
+
 /** Validation schema for create/update payloads. */
 export const artifactInput = z.object({
   name: z.string().min(1).max(120),
@@ -19,6 +26,7 @@ export const artifactInput = z.object({
   frontmatter: z.record(z.any()).default({}),
   body_template: z.string().default(""),
   variables: z.array(variableSchema).default([]),
+  files: z.array(fileSchema).default([]),
   tags: z.array(z.string().min(1).max(40)).default([]),
 });
 
