@@ -23,7 +23,7 @@ independiente. Spec: [`specs/spec-agent-artifact-manager.md`](specs/spec-agent-a
 
 ## Fase 2 — Generador (LLMProvider) + Publish (HECHO)
 
-- [x] Generador Claude (`src/lib/generator.js`): Vercel AI SDK · `generateObject` + Zod, salida estructurada corta, **prompt caching** del system prompt (`providerOptions.anthropic.cacheControl`). Modelo configurable (`GENERATOR_MODEL`, default `claude-opus-4-8`).
+- [x] Generador (`src/lib/generator.js`): Vercel AI SDK · `generateObject` + Zod, salida estructurada corta. **Fallback de proveedor**: Anthropic si hay `ANTHROPIC_API_KEY` (con **prompt caching**), si no **Groq** (`GROQ_API_KEY`, rápido y barato, default `llama-3.3-70b-versatile`). Modelos configurables (`GENERATOR_MODEL` / `GROQ_MODEL`).
 - [x] `POST /api/generate` — NL → artefacto estructurado (no persiste). 503 si no hay `ANTHROPIC_API_KEY`.
 - [x] `OpenCodeRenderer` (Strategy, `src/lib/renderers/`): `render(artifact, values) → { path, content }`; frontmatter YAML para markdown, JSON crudo para mcp/config; ruta por tipo.
 - [x] `GET /api/repos` (Octokit) + `POST /api/artifacts/:id/publish` (Contents API, 1 archivo, con `sha` para update; manejo 409).
@@ -31,10 +31,10 @@ independiente. Spec: [`specs/spec-agent-artifact-manager.md`](specs/spec-agent-a
 
 ## Fase 3 — Local provider + Test en repo + multi-archivo
 
-- [ ] `LocalProvider` (Ollama/LM Studio, OpenAI-compatible, llamada cliente) — ver nota CORS/`OLLAMA_ORIGINS` en el spec.
-- [ ] `POST /api/artifacts/:id/test` — rama `aam/test/...` + PR opcional (Octokit).
-- [ ] Git Data API: commit multi-archivo (skills con archivos de apoyo).
-- [ ] Limpieza de ramas de prueba.
+- [x] **Modelo local** (`src/lib/local-generate.js`): generación client-side contra Ollama/LM Studio (API OpenAI-compatible, `response_format: json_object`), 0 tokens. Toggle + baseURL/model en el panel de generación; nota de CORS/`OLLAMA_ORIGINS` visible. (Pendiente: validar contra un Ollama real.)
+- [x] `POST /api/artifacts/:id/test` — crea rama `aam/test/<slug>-<ts>` desde la base, commitea el artefacto renderizado y abre PR opcional (Octokit). Botón "Probar en rama" + checkbox "Abrir PR" en el editor.
+- [ ] Git Data API: commit **multi-archivo** (skills con archivos de apoyo). **Diferido**: requiere extender el modelo (artefacto = 1 archivo hoy → necesita un array de archivos).
+- [ ] Limpieza de ramas de prueba (`aam/test/...`): manual / botón / auto al cerrar PR.
 
 ## Pendientes transversales / Open questions (del spec)
 
