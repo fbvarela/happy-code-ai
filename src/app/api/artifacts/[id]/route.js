@@ -1,0 +1,57 @@
+import { requireAuth } from "@/utils/auth";
+import sql from "@/utils/db";
+import { artifactInput, snapshotVersion } from "@/lib/artifacts";
+
+/** GET /api/artifacts/:id — full artifact (owner only). */
+export async function GET(_request, { params }) {
+  const { session, error } = await requireAuth();
+  if (error) return error;
+  const { id } = await params;
+
+  const rows = await sql`SELECT * FROM artifacts WHERE id = ${id} AND user_id = ${session.userId}`;
+  if (!rows.length) return Response.json({ error: "Not found" }, { status: 404 });
+  return Response.json(rows[0]);
+}
+
+/** PUT /api/artifacts/:id — update, bump version, snapshot. */
+export async function PUT(request, { params }) {
+  const { session, error } = await requireAuth();
+  if (error) return error;
+  const { id } = await params;
+
+  const parsed = artifactInput.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return Response.json({ error: "Invalid payload", details: parsed.error.flatten() }, { status: 400 });
+  }
+  const a = parsed.data;
+
+  const rows = await sql`
+    UPDATE artifacts SET
+      name          = ${a.name},
+      type          = ${a.type},
+      target        = ${a.target},
+      frontmatter   = ${JSON.stringify(a.frontmatter)}::jsonb,
+      body_template = ${a.body_template},
+      variables     = ${JSON.stringify(a.variables)}::jsonb,
+      tags          = ${a.tags},
+      version       = version + 1,
+      updated_at    = now()
+    WHERE id = ${id} AND user_id = ${session.userId}
+    RETURNING *`;
+
+  if (!rows.length) return Response.json({ error: "Not found" }, { status: 404 });
+  await snapshotVersion(rows[0]);
+  return Response.json(rows[0]);
+}
+
+/** DELETE /api/artifacts/:id — remove (cascades versions). */
+export async function DELETE(_request, { params }) {
+  const { session, error } = await requireAuth();
+  if (error) return error;
+  const { id } = await params;
+
+  const rows = await sql`
+    DELETE FROM artifacts WHERE id = ${id} AND user_id = ${session.userId} RETURNING id`;
+  if (!rows.length) return Response.json({ error: "Not found" }, { status: 404 });
+  return Response.json({ deleted: rows[0].id });
+}

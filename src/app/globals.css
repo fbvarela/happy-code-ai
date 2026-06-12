@@ -1,0 +1,83 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap");
+
+/* ── Shared Happy Factory design tokens ─────────────────── */
+@theme {
+  --color-bark: #3d2b1f;
+  --color-bark-light: #6b4c38;
+  --color-leaf: #4a7c59;
+  --color-leaf-light: #7db892;
+  --color-sun: #e8a020;
+  --color-sun-light: #f5c96b;
+  --color-clay: #c46b3a;
+  --color-clay-light: #e8a07a;
+
+  --color-bg: #f5f0e8;
+  --color-surface: #fffdf8;
+  --color-cream: #f9f4ea;
+  --color-line: #d8cfc0;
+  --color-text: #2a1f14;
+  --color-muted: #7a6854;
+
+  --font-sans: "DM Sans", sans-serif;
+  --font-serif: "Fraunces", serif;
+
+  --radius-card: 14px;
+  --radius-sm: 8px;
+  --shadow-card: 0 2px 12px rgba(61, 43, 31, 0.1);
+  --shadow-lg: 0 8px 32px rgba(61, 43, 31, 0.16);
+}
+
+:root {
+  --bg: #f5f0e8;
+  --surface: #fffdf8;
+  --bark: #3d2b1f;
+  --leaf: #4a7c59;
+  --sun: #e8a020;
+  --clay: #c46b3a;
+  --cream: #f9f4ea;
+  --line: #d8cfc0;
+  --text: #2a1f14;
+  --text-muted: #7a6854;
+  --shadow: 0 2px 12px rgba(61, 43, 31, 0.1);
+  --radius: 14px;
+}
+
+@layer base {
+  html, body { height: 100%; }
+  body {
+    font-family: "DM Sans", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  h1, h2, h3, h4 { font-family: "Fraunces", serif; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+}
+
+@layer components {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: var(--radius-sm, 8px);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.05s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-bark { background: var(--bark); color: #fff; }
+  .btn-bark:hover { filter: brightness(1.15); }
+  .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+}
