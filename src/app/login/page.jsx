@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 const ERRORS = {
   oauth_state: "La sesión de login expiró o no coincide. Inténtalo de nuevo.",
   oauth_failed: "No se pudo completar el login con GitHub. Inténtalo de nuevo.",
+  server_misconfigured: "El servidor no está configurado (falta SESSION_SECRET). Revisa las variables de entorno.",
 };
 
 export default async function LoginPage({ searchParams }) {
