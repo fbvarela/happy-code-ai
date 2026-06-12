@@ -1,0 +1,52 @@
+name: Sync main into dev
+
+# Every time something lands on main, fast-forward/merge it into dev so dev
+# never falls behind. If the merge conflicts, it opens a PR for manual resolution
+# instead of leaving dev silently stale.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-main-to-dev
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge main into dev
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main dev
+
+          # Recreate local dev from origin/dev.
+          git checkout -B dev origin/dev
+
+          if git merge --no-ff origin/main -m "chore: auto-sync main into dev"; then
+            git push origin dev
+            echo "✓ dev is now in sync with main."
+          else
+            git merge --abort
+            echo "::warning::Merge of main into dev hit conflicts; opening a PR."
+            gh pr create \
+              --base dev --head main \
+              --title "Auto-sync: merge main into dev (conflicts)" \
+              --body "Automatic back-merge of \`main\` into \`dev\` hit conflicts and needs manual resolution." \
+              || echo "A sync PR already exists."
+            exit 1
+          fi
