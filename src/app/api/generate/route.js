@@ -9,7 +9,7 @@ export async function POST(request) {
 
   if (!isConfigured()) {
     return Response.json(
-      { error: "Generator not configured (set ANTHROPIC_API_KEY)." },
+      { error: "Generator not configured (set ANTHROPIC_API_KEY or GROQ_API_KEY)." },
       { status: 503 },
     );
   }
@@ -22,8 +22,8 @@ export async function POST(request) {
   const target = (body?.target || "opencode").trim();
 
   try {
-    const { draft, usage } = await generateArtifact({ prompt, type, target });
-    return Response.json({ draft, usage });
+    const { draft, usage, provider } = await generateArtifact({ prompt, type, target });
+    return Response.json({ draft, usage, provider });
   } catch (err) {
     console.error("generate failed:", err);
     return Response.json({ error: "Generation failed", message: String(err.message || err) }, { status: 502 });

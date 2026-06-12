@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.0",
+    "@ai-sdk/groq": "^1.2.9",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@neondatabase/serverless": "^0.10.4",
     "@octokit/rest": "^21.0.0",
