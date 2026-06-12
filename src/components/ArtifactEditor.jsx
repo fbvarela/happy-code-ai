@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { renderTemplate } from "@/lib/render";
 import { ARTIFACT_TYPES, TYPE_LABELS, TYPE_SCAFFOLDS } from "@/lib/artifact-types";
+import { generateArtifactLocal, LOCAL_DEFAULTS } from "@/lib/local-generate";
 
 const TYPES = ARTIFACT_TYPES.map((v) => [v, TYPE_LABELS[v]]);
 
@@ -29,7 +30,8 @@ export default function ArtifactEditor({ id }) {
   // Generation (new mode) + publish (edit mode) state.
   const [genPrompt, setGenPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
-  const [pub, setPub] = useState({ repos: null, repo: "", branch: "", path: "", busy: false, result: null, error: null });
+  const [local, setLocal] = useState({ enabled: false, baseUrl: LOCAL_DEFAULTS.baseUrl, model: LOCAL_DEFAULTS.model });
+  const [pub, setPub] = useState({ repos: null, repo: "", branch: "", path: "", openPr: false, busy: false, result: null, error: null });
 
   useEffect(() => {
     if (isNew) return;
@@ -98,18 +100,33 @@ export default function ArtifactEditor({ id }) {
     if (!genPrompt.trim()) return;
     setGenerating(true);
     setError(null);
-    const res = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: genPrompt, type: form.type, target: form.target }),
-    });
-    setGenerating(false);
-    if (!res.ok) {
-      const e = await res.json().catch(() => ({}));
-      setError(e.error || "No se pudo generar.");
+
+    let draft;
+    try {
+      if (local.enabled) {
+        // Browser → user's own model. Zero API tokens.
+        draft = await generateArtifactLocal({
+          prompt: genPrompt, type: form.type, target: form.target,
+          baseUrl: local.baseUrl, model: local.model,
+        });
+      } else {
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: genPrompt, type: form.type, target: form.target }),
+        });
+        if (!res.ok) {
+          const e = await res.json().catch(() => ({}));
+          throw new Error(e.error || "No se pudo generar.");
+        }
+        draft = (await res.json()).draft;
+      }
+    } catch (e) {
+      setGenerating(false);
+      setError(e.message || "No se pudo generar.");
       return;
     }
-    const { draft } = await res.json();
+    setGenerating(false);
     setForm({
       name: draft.name || "",
       type: draft.type || form.type,
@@ -147,6 +164,20 @@ export default function ArtifactEditor({ id }) {
       return;
     }
     setPub((p) => ({ ...p, busy: false, result: data }));
+  }
+  async function testPublish() {
+    setPub((p) => ({ ...p, busy: true, error: null, result: null }));
+    const res = await fetch(`/api/artifacts/${id}/test`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ repo: pub.repo, openPr: pub.openPr, values }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setPub((p) => ({ ...p, busy: false, error: data.message || data.error || "Error al probar" }));
+      return;
+    }
+    setPub((p) => ({ ...p, busy: false, result: { ...data, test: true } }));
   }
 
   // ── Live preview (0 tokens, client-side Handlebars) ──
@@ -220,11 +251,22 @@ export default function ArtifactEditor({ id }) {
               onChange={(e) => setGenPrompt(e.target.value)}
               placeholder="p. ej. un subagente que escribe tests JUnit5 + Mockito siguiendo mis convenciones"
             />
+            <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, fontSize: "0.8rem", color: "var(--text-muted)" }}>
+              <input type="checkbox" checked={local.enabled} onChange={(e) => setLocal((l) => ({ ...l, enabled: e.target.checked }))} />
+              Usar modelo local (Ollama / LM Studio) — 0 tokens
+            </label>
+            {local.enabled && (
+              <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                <input style={{ ...input, minHeight: 36, fontSize: "0.8rem" }} value={local.baseUrl} onChange={(e) => setLocal((l) => ({ ...l, baseUrl: e.target.value }))} placeholder="http://localhost:11434/v1" />
+                <input style={{ ...input, minHeight: 36, fontSize: "0.8rem" }} value={local.model} onChange={(e) => setLocal((l) => ({ ...l, model: e.target.value }))} placeholder="qwen2.5-coder" />
+              </div>
+            )}
             <button className="btn btn-bark" type="button" onClick={generate} disabled={generating} style={{ marginTop: 8 }}>
               {generating ? "Generando…" : "Generar borrador"}
             </button>
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 6 }}>
               Rellena el formulario; revísalo y guárdalo. O rellena los campos a mano (0 tokens).
+              {local.enabled && " El modelo local requiere CORS (OLLAMA_ORIGINS) habilitado."}
             </p>
           </div>
         )}
@@ -340,14 +382,25 @@ export default function ArtifactEditor({ id }) {
                 </select>
                 <input style={input} placeholder="rama (vacío = por defecto)" value={pub.branch} onChange={(e) => setPub((p) => ({ ...p, branch: e.target.value }))} />
                 <input style={input} placeholder="ruta (vacío = la del renderer)" value={pub.path} onChange={(e) => setPub((p) => ({ ...p, path: e.target.value }))} />
-                <button className="btn btn-bark" type="button" onClick={publish} disabled={pub.busy || !pub.repo}>
-                  {pub.busy ? "Publicando…" : "Publicar (commit)"}
-                </button>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button className="btn btn-bark" type="button" onClick={publish} disabled={pub.busy || !pub.repo} style={{ flex: 1 }}>
+                    {pub.busy ? "…" : "Publicar"}
+                  </button>
+                  <button className="btn btn-ghost" type="button" onClick={testPublish} disabled={pub.busy || !pub.repo} style={{ flex: 1 }}>
+                    {pub.busy ? "…" : "Probar en rama"}
+                  </button>
+                </div>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                  <input type="checkbox" checked={pub.openPr} onChange={(e) => setPub((p) => ({ ...p, openPr: e.target.checked }))} />
+                  Abrir PR al probar
+                </label>
                 {pub.error && <p style={{ color: "var(--clay)", fontSize: "0.8rem" }}>{pub.error}</p>}
                 {pub.result && (
                   <p style={{ fontSize: "0.8rem" }}>
-                    ✓ <code>{pub.result.path}</code> —{" "}
-                    {pub.result.commit && <a href={pub.result.commit} target="_blank" rel="noreferrer">ver commit</a>}
+                    ✓ <code>{pub.result.path}</code>
+                    {pub.result.branch && <> — rama <code>{pub.result.branch}</code></>}
+                    {pub.result.commit && <> — <a href={pub.result.commit} target="_blank" rel="noreferrer">ver commit</a></>}
+                    {pub.result.prUrl && <> — <a href={pub.result.prUrl} target="_blank" rel="noreferrer">ver PR</a></>}
                   </p>
                 )}
               </div>
