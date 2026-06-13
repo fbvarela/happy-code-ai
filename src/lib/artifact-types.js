@@ -5,6 +5,7 @@ export const ARTIFACT_TYPES = [
   "agent",
   "subagent",
   "skill",
+  "command",
   "config_snippet",
   "memory",
   "mcp",
@@ -14,6 +15,7 @@ export const TYPE_LABELS = {
   agent: "Agente",
   subagent: "Subagente",
   skill: "Skill",
+  command: "Slash command",
   config_snippet: "Config",
   memory: "Memoria",
   mcp: "MCP",
@@ -24,6 +26,15 @@ export const TYPE_LABELS = {
 // holes stay 0-token-fillable. The exact destination path/format per CLI is
 // resolved later by the per-target renderer (Phase 2).
 export const TYPE_SCAFFOLDS = {
+  command: {
+    frontmatter: { description: "Describe qué hace el comando" },
+    body:
+      "{{instruction}}\n\n" +
+      "Argumentos del usuario: $ARGUMENTS\n",
+    variables: [
+      { name: "instruction", label: "Instrucción / prompt", default: "Escribe tests unitarios para:", required: true },
+    ],
+  },
   memory: {
     frontmatter: {},
     body: "# {{title}}\n\n{{content}}\n",

@@ -1,6 +1,6 @@
 import { renderTemplate } from "@/lib/render";
 
-const MARKDOWN_TYPES = new Set(["agent", "subagent", "skill", "memory"]);
+const MARKDOWN_TYPES = new Set(["agent", "subagent", "skill", "command", "memory"]);
 
 function slugify(name) {
   return String(name || "artifact")
@@ -30,6 +30,8 @@ function pathFor(type, name) {
       return `.opencode/agent/${slug}.md`;
     case "skill":
       return `.opencode/skill/${slug}/SKILL.md`;
+    case "command":
+      return `.opencode/command/${slug}.md`;
     case "memory":
       return slug === "agents" ? "AGENTS.md" : `.opencode/memory/${slug}.md`;
     case "mcp":
