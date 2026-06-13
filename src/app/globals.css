@@ -44,6 +44,32 @@
   --radius: 14px;
 }
 
+/* ── Dark theme ─────────────────────────────────────────────
+   Toggled by adding `.dark` on <html> (see ThemeToggle + the
+   no-flash script in layout.jsx). Warm earthy palette, same
+   tokens so components don't change. */
+.dark {
+  --bg: #181109;
+  --surface: #241a10;
+  --bark: #6b4c38;      /* lighter so btn-bark stays readable on dark bg */
+  --leaf: #7db892;
+  --sun: #f5c96b;
+  --clay: #e8a07a;
+  --cream: #2e2114;
+  --line: #43331f;
+  --text: #f1e9dc;
+  --text-muted: #b29a7f;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+
+  /* Keep Tailwind @theme utilities in sync for the few that use them. */
+  --color-bg: #181109;
+  --color-surface: #241a10;
+  --color-cream: #2e2114;
+  --color-line: #43331f;
+  --color-text: #f1e9dc;
+  --color-muted: #b29a7f;
+}
+
 @layer base {
   html, body { height: 100%; }
   body {
