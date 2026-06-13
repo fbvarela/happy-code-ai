@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { renderTemplate } from "@/lib/render";
 import { ARTIFACT_TYPES, TYPE_LABELS, TYPE_SCAFFOLDS } from "@/lib/artifact-types";
 import { TYPE_HELP } from "@/lib/artifact-help";
+import { getRenderer } from "@/lib/renderers";
+import { makeZip } from "@/lib/zip";
 import { generateArtifactLocal, LOCAL_DEFAULTS } from "@/lib/local-generate";
 
 const TYPES = ARTIFACT_TYPES.map((v) => [v, TYPE_LABELS[v]]);
@@ -194,6 +196,42 @@ export default function ArtifactEditor({ id }) {
       return;
     }
     setPub((p) => ({ ...p, busy: false, result: { ...data, test: true } }));
+  }
+
+  // ── Download rendered files locally (0 tokens, fully client-side) ──
+  function downloadBlob(filename, blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  /** asZip=false: download the single primary file by its basename.
+   *  asZip=true: download a .zip preserving the full .opencode/... paths. */
+  function download(asZip) {
+    setError(null);
+    let artifact;
+    try {
+      artifact = buildPayload();
+    } catch (e) {
+      setError(e.message);
+      return;
+    }
+    if (!artifact.name) {
+      setError("Pon un nombre antes de descargar.");
+      return;
+    }
+    const { files } = getRenderer(artifact.target).render(artifact, values);
+    const slug = artifact.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "artifact";
+    if (asZip || files.length > 1) {
+      downloadBlob(`${slug}.zip`, makeZip(files));
+    } else {
+      const base = files[0].path.split("/").pop();
+      downloadBlob(base, new Blob([files[0].content], { type: "text/plain;charset=utf-8" }));
+    }
   }
 
   // ── Live preview (0 tokens, client-side Handlebars) ──
@@ -425,6 +463,20 @@ export default function ArtifactEditor({ id }) {
         }}>
           {preview.text || "(vacío)"}
         </pre>
+
+        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <button className="btn btn-ghost" type="button" onClick={() => download(false)} style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem" }}>
+            {form.files.some((f) => f.path.trim()) ? "Descargar .zip" : "Descargar archivo"}
+          </button>
+          {!form.files.some((f) => f.path.trim()) && (
+            <button className="btn btn-ghost" type="button" onClick={() => download(true)} style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem" }}>
+              .zip (con ruta)
+            </button>
+          )}
+          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+            Renderizado con los valores actuales (0 tokens).
+          </span>
+        </div>
 
         {!isNew && (
           <div style={{ marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
