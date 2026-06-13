@@ -1,4 +1,9 @@
 import "./globals.css";
+import ThemeToggle from "@/components/ThemeToggle";
+
+// Runs before paint to set the theme class, avoiding a flash of the wrong
+// theme. Honors an explicit choice in localStorage, else the OS preference.
+const themeScript = `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`;
 
 export const metadata = {
   title: "Happy Code — Agent Artifact Manager",
@@ -15,8 +20,14 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es">
-      <body>{children}</body>
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body>
+        <ThemeToggle />
+        {children}
+      </body>
     </html>
   );
 }
