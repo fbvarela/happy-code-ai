@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { renderTemplate } from "@/lib/render";
 import { ARTIFACT_TYPES, TYPE_LABELS, TYPE_SCAFFOLDS } from "@/lib/artifact-types";
+import { TYPE_HELP } from "@/lib/artifact-help";
 import { generateArtifactLocal, LOCAL_DEFAULTS } from "@/lib/local-generate";
 
 const TYPES = ARTIFACT_TYPES.map((v) => [v, TYPE_LABELS[v]]);
@@ -27,6 +28,7 @@ export default function ArtifactEditor({ id }) {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Generation (new mode) + publish (edit mode) state.
   const [genPrompt, setGenPrompt] = useState("");
@@ -300,6 +302,29 @@ export default function ArtifactEditor({ id }) {
             <input style={input} value={form.target} onChange={(e) => set("target", e.target.value)} />
           </Field>
         </div>
+
+        <button
+          className="btn btn-ghost"
+          type="button"
+          onClick={() => setShowHelp((s) => !s)}
+          aria-expanded={showHelp}
+          style={{ minHeight: 32, padding: "0 12px", fontSize: "0.8rem", justifySelf: "start" }}
+        >
+          {showHelp ? "Ocultar ayuda" : `¿Cómo se usa un ${TYPE_LABELS[form.type]}?`}
+        </button>
+
+        {showHelp && TYPE_HELP[form.type] && (
+          <div className="card" style={{ padding: 14, background: "var(--cream)", fontSize: "0.85rem", lineHeight: 1.5 }}>
+            <p style={{ margin: "0 0 8px" }}>{TYPE_HELP[form.type].what}</p>
+            <p style={{ margin: "0 0 4px" }}>
+              <strong>Archivo:</strong> <code>{TYPE_HELP[form.type].path}</code>
+            </p>
+            <p style={{ margin: "0 0 8px" }}>
+              <strong>Formato:</strong> {TYPE_HELP[form.type].format}
+            </p>
+            <p style={{ margin: 0, color: "var(--text-muted)" }}>{TYPE_HELP[form.type].usage}</p>
+          </div>
+        )}
 
         {TYPE_SCAFFOLDS[form.type] && (
           <button
