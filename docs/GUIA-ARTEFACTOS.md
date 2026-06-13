@@ -4,8 +4,45 @@ Cómo usar cada artefacto que genera la app: **qué archivo crea**, **en qué
 carpeta cae** dentro de tu repo, y **cómo lo invoca OpenCode**.
 
 > Todas las rutas son relativas a la raíz del repo donde publicas. La app las
-> calcula sola a partir del **tipo** y el **nombre** (slug en minúsculas con
-> guiones). El renderer está en [`src/lib/renderers/opencode.js`](../src/lib/renderers/opencode.js).
+> calcula sola a partir del **tipo**, el **nombre** (slug en minúsculas con
+> guiones) y el **target** (CLI). Los renderers están en
+> [`src/lib/renderers/`](../src/lib/renderers/).
+>
+> El detalle por tipo de abajo usa rutas de **OpenCode**. Para **Claude Code**,
+> **Cursor** y **Gemini CLI**, mira la tabla de equivalencias en
+> [Targets (CLIs)](#targets-clis). En el editor, el botón «¿Cómo se usa?»
+> muestra siempre la ruta real del target seleccionado.
+
+---
+
+## Targets (CLIs)
+
+El mismo artefacto se publica en rutas distintas según el CLI elegido en el
+desplegable **Target**. Equivalencias del archivo principal por tipo:
+
+| Tipo | OpenCode | Claude Code | Cursor | Gemini CLI |
+|------|----------|-------------|--------|------------|
+| **Agente / Subagente** | `.opencode/agent/<s>.md` | `.claude/agents/<s>.md` | `.cursor/rules/<s>.mdc` | `.gemini/<s>.md` |
+| **Skill** | `.opencode/skill/<s>/SKILL.md` | `.claude/skills/<s>/SKILL.md` | `.cursor/rules/<s>.mdc` | `.gemini/<s>.md` |
+| **Slash command** | `.opencode/command/<s>.md` | `.claude/commands/<s>.md` | `.cursor/rules/<s>.mdc` | `.gemini/commands/<s>.toml` |
+| **Memoria (raíz)** | `AGENTS.md` | `CLAUDE.md` | `AGENTS.md` | `GEMINI.md` |
+| **Memoria (con nombre)** | `.opencode/memory/<s>.md` | `.claude/memory/<s>.md` | `.cursor/rules/<s>.mdc` | `.gemini/<s>.md` |
+| **MCP** | `.opencode/mcp/<s>.json` | `.mcp.json` | `.cursor/mcp.json` | `.gemini/settings.json` |
+| **Config** | `.opencode/<s>.json` | `.claude/settings.json` | `.cursor/<s>.json` | `.gemini/settings.json` |
+
+Notas por CLI:
+
+- **Cursor** no tiene agentes ni skills como tales: todo se traduce a **reglas**
+  (`.cursor/rules/*.mdc`, frontmatter + markdown). Lee también `AGENTS.md`.
+- **Gemini CLI** centra el contexto en `GEMINI.md` y los comandos personalizados
+  son **TOML** (`.gemini/commands/*.toml`); MCP y config viven en el único
+  `.gemini/settings.json`. Agente/skill no son nativos: caen como markdown de
+  contexto bajo `.gemini/`.
+- **Claude Code**: MCP de proyecto en `.mcp.json` (`{ "mcpServers": { … } }`) y
+  ajustes en `.claude/settings.json`.
+
+> El generador con IA recibe el target en el prompt, así que al generar para
+> Cursor/Gemini intenta producir ya el formato propio (regla `.mdc`, TOML…).
 
 ---
 

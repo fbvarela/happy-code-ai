@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { renderTemplate } from "@/lib/render";
 import { ARTIFACT_TYPES, TYPE_LABELS, TYPE_SCAFFOLDS } from "@/lib/artifact-types";
-import { TYPE_HELP } from "@/lib/artifact-help";
+import { TARGETS, TARGET_LABELS } from "@/lib/targets";
+import { TYPE_HELP, FORMAT_BY_EXT } from "@/lib/artifact-help";
 import { getRenderer } from "@/lib/renderers";
 import { makeZip } from "@/lib/zip";
 import { generateArtifactLocal, LOCAL_DEFAULTS } from "@/lib/local-generate";
@@ -243,6 +244,22 @@ export default function ArtifactEditor({ id }) {
     }
   }, [form.body_template, form.variables, values]);
 
+  // Real destination path + format for the selected target/type, derived from
+  // the renderer so the help stays accurate as targets grow.
+  const helpInfo = useMemo(() => {
+    const meta = TYPE_HELP[form.type];
+    if (!meta) return null;
+    let path = "";
+    try {
+      path = getRenderer(form.target).render(
+        { type: form.type, name: form.name || "ejemplo", target: form.target, frontmatter: {}, body_template: "", variables: [], files: [] },
+        {},
+      ).path;
+    } catch {}
+    const ext = path.split(".").pop();
+    return { ...meta, path, format: FORMAT_BY_EXT[ext] || "Texto" };
+  }, [form.type, form.target, form.name]);
+
   function buildPayload() {
     let frontmatter;
     try {
@@ -337,7 +354,9 @@ export default function ArtifactEditor({ id }) {
             </select>
           </Field>
           <Field label="Target (CLI)">
-            <input style={input} value={form.target} onChange={(e) => set("target", e.target.value)} />
+            <select style={input} value={form.target} onChange={(e) => set("target", e.target.value)}>
+              {TARGETS.map((t) => <option key={t} value={t}>{TARGET_LABELS[t]}</option>)}
+            </select>
           </Field>
         </div>
 
@@ -351,16 +370,16 @@ export default function ArtifactEditor({ id }) {
           {showHelp ? "Ocultar ayuda" : `¿Cómo se usa un ${TYPE_LABELS[form.type]}?`}
         </button>
 
-        {showHelp && TYPE_HELP[form.type] && (
+        {showHelp && helpInfo && (
           <div className="card" style={{ padding: 14, background: "var(--cream)", fontSize: "0.85rem", lineHeight: 1.5 }}>
-            <p style={{ margin: "0 0 8px" }}>{TYPE_HELP[form.type].what}</p>
+            <p style={{ margin: "0 0 8px" }}>{helpInfo.what}</p>
             <p style={{ margin: "0 0 4px" }}>
-              <strong>Archivo:</strong> <code>{TYPE_HELP[form.type].path}</code>
+              <strong>Archivo en {TARGET_LABELS[form.target]}:</strong> <code>{helpInfo.path}</code>
             </p>
             <p style={{ margin: "0 0 8px" }}>
-              <strong>Formato:</strong> {TYPE_HELP[form.type].format}
+              <strong>Formato:</strong> {helpInfo.format}
             </p>
-            <p style={{ margin: 0, color: "var(--text-muted)" }}>{TYPE_HELP[form.type].usage}</p>
+            <p style={{ margin: 0, color: "var(--text-muted)" }}>{helpInfo.usage}</p>
           </div>
         )}
 
