@@ -39,6 +39,33 @@ export default function ArtifactEditor({ id }) {
   const [local, setLocal] = useState({ enabled: false, baseUrl: LOCAL_DEFAULTS.baseUrl, model: LOCAL_DEFAULTS.model });
   const [pub, setPub] = useState({ repos: null, repo: "", branch: "", path: "", openPr: false, busy: false, result: null, error: null });
 
+  // New mode: if a suggestion was picked in the gallery, pre-fill from it once.
+  useEffect(() => {
+    if (!isNew) return;
+    let raw;
+    try {
+      raw = sessionStorage.getItem("hc:suggestion");
+      if (raw) sessionStorage.removeItem("hc:suggestion");
+    } catch {
+      return;
+    }
+    if (!raw) return;
+    try {
+      const a = JSON.parse(raw);
+      setForm({
+        name: a.name || "",
+        type: a.type || "agent",
+        target: a.target || "opencode",
+        frontmatterText: JSON.stringify(a.frontmatter ?? {}, null, 2),
+        body_template: a.body_template ?? "",
+        variables: a.variables ?? [],
+        files: a.files ?? [],
+        tags: a.tags ?? [],
+      });
+      setValues({});
+    } catch {}
+  }, [isNew]);
+
   useEffect(() => {
     if (isNew) return;
     (async () => {
