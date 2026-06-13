@@ -69,6 +69,9 @@ export default function ArtifactLibrary() {
             <option key={v} value={v}>{l}</option>
           ))}
         </select>
+        <button className="btn btn-ghost" type="button" onClick={() => router.push("/suggestions")}>
+          ✨ Sugerencias
+        </button>
         <button className="btn btn-bark" type="button" onClick={() => router.push("/artifacts/new")}>
           + Nuevo
         </button>
