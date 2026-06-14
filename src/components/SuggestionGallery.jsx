@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Wand2 } from "lucide-react";
 import { SUGGESTIONS, SUGGESTION_CATEGORIES } from "@/lib/suggestions";
 import { TYPE_LABELS } from "@/lib/artifact-types";
 
@@ -67,8 +68,8 @@ export default function SuggestionGallery() {
             </div>
             <div style={{ fontWeight: 600, fontSize: "1rem" }}>{s.title}</div>
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: 0, flex: 1, lineHeight: 1.45 }}>{s.summary}</p>
-            <button className="btn btn-bark" type="button" onClick={() => use(s)} style={{ minHeight: 40, alignSelf: "start" }}>
-              Usar plantilla
+            <button className="btn btn-bark" type="button" onClick={() => use(s)} style={{ minHeight: 40, alignSelf: "start", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <Wand2 size={16} /> Usar plantilla
             </button>
           </li>
         ))}

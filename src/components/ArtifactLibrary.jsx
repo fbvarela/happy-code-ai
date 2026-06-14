@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles, BookOpen, Plus, Copy, Trash2 } from "lucide-react";
 import { TYPE_LABELS } from "@/lib/artifact-types";
 
 export default function ArtifactLibrary() {
@@ -69,14 +70,14 @@ export default function ArtifactLibrary() {
             <option key={v} value={v}>{l}</option>
           ))}
         </select>
-        <button className="btn btn-ghost" type="button" onClick={() => router.push("/suggestions")}>
-          ✨ Sugerencias
+        <button className="btn btn-ghost" type="button" onClick={() => router.push("/suggestions")} style={iconBtn}>
+          <Sparkles size={16} /> Sugerencias
         </button>
-        <button className="btn btn-ghost" type="button" onClick={() => router.push("/glossary")}>
-          📖 Glosario
+        <button className="btn btn-ghost" type="button" onClick={() => router.push("/glossary")} style={iconBtn}>
+          <BookOpen size={16} /> Glosario
         </button>
-        <button className="btn btn-bark" type="button" onClick={() => router.push("/artifacts/new")}>
-          + Nuevo
+        <button className="btn btn-bark" type="button" onClick={() => router.push("/artifacts/new")} style={iconBtn}>
+          <Plus size={16} /> Nuevo
         </button>
       </div>
 
@@ -113,8 +114,8 @@ export default function ArtifactLibrary() {
               </>
             ) : (
               <>
-                <button className="btn btn-ghost" type="button" onClick={() => clone(a.id)} style={smallBtn}>Clonar</button>
-                <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(a.id)} style={smallBtn}>Borrar</button>
+                <button className="btn btn-ghost" type="button" onClick={() => clone(a.id)} style={smallIconBtn}><Copy size={14} /> Clonar</button>
+                <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(a.id)} style={smallIconBtn}><Trash2 size={14} /> Borrar</button>
               </>
             )}
           </li>
@@ -141,3 +142,5 @@ const badgeStyle = {
   fontSize: "0.75rem",
 };
 const smallBtn = { minHeight: 36, padding: "0 12px", fontSize: "0.85rem" };
+const iconBtn = { display: "inline-flex", alignItems: "center", gap: 6 };
+const smallIconBtn = { ...smallBtn, display: "inline-flex", alignItems: "center", gap: 5 };
