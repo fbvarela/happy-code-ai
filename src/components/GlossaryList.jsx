@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, Plus, X, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Sparkles, Plus, X, Pencil, Trash2, ExternalLink, ChevronRight } from "lucide-react";
 import { GLOSSARY_SEED, GLOSSARY_CATEGORIES } from "@/lib/glossary";
 
 const CAT_LABEL = Object.fromEntries(GLOSSARY_CATEGORIES.map((c) => [c.id, c.label]));
 const EMPTY_FORM = { term: "", category: "concept", definition: "", links: [], aliases: [] };
 
 export default function GlossaryList() {
+  const router = useRouter();
   const [userEntries, setUserEntries] = useState([]);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("");
@@ -224,7 +226,14 @@ export default function GlossaryList() {
           <li key={e.source + ":" + e.id} className="card" style={{ padding: 16, display: "flex", gap: 12, alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontWeight: 600, fontSize: "1rem" }}>{e.term}</span>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/glossary/${e.id}`)}
+                  title="Ver explicación extendida"
+                  style={termLink}
+                >
+                  {e.term} <ChevronRight size={15} style={{ opacity: 0.45 }} />
+                </button>
                 <span style={badgeStyle}>{CAT_LABEL[e.category] || e.category}</span>
                 {e.source === "user" && <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>tuyo</span>}
               </div>
@@ -287,3 +296,15 @@ const chipStyle = {
 };
 const smallBtn = { minHeight: 36, padding: "0 12px", fontSize: "0.85rem" };
 const iconRow = { display: "inline-flex", alignItems: "center", gap: 6 };
+const termLink = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 2,
+  background: "none",
+  border: "none",
+  padding: 0,
+  fontWeight: 600,
+  fontSize: "1rem",
+  color: "var(--text)",
+  cursor: "pointer",
+};
