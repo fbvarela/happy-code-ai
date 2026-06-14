@@ -1,16 +1,6 @@
-import { z } from "zod";
 import { requireAuth } from "@/utils/auth";
 import sql from "@/utils/db";
-import { GLOSSARY_CATEGORY_IDS } from "@/lib/glossary";
-import { defineTerm, isGroqConfigured } from "@/lib/glossary-generator";
-
-const entryInput = z.object({
-  term: z.string().trim().min(1, "El término es obligatorio").max(120),
-  category: z.enum(GLOSSARY_CATEGORY_IDS).default("concept"),
-  definition: z.string().default(""),
-  aliases: z.array(z.string().trim()).default([]),
-  links: z.array(z.object({ label: z.string().trim(), url: z.string().url() })).max(5).default([]),
-});
+import { entryInput, ensureDefinition } from "@/lib/glossary-entry";
 
 /** GET /api/glossary — the current user's manually-added entries. */
 export async function GET() {
@@ -38,19 +28,10 @@ export async function POST(request) {
   }
   const e = parsed.data;
 
-  if (!e.definition.trim()) {
-    if (!isGroqConfigured()) {
-      return Response.json({ error: "Falta la definición y Groq no está configurado." }, { status: 400 });
-    }
-    try {
-      const gen = await defineTerm(e.term);
-      e.definition = gen.definition;
-      if (!e.links.length) e.links = gen.links || [];
-      if (e.category === "concept" && gen.category) e.category = gen.category;
-    } catch (err) {
-      console.error("glossary define (on save) failed:", err);
-      return Response.json({ error: "No se pudo generar la definición.", message: String(err.message || err) }, { status: 502 });
-    }
+  try {
+    await ensureDefinition(e);
+  } catch (err) {
+    return Response.json({ error: err.message }, { status: err.status || 502 });
   }
 
   const rows = await sql`
