@@ -12,12 +12,38 @@ export default function GlossaryList() {
   const [cat, setCat] = useState("");
   const [confirmId, setConfirmId] = useState(null);
 
-  // Add form state
+  // Add / edit form state (editingId === null means adding a new entry).
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState(null);
+
+  function openAdd() {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setFormError(null);
+    setShowForm(true);
+  }
+  function startEdit(entry) {
+    setEditingId(entry.id);
+    setForm({
+      term: entry.term,
+      category: entry.category,
+      definition: entry.definition,
+      links: (entry.links || []).map((l) => ({ ...l })),
+      aliases: entry.aliases || [],
+    });
+    setFormError(null);
+    setShowForm(true);
+  }
+  function closeForm() {
+    setShowForm(false);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setFormError(null);
+  }
 
   async function load() {
     const res = await fetch("/api/glossary");
@@ -79,8 +105,8 @@ export default function GlossaryList() {
     setSaving(true);
     setFormError(null);
     try {
-      const res = await fetch("/api/glossary", {
-        method: "POST",
+      const res = await fetch(editingId ? `/api/glossary/${editingId}` : "/api/glossary", {
+        method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           term: form.term.trim(),
@@ -92,9 +118,12 @@ export default function GlossaryList() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "No se pudo guardar.");
-      setUserEntries((prev) => [{ ...data, source: "user" }, ...prev]);
-      setForm(EMPTY_FORM);
-      setShowForm(false);
+      if (editingId) {
+        setUserEntries((prev) => prev.map((e) => (e.id === editingId ? { ...data, source: "user" } : e)));
+      } else {
+        setUserEntries((prev) => [{ ...data, source: "user" }, ...prev]);
+      }
+      closeForm();
     } catch (e) {
       setFormError(e.message);
     } finally {
@@ -129,7 +158,7 @@ export default function GlossaryList() {
             <option key={c.id} value={c.id}>{c.label}</option>
           ))}
         </select>
-        <button className="btn btn-bark" type="button" onClick={() => setShowForm((s) => !s)}>
+        <button className="btn btn-bark" type="button" onClick={() => (showForm ? closeForm() : openAdd())}>
           {showForm ? "Cancelar" : "+ Añadir término"}
         </button>
       </div>
@@ -174,7 +203,10 @@ export default function GlossaryList() {
           {formError && <p style={{ color: "var(--clay)", fontSize: "0.85rem", margin: 0 }}>{formError}</p>}
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-bark" type="button" onClick={save} disabled={saving}>
-              {saving ? "Guardando…" : "Guardar"}
+              {saving ? "Guardando…" : editingId ? "Guardar cambios" : "Guardar"}
+            </button>
+            <button className="btn btn-ghost" type="button" onClick={closeForm} disabled={saving}>
+              Cancelar
             </button>
           </div>
         </div>
@@ -214,7 +246,10 @@ export default function GlossaryList() {
                   <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(null)} style={smallBtn}>No</button>
                 </div>
               ) : (
-                <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(e.id)} style={smallBtn}>Borrar</button>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button className="btn btn-ghost" type="button" onClick={() => startEdit(e)} style={smallBtn}>Editar</button>
+                  <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(e.id)} style={smallBtn}>Borrar</button>
+                </div>
               )
             )}
           </li>

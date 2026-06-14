@@ -39,7 +39,8 @@ Related:
   (Claude, ChatGPT, Gemini, Cursor, OpenCode, Ollama, etc.); seed definitions
   are pre-generated with Groq and committed as static data (0 tokens at render).
 - Let an authenticated user **add** a new entry (just the term is required —
-  Groq fills the definition) and **remove** entries, persisted per-user.
+  Groq fills the definition), **edit**, and **remove** their entries, persisted
+  per-user.
 - Keep the feature auth-gated and consistent with existing design tokens and
   component patterns (cards, `btn` classes, no native dialogs).
 
@@ -169,6 +170,10 @@ runtime tokens.
   output. Validates `term` non-empty and each `links[].url` is a valid http(s)
   URL. If `definition` is empty, the server calls `defineTerm` itself before
   inserting, so the cached definition is never blank.
+- `PUT  /api/glossary/:id` — updates one of the caller's own entries (same
+  payload/validation as POST, including Groq backfill if the definition is
+  cleared). Seed entries are not editable. Shared validation + backfill live in
+  `src/lib/glossary-entry.js` (`entryInput`, `ensureDefinition`).
 - `DELETE /api/glossary/:id` — deletes the entry if it belongs to the caller.
 
 All under the existing middleware (session-gated; same as `/api/artifacts`).
@@ -236,8 +241,8 @@ All under the existing middleware (session-gated; same as `/api/artifacts`).
 - Groq definition accuracy/hallucination — definitions are user-reviewed before
   saving, and the prompt instructs the model to flag uncertainty; still, treat
   generated text as a starting point, not authoritative.
-- Open: should users be able to **edit** their own entries, or only add/remove? 
-  also edit
+- Resolved: users can **edit** their own entries (PUT), in addition to
+  add/remove. Seed entries remain read-only.
 - Open: should removing be limited to user entries, or also allow **hiding**
   seed entries per user? (MVP = seed always visible; no hide.)
 - Link rot in seeded URLs — periodic manual review; low risk for MVP.
