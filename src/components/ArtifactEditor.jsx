@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles, Download, Plus, X, ArrowLeft } from "lucide-react";
 import { renderTemplate } from "@/lib/render";
 import { ARTIFACT_TYPES, TYPE_LABELS, TYPE_SCAFFOLDS } from "@/lib/artifact-types";
 import { TARGETS, TARGET_LABELS } from "@/lib/targets";
@@ -360,8 +361,8 @@ export default function ArtifactEditor({ id }) {
                 <input style={{ ...input, minHeight: 36, fontSize: "0.8rem" }} value={local.model} onChange={(e) => setLocal((l) => ({ ...l, model: e.target.value }))} placeholder="qwen2.5-coder" />
               </div>
             )}
-            <button className="btn btn-bark" type="button" onClick={generate} disabled={generating} style={{ marginTop: 8 }}>
-              {generating ? "Generando…" : "Generar borrador"}
+            <button className="btn btn-bark" type="button" onClick={generate} disabled={generating} style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <Sparkles size={16} /> {generating ? "Generando…" : "Generar borrador"}
             </button>
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 6 }}>
               Rellena el formulario; revísalo y guárdalo. O rellena los campos a mano (0 tokens).
@@ -442,14 +443,14 @@ export default function ArtifactEditor({ id }) {
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
             <strong style={{ fontSize: "0.9rem" }}>Variables</strong>
-            <button className="btn btn-ghost" type="button" onClick={addVar} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem" }}>+ Añadir</button>
+            <button className="btn btn-ghost" type="button" onClick={addVar} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: 4 }}><Plus size={14} /> Añadir</button>
           </div>
           {form.variables.length === 0 && <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Sin variables. Añade las que uses en el cuerpo.</p>}
           {form.variables.map((v, i) => (
             <div key={i} style={{ display: "flex", gap: 6, marginBottom: 6 }}>
               <input style={{ ...input, flex: 1 }} placeholder="nombre" value={v.name} onChange={(e) => updateVar(i, "name", e.target.value)} />
               <input style={{ ...input, flex: 1 }} placeholder="valor por defecto" value={v.default} onChange={(e) => updateVar(i, "default", e.target.value)} />
-              <button className="btn btn-ghost" type="button" onClick={() => removeVar(i)} style={{ minHeight: 44, padding: "0 10px" }}>×</button>
+              <button className="btn btn-ghost" type="button" onClick={() => removeVar(i)} aria-label="Quitar variable" style={{ minHeight: 44, padding: "0 10px" }}><X size={16} /></button>
             </div>
           ))}
         </div>
@@ -458,7 +459,7 @@ export default function ArtifactEditor({ id }) {
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
             <strong style={{ fontSize: "0.9rem" }}>Archivos adicionales</strong>
-            <button className="btn btn-ghost" type="button" onClick={addFile} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem" }}>+ Añadir</button>
+            <button className="btn btn-ghost" type="button" onClick={addFile} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: 4 }}><Plus size={14} /> Añadir</button>
           </div>
           <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 6 }}>
             Se commitean junto al principal (rutas relativas a la carpeta del artefacto). Comparten las mismas variables.
@@ -467,7 +468,7 @@ export default function ArtifactEditor({ id }) {
             <div key={i} style={{ display: "grid", gap: 4, marginBottom: 8, border: "1px solid var(--line)", borderRadius: 8, padding: 8 }}>
               <div style={{ display: "flex", gap: 6 }}>
                 <input style={{ ...input, flex: 1, minHeight: 36 }} placeholder="ruta, p. ej. scripts/run.sh" value={f.path} onChange={(e) => updateFile(i, "path", e.target.value)} />
-                <button className="btn btn-ghost" type="button" onClick={() => removeFile(i)} style={{ minHeight: 36, padding: "0 10px" }}>×</button>
+                <button className="btn btn-ghost" type="button" onClick={() => removeFile(i)} aria-label="Quitar archivo" style={{ minHeight: 36, padding: "0 10px" }}><X size={16} /></button>
               </div>
               <textarea style={{ ...input, minHeight: 70, fontFamily: "monospace" }} placeholder="contenido (plantilla Handlebars)" value={f.body_template} onChange={(e) => updateFile(i, "body_template", e.target.value)} />
             </div>
@@ -480,7 +481,7 @@ export default function ArtifactEditor({ id }) {
           <button className="btn btn-bark" type="button" onClick={save} disabled={saving}>
             {saving ? "Guardando…" : isNew ? "Crear" : "Guardar"}
           </button>
-          <button className="btn btn-ghost" type="button" onClick={() => router.push("/")}>Volver</button>
+          <button className="btn btn-ghost" type="button" onClick={() => router.push("/")} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><ArrowLeft size={16} /> Volver</button>
         </div>
       </div>
 
@@ -511,12 +512,12 @@ export default function ArtifactEditor({ id }) {
         </pre>
 
         <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
-          <button className="btn btn-ghost" type="button" onClick={() => download(false)} style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem" }}>
-            {form.files.some((f) => f.path.trim()) ? "Descargar .zip" : "Descargar archivo"}
+          <button className="btn btn-ghost" type="button" onClick={() => download(false)} style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Download size={15} /> {form.files.some((f) => f.path.trim()) ? "Descargar .zip" : "Descargar archivo"}
           </button>
           {!form.files.some((f) => f.path.trim()) && (
-            <button className="btn btn-ghost" type="button" onClick={() => download(true)} style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem" }}>
-              .zip (con ruta)
+            <button className="btn btn-ghost" type="button" onClick={() => download(true)} style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <Download size={15} /> .zip (con ruta)
             </button>
           )}
           <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
