@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Sparkles, Plus, X, Pencil, Trash2, ExternalLink } from "lucide-react";
 import { GLOSSARY_SEED, GLOSSARY_CATEGORIES } from "@/lib/glossary";
 
 const CAT_LABEL = Object.fromEntries(GLOSSARY_CATEGORIES.map((c) => [c.id, c.label]));
@@ -158,8 +159,8 @@ export default function GlossaryList() {
             <option key={c.id} value={c.id}>{c.label}</option>
           ))}
         </select>
-        <button className="btn btn-bark" type="button" onClick={() => (showForm ? closeForm() : openAdd())}>
-          {showForm ? "Cancelar" : "+ Añadir término"}
+        <button className="btn btn-bark" type="button" onClick={() => (showForm ? closeForm() : openAdd())} style={iconRow}>
+          {showForm ? <><X size={16} /> Cancelar</> : <><Plus size={16} /> Añadir término</>}
         </button>
       </div>
 
@@ -177,8 +178,8 @@ export default function GlossaryList() {
                 <option key={c.id} value={c.id}>{c.label}</option>
               ))}
             </select>
-            <button className="btn btn-ghost" type="button" onClick={generate} disabled={generating} style={{ minHeight: 44 }}>
-              {generating ? "Generando…" : "✨ Generar definición"}
+            <button className="btn btn-ghost" type="button" onClick={generate} disabled={generating} style={{ minHeight: 44, ...iconRow }}>
+              <Sparkles size={16} /> {generating ? "Generando…" : "Generar definición"}
             </button>
           </div>
           <textarea
@@ -196,7 +197,7 @@ export default function GlossaryList() {
               <div key={i} style={{ display: "flex", gap: 6, marginBottom: 6 }}>
                 <input style={{ ...inputStyle, flex: 1 }} placeholder="etiqueta" value={l.label} onChange={(e) => updateLink(i, "label", e.target.value)} />
                 <input style={{ ...inputStyle, flex: 2 }} placeholder="https://…" value={l.url} onChange={(e) => updateLink(i, "url", e.target.value)} />
-                <button className="btn btn-ghost" type="button" onClick={() => removeLink(i)} style={{ minHeight: 44, padding: "0 10px" }}>×</button>
+                <button className="btn btn-ghost" type="button" onClick={() => removeLink(i)} aria-label="Quitar enlace" style={{ minHeight: 44, padding: "0 10px" }}><X size={16} /></button>
               </div>
             ))}
           </div>
@@ -231,8 +232,8 @@ export default function GlossaryList() {
               {(e.links || []).length > 0 && (
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
                   {e.links.map((l, i) => (
-                    <a key={i} href={l.url} target="_blank" rel="noreferrer noopener" style={chipStyle}>
-                      {l.label || l.url} ↗
+                    <a key={i} href={l.url} target="_blank" rel="noreferrer noopener" style={{ ...chipStyle, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      {l.label || l.url} <ExternalLink size={12} />
                     </a>
                   ))}
                 </div>
@@ -247,8 +248,8 @@ export default function GlossaryList() {
                 </div>
               ) : (
                 <div style={{ display: "flex", gap: 6 }}>
-                  <button className="btn btn-ghost" type="button" onClick={() => startEdit(e)} style={smallBtn}>Editar</button>
-                  <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(e.id)} style={smallBtn}>Borrar</button>
+                  <button className="btn btn-ghost" type="button" onClick={() => startEdit(e)} style={{ ...smallBtn, ...iconRow }}><Pencil size={14} /> Editar</button>
+                  <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(e.id)} style={{ ...smallBtn, ...iconRow }}><Trash2 size={14} /> Borrar</button>
                 </div>
               )
             )}
@@ -285,3 +286,4 @@ const chipStyle = {
   textDecoration: "none",
 };
 const smallBtn = { minHeight: 36, padding: "0 12px", fontSize: "0.85rem" };
+const iconRow = { display: "inline-flex", alignItems: "center", gap: 6 };
