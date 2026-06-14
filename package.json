@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "node --env-file=.env.local scripts/db-migrate.mjs",
-    "glossary:seed": "node --env-file=.env.local scripts/seed-glossary.mjs"
+    "glossary:seed": "node --env-file=.env.local scripts/seed-glossary.mjs",
+    "icons:pwa": "node scripts/gen-pwa-icons.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.0",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "eslint": "^9.0.0",
-    "eslint-config-next": "^16.0.0"
+    "eslint-config-next": "^16.0.0",
+    "sharp": "^0.35.1"
   }
 }
