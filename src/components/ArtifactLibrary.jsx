@@ -72,6 +72,9 @@ export default function ArtifactLibrary() {
         <button className="btn btn-ghost" type="button" onClick={() => router.push("/suggestions")}>
           ✨ Sugerencias
         </button>
+        <button className="btn btn-ghost" type="button" onClick={() => router.push("/glossary")}>
+          📖 Glosario
+        </button>
         <button className="btn btn-bark" type="button" onClick={() => router.push("/artifacts/new")}>
           + Nuevo
         </button>
