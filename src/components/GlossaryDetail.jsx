@@ -94,7 +94,7 @@ export default function GlossaryDetail({ id }) {
             <span style={badgeStyle}>{CAT_LABEL[entry.category] || entry.category}</span>
           </div>
 
-          <p style={{ fontSize: "1rem", lineHeight: 1.6, marginTop: 10 }}>{entry.definition}</p>
+          <p style={{ fontSize: "1rem", lineHeight: 1.6, marginTop: 10, textAlign: "justify" }}>{entry.definition}</p>
 
           {(entry.links || []).length > 0 && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
@@ -145,7 +145,7 @@ function RichText({ text }) {
           );
         }
         return (
-          <p key={i} style={{ margin: 0, lineHeight: 1.65, whiteSpace: "pre-line" }}>{block}</p>
+          <p key={i} style={{ margin: 0, lineHeight: 1.65, whiteSpace: "pre-line", textAlign: "justify" }}>{block}</p>
         );
       })}
     </div>
