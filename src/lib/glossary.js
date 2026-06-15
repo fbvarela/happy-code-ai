@@ -163,6 +163,18 @@ export const GLOSSARY_SEED = [
     links: [{ label: "chatgpt.com", url: "https://chatgpt.com" }],
   },
   {
+    id: "hermes",
+    term: "Hermes (Nous Research)",
+    category: "model",
+    aliases: ["Hermes 3", "Nous Hermes", "DeepHermes"],
+    definition:
+      "Familia de modelos open-weights de Nous Research: fine-tunes de Llama 3.1 (8B/70B/405B) orientados a agentes, con function calling fiable, salida estructurada (JSON), buen razonamiento y contexto largo, y una filosofía de alineación neutral «dirigida por el usuario» (el system prompt manda, con poco rechazo). La variante DeepHermes 3 añade un modo de razonamiento conmutable. Se ejecutan en local (p. ej. con Ollama) o vía proveedores de inferencia.",
+    links: [
+      { label: "nousresearch.com/hermes3", url: "https://nousresearch.com/hermes3" },
+      { label: "Hugging Face", url: "https://huggingface.co/NousResearch/Hermes-3-Llama-3.1-8B" },
+    ],
+  },
+  {
     id: "gemini",
     term: "Gemini",
     category: "model",
