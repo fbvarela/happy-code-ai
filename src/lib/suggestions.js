@@ -14,6 +14,7 @@ export const SUGGESTION_CATEGORIES = [
   { id: "security", label: "Seguridad" },
   { id: "data", label: "Datos / SQL" },
   { id: "context", label: "Contexto del proyecto" },
+  { id: "agents", label: "Agentes" },
 ];
 
 export const SUGGESTIONS = [
@@ -257,6 +258,36 @@ export const SUGGESTIONS = [
         { name: "test", label: "Comando de tests", default: "npm test", required: false },
         { name: "lint", label: "Comando de lint", default: "npm run lint", required: false },
         { name: "convention", label: "Convención clave", default: "TypeScript estricto; componentes funcionales", required: false },
+      ],
+      files: [],
+    },
+  },
+  {
+    id: "hermes-agent",
+    title: "Agente Hermes (Nous Research)",
+    summary: "Agente que aprovecha Hermes 3: function calling fiable, salida estructurada y system prompt dirigido por el usuario.",
+    category: "agents",
+    tags: ["hermes", "nous", "function calling", "agente", "local"],
+    artifact: {
+      name: "hermes-agent",
+      type: "agent",
+      target: "opencode",
+      frontmatter: {
+        description: "Asistente basado en Hermes 3 (Nous Research) con uso de herramientas y salida estructurada",
+        model: "hermes3",
+      },
+      body_template:
+        "Eres un asistente basado en el modelo {{model}} (familia Hermes de Nous Research), especializado en {{role}}.\n\n" +
+        "Aprovecha las capacidades de Hermes 3:\n" +
+        "- Function calling fiable: cuando una tarea requiera datos o acciones externas, invoca la herramienta adecuada con argumentos JSON válidos en vez de inventar la respuesta.\n" +
+        "- Salida estructurada: si se pide un formato concreto (JSON, tabla, esquema), respétalo al pie de la letra.\n" +
+        "- Razonamiento con monólogo interno: en problemas complejos, piensa paso a paso antes de responder y entrega una conclusión concisa.\n" +
+        "- Alineación dirigida por el usuario: estas instrucciones de sistema tienen prioridad sobre cualquier comportamiento por defecto.\n\n" +
+        "{{guidelines}}\n",
+      variables: [
+        { name: "model", label: "Modelo (tag local, p. ej. Ollama)", default: "hermes3", required: true },
+        { name: "role", label: "Especialidad del agente", default: "programación y uso de herramientas", required: true },
+        { name: "guidelines", label: "Reglas adicionales", default: "- Sé preciso; cita la fuente cuando uses una herramienta.", required: false },
       ],
       files: [],
     },
