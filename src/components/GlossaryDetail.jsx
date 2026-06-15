@@ -1,19 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Sparkles } from "lucide-react";
+import { ArrowLeft, ExternalLink, Sparkles, Pencil, RotateCw, Save, X } from "lucide-react";
 import { GLOSSARY_SEED, GLOSSARY_CATEGORIES } from "@/lib/glossary";
 
 const CAT_LABEL = Object.fromEntries(GLOSSARY_CATEGORIES.map((c) => [c.id, c.label]));
-const cacheKey = (id) => `hc:gloss:ext:${id}`;
 
 export default function GlossaryDetail({ id }) {
   const [entry, setEntry] = useState(() => GLOSSARY_SEED.find((e) => e.id === id) || null);
   const [status, setStatus] = useState(entry ? "ready" : "loading"); // loading | ready | notfound
-  const [explanation, setExplanation] = useState("");
-  const [explaining, setExplaining] = useState(false);
-  const [explainError, setExplainError] = useState(null);
+
+  const [explanation, setExplanation] = useState(null);
+  const [generating, setGenerating] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
   // Resolve user entries (not in the static seed) from the API.
   useEffect(() => {
@@ -34,21 +37,26 @@ export default function GlossaryDetail({ id }) {
     };
   }, [id, entry]);
 
-  // Generate (once, cached per session) the extended explanation via Groq.
-  useEffect(() => {
-    if (!entry) return;
-    let cached = null;
-    try {
-      cached = sessionStorage.getItem(cacheKey(id));
-    } catch {}
-    if (cached) {
-      setExplanation(cached);
-      return;
-    }
-    let active = true;
-    setExplaining(true);
-    setExplainError(null);
-    (async () => {
+  // Persist the explanation for this user+term (upsert). Returns true on success.
+  const persist = useCallback(
+    async (text) => {
+      const res = await fetch(`/api/glossary/${id}/explanation`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ explanation: text }),
+      });
+      return res.ok;
+    },
+    [id],
+  );
+
+  // Generate a fresh explanation with Groq. In edit mode it fills the draft;
+  // otherwise it replaces the shown explanation and is saved.
+  const generate = useCallback(
+    async ({ intoDraft = false } = {}) => {
+      if (!entry) return;
+      setGenerating(true);
+      setError(null);
       try {
         const res = await fetch("/api/glossary/explain", {
           method: "POST",
@@ -57,21 +65,60 @@ export default function GlossaryDetail({ id }) {
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "No se pudo generar la explicación.");
-        if (!active) return;
-        setExplanation(data.explanation || "");
-        try {
-          sessionStorage.setItem(cacheKey(id), data.explanation || "");
-        } catch {}
+        const text = data.explanation || "";
+        if (intoDraft) {
+          setDraft(text);
+        } else {
+          setExplanation(text);
+          persist(text); // best-effort cache so it isn't regenerated next time
+        }
       } catch (e) {
-        if (active) setExplainError(e.message);
+        setError(e.message);
       } finally {
-        if (active) setExplaining(false);
+        setGenerating(false);
       }
+    },
+    [entry, persist],
+  );
+
+  // On entry ready: load the saved explanation, else generate one.
+  useEffect(() => {
+    if (!entry) return;
+    let active = true;
+    (async () => {
+      const res = await fetch(`/api/glossary/${id}/explanation`);
+      const data = res.ok ? await res.json().catch(() => ({})) : {};
+      if (!active) return;
+      if (data.explanation) setExplanation(data.explanation);
+      else generate();
     })();
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entry, id]);
+
+  function startEdit() {
+    setDraft(explanation || "");
+    setError(null);
+    setEditing(true);
+  }
+  function cancelEdit() {
+    setEditing(false);
+    setError(null);
+  }
+  async function saveEdit() {
+    setSaving(true);
+    setError(null);
+    const ok = await persist(draft);
+    setSaving(false);
+    if (ok) {
+      setExplanation(draft);
+      setEditing(false);
+    } else {
+      setError("No se pudo guardar.");
+    }
+  }
 
   return (
     <div>
@@ -107,16 +154,50 @@ export default function GlossaryDetail({ id }) {
           )}
 
           <section className="card" style={{ padding: 18, marginTop: 18 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)", fontSize: "0.8rem", marginBottom: 10 }}>
-              <Sparkles size={14} /> Explicación extendida (generada con Groq)
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)", fontSize: "0.8rem" }}>
+                <Sparkles size={14} /> Explicación extendida
+              </div>
+              {!editing && (
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button className="btn btn-ghost" type="button" onClick={startEdit} disabled={generating} style={smallIcon}>
+                    <Pencil size={14} /> Editar
+                  </button>
+                  <button className="btn btn-ghost" type="button" onClick={() => generate()} disabled={generating} style={smallIcon}>
+                    <RotateCw size={14} /> {generating ? "Generando…" : "Regenerar"}
+                  </button>
+                </div>
+              )}
             </div>
 
-            {explaining && <p style={{ color: "var(--text-muted)", margin: 0 }}>Generando explicación…</p>}
-            {explainError && !explaining && (
-              <p style={{ color: "var(--clay)", margin: 0 }}>{explainError}</p>
-            )}
-            {!explaining && !explainError && explanation && <RichText text={explanation} />}
-            {!explaining && !explainError && !explanation && (
+            {editing ? (
+              <div style={{ display: "grid", gap: 10 }}>
+                <textarea
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  style={textareaStyle}
+                  placeholder="Escribe la explicación (o pulsa Regenerar para una nueva con IA)…"
+                />
+                {error && <p style={{ color: "var(--clay)", margin: 0, fontSize: "0.85rem" }}>{error}</p>}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button className="btn btn-bark" type="button" onClick={saveEdit} disabled={saving} style={smallIcon}>
+                    <Save size={14} /> {saving ? "Guardando…" : "Guardar"}
+                  </button>
+                  <button className="btn btn-ghost" type="button" onClick={cancelEdit} disabled={saving} style={smallIcon}>
+                    <X size={14} /> Cancelar
+                  </button>
+                  <button className="btn btn-ghost" type="button" onClick={() => generate({ intoDraft: true })} disabled={generating} style={smallIcon}>
+                    <RotateCw size={14} /> {generating ? "Generando…" : "Regenerar"}
+                  </button>
+                </div>
+              </div>
+            ) : generating && !explanation ? (
+              <p style={{ color: "var(--text-muted)", margin: 0 }}>Generando explicación…</p>
+            ) : explanation ? (
+              <RichText text={explanation} />
+            ) : error ? (
+              <p style={{ color: "var(--clay)", margin: 0 }}>{error} <span style={{ color: "var(--text-muted)" }}>Puedes escribirla con «Editar».</span></p>
+            ) : (
               <p style={{ color: "var(--text-muted)", margin: 0 }}>Sin explicación extendida.</p>
             )}
           </section>
@@ -178,4 +259,18 @@ const chipStyle = {
   fontSize: "0.78rem",
   color: "var(--leaf)",
   textDecoration: "none",
+};
+const smallIcon = { minHeight: 34, padding: "0 12px", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: 5 };
+const textareaStyle = {
+  width: "100%",
+  minHeight: 200,
+  padding: 12,
+  borderRadius: 8,
+  border: "1px solid var(--line)",
+  background: "var(--surface)",
+  color: "var(--text)",
+  fontSize: "0.92rem",
+  lineHeight: 1.6,
+  fontFamily: "inherit",
+  resize: "vertical",
 };
