@@ -4,12 +4,12 @@
 // definitions cached in the `glossary_entries` table. Keep entries concise.
 
 export const GLOSSARY_CATEGORIES = [
-  { id: "concept", label: "Conceptos" },
-  { id: "ml", label: "Machine learning" },
-  { id: "artifact", label: "Artefactos" },
-  { id: "tool", label: "Herramientas / CLIs" },
-  { id: "model", label: "Modelos" },
-  { id: "protocol", label: "Protocolos" },
+  { id: "concept", label: "Conceptos", label_en: "Concepts" },
+  { id: "ml", label: "Machine learning", label_en: "Machine learning" },
+  { id: "artifact", label: "Artefactos", label_en: "Artifacts" },
+  { id: "tool", label: "Herramientas / CLIs", label_en: "Tools / CLIs" },
+  { id: "model", label: "Modelos", label_en: "Models" },
+  { id: "protocol", label: "Protocolos", label_en: "Protocols" },
 ];
 
 export const GLOSSARY_CATEGORY_IDS = GLOSSARY_CATEGORIES.map((c) => c.id);

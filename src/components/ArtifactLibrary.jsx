@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, BookOpen, Plus, Copy, Trash2 } from "lucide-react";
-import { TYPE_LABELS } from "@/lib/artifact-types";
+import { ARTIFACT_TYPES } from "@/lib/artifact-types";
+import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
 
 export default function ArtifactLibrary() {
   const router = useRouter();
+  const { t, lang } = useI18n();
+  const TYPE_LABELS = TYPE_LABELS_I18N[lang] || TYPE_LABELS_I18N.es;
   const [items, setItems] = useState(null);
   const [q, setQ] = useState("");
   const [type, setType] = useState("");
@@ -61,30 +64,30 @@ export default function ArtifactLibrary() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Buscar por nombre o tag…"
+          placeholder={t("library.searchPlaceholder")}
           style={inputStyle}
         />
         <select value={type} onChange={(e) => setType(e.target.value)} style={inputStyle}>
-          <option value="">Todos los tipos</option>
-          {Object.entries(TYPE_LABELS).map(([v, l]) => (
-            <option key={v} value={v}>{l}</option>
+          <option value="">{t("library.allTypes")}</option>
+          {ARTIFACT_TYPES.map((v) => (
+            <option key={v} value={v}>{TYPE_LABELS[v]}</option>
           ))}
         </select>
         <button className="btn btn-ghost" type="button" onClick={() => router.push("/suggestions")} style={iconBtn}>
-          <Sparkles size={16} /> Sugerencias
+          <Sparkles size={16} /> {t("nav.suggestions")}
         </button>
         <button className="btn btn-ghost" type="button" onClick={() => router.push("/glossary")} style={iconBtn}>
-          <BookOpen size={16} /> Glosario
+          <BookOpen size={16} /> {t("nav.glossary")}
         </button>
         <button className="btn btn-bark" type="button" onClick={() => router.push("/artifacts/new")} style={iconBtn}>
-          <Plus size={16} /> Nuevo
+          <Plus size={16} /> {t("nav.new")}
         </button>
       </div>
 
-      {items === null && <p style={{ color: "var(--text-muted)" }}>Cargando…</p>}
+      {items === null && <p style={{ color: "var(--text-muted)" }}>{t("common.loading")}</p>}
       {items !== null && items.length === 0 && (
         <div className="card" style={{ padding: 24, textAlign: "center", color: "var(--text-muted)" }}>
-          No hay artefactos todavía. Crea el primero con <strong>+ Nuevo</strong>.
+          {t("library.empty")}
         </div>
       )}
 
@@ -108,14 +111,14 @@ export default function ArtifactLibrary() {
             </button>
             {confirmId === a.id ? (
               <>
-                <span style={{ fontSize: "0.85rem", color: "var(--clay)" }}>¿Seguro?</span>
-                <button className="btn btn-ghost" type="button" onClick={() => remove(a.id)} style={{ ...smallBtn, color: "var(--clay)" }}>Sí, borrar</button>
-                <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(null)} style={smallBtn}>No</button>
+                <span style={{ fontSize: "0.85rem", color: "var(--clay)" }}>{t("common.sure")}</span>
+                <button className="btn btn-ghost" type="button" onClick={() => remove(a.id)} style={{ ...smallBtn, color: "var(--clay)" }}>{t("library.confirmDelete")}</button>
+                <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(null)} style={smallBtn}>{t("common.no")}</button>
               </>
             ) : (
               <>
-                <button className="btn btn-ghost" type="button" onClick={() => clone(a.id)} style={smallIconBtn}><Copy size={14} /> Clonar</button>
-                <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(a.id)} style={smallIconBtn}><Trash2 size={14} /> Borrar</button>
+                <button className="btn btn-ghost" type="button" onClick={() => clone(a.id)} style={smallIconBtn}><Copy size={14} /> {t("common.clone")}</button>
+                <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(a.id)} style={smallIconBtn}><Trash2 size={14} /> {t("common.delete")}</button>
               </>
             )}
           </li>

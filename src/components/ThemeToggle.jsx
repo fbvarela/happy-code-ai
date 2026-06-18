@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 /** Floating light/dark toggle. The actual class is applied pre-paint by the
  *  inline script in layout.jsx (no flash); this just reflects + flips it and
  *  persists the choice. */
 export default function ThemeToggle() {
+  const { t } = useI18n();
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
@@ -26,8 +28,8 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-      title={dark ? "Tema claro" : "Tema oscuro"}
+      aria-label={dark ? t("theme.toLight") : t("theme.toDark")}
+      title={dark ? t("theme.toLight") : t("theme.toDark")}
       style={{
         position: "fixed",
         top: 14,
