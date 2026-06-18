@@ -22,14 +22,16 @@ export async function POST(request) {
   const { session, error } = await requireAuth();
   if (error) return error;
 
-  const parsed = entryInput.safeParse(await request.json().catch(() => null));
+  const raw = await request.json().catch(() => null);
+  const parsed = entryInput.safeParse(raw);
   if (!parsed.success) {
     return Response.json({ error: "Payload inválido", details: parsed.error.flatten() }, { status: 400 });
   }
   const e = parsed.data;
+  const lang = raw?.lang === "en" ? "en" : "es";
 
   try {
-    await ensureDefinition(e);
+    await ensureDefinition(e, lang);
   } catch (err) {
     return Response.json({ error: err.message }, { status: err.status || 502 });
   }

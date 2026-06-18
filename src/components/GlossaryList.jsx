@@ -4,12 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, Plus, X, Pencil, Trash2, ExternalLink, ChevronRight } from "lucide-react";
 import { GLOSSARY_SEED, GLOSSARY_CATEGORIES } from "@/lib/glossary";
+import { useI18n, pickLang } from "@/lib/i18n";
 
-const CAT_LABEL = Object.fromEntries(GLOSSARY_CATEGORIES.map((c) => [c.id, c.label]));
 const EMPTY_FORM = { term: "", category: "concept", definition: "", links: [], aliases: [] };
 
 export default function GlossaryList() {
   const router = useRouter();
+  const { t, lang } = useI18n();
+  const CAT_LABEL = Object.fromEntries(GLOSSARY_CATEGORIES.map((c) => [c.id, pickLang(c, "label", lang)]));
   const [userEntries, setUserEntries] = useState([]);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("");
@@ -56,25 +58,29 @@ export default function GlossaryList() {
     load();
   }, []);
 
-  // Merge seed (read-only) + user entries (removable), sorted by term.
+  // Merge seed (read-only) + user entries (removable), localized, sorted by term.
   const entries = useMemo(() => {
     const seed = GLOSSARY_SEED.map((e) => ({ ...e, source: "seed" }));
     const mine = userEntries.map((e) => ({ ...e, source: "user" }));
-    const all = [...seed, ...mine];
+    const all = [...seed, ...mine].map((e) => ({
+      ...e,
+      displayTerm: pickLang(e, "term", lang),
+      displayDef: pickLang(e, "definition", lang),
+    }));
     const needle = q.trim().toLowerCase();
     return all
       .filter((e) => {
         if (cat && e.category !== cat) return false;
         if (!needle) return true;
-        const hay = `${e.term} ${(e.aliases || []).join(" ")} ${e.definition}`.toLowerCase();
+        const hay = `${e.displayTerm} ${(e.aliases || []).join(" ")} ${e.displayDef}`.toLowerCase();
         return hay.includes(needle);
       })
-      .sort((a, b) => a.term.localeCompare(b.term, "es"));
-  }, [userEntries, q, cat]);
+      .sort((a, b) => a.displayTerm.localeCompare(b.displayTerm, lang));
+  }, [userEntries, q, cat, lang]);
 
   async function generate() {
     if (!form.term.trim()) {
-      setFormError("Escribe el término primero.");
+      setFormError(t("glossary.errWriteTermFirst"));
       return;
     }
     setGenerating(true);
@@ -83,10 +89,10 @@ export default function GlossaryList() {
       const res = await fetch("/api/glossary/define", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ term: form.term.trim() }),
+        body: JSON.stringify({ term: form.term.trim(), lang }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "No se pudo generar.");
+      if (!res.ok) throw new Error(data.error || t("glossary.errGenerate"));
       setForm((f) => ({
         ...f,
         definition: data.definition || f.definition,
@@ -102,7 +108,7 @@ export default function GlossaryList() {
 
   async function save() {
     if (!form.term.trim()) {
-      setFormError("El término es obligatorio.");
+      setFormError(t("glossary.errTermRequired"));
       return;
     }
     setSaving(true);
@@ -117,10 +123,11 @@ export default function GlossaryList() {
           definition: form.definition,
           links: form.links.filter((l) => l.url.trim()),
           aliases: form.aliases,
+          lang,
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "No se pudo guardar.");
+      if (!res.ok) throw new Error(data.error || t("glossary.errSave"));
       if (editingId) {
         setUserEntries((prev) => prev.map((e) => (e.id === editingId ? { ...data, source: "user" } : e)));
       } else {
@@ -154,15 +161,15 @@ export default function GlossaryList() {
   return (
     <section>
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar término…" style={inputStyle} />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("glossary.searchPlaceholder")} style={inputStyle} />
         <select value={cat} onChange={(e) => setCat(e.target.value)} style={inputStyle}>
-          <option value="">Todas las categorías</option>
+          <option value="">{t("common.allCategories")}</option>
           {GLOSSARY_CATEGORIES.map((c) => (
-            <option key={c.id} value={c.id}>{c.label}</option>
+            <option key={c.id} value={c.id}>{pickLang(c, "label", lang)}</option>
           ))}
         </select>
         <button className="btn btn-bark" type="button" onClick={() => (showForm ? closeForm() : openAdd())} style={iconRow}>
-          {showForm ? <><X size={16} /> Cancelar</> : <><Plus size={16} /> Añadir término</>}
+          {showForm ? <><X size={16} /> {t("common.cancel")}</> : <><Plus size={16} /> {t("glossary.addTerm")}</>}
         </button>
       </div>
 
@@ -171,33 +178,33 @@ export default function GlossaryList() {
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <input
               style={{ ...inputStyle, flex: 2, minWidth: 200 }}
-              placeholder="Término (p. ej. Prompt caching)"
+              placeholder={t("glossary.termPlaceholder")}
               value={form.term}
               onChange={(e) => setForm((f) => ({ ...f, term: e.target.value }))}
             />
             <select style={{ ...inputStyle, flex: 1, minWidth: 140 }} value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
               {GLOSSARY_CATEGORIES.map((c) => (
-                <option key={c.id} value={c.id}>{c.label}</option>
+                <option key={c.id} value={c.id}>{pickLang(c, "label", lang)}</option>
               ))}
             </select>
             <button className="btn btn-ghost" type="button" onClick={generate} disabled={generating} style={{ minHeight: 44, ...iconRow }}>
-              <Sparkles size={16} /> {generating ? "Generando…" : "Generar definición"}
+              <Sparkles size={16} /> {generating ? t("glossary.generating") : t("glossary.generateDef")}
             </button>
           </div>
           <textarea
             style={{ ...inputStyle, minHeight: 90, padding: 10, lineHeight: 1.5 }}
-            placeholder="Definición (o genérala con Groq; si la dejas vacía se generará al guardar)"
+            placeholder={t("glossary.defPlaceholder")}
             value={form.definition}
             onChange={(e) => setForm((f) => ({ ...f, definition: e.target.value }))}
           />
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <strong style={{ fontSize: "0.85rem" }}>Enlaces</strong>
-              <button className="btn btn-ghost" type="button" onClick={addLink} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem" }}>+ Añadir</button>
+              <strong style={{ fontSize: "0.85rem" }}>{t("glossary.links")}</strong>
+              <button className="btn btn-ghost" type="button" onClick={addLink} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem" }}>+ {t("common.add")}</button>
             </div>
             {form.links.map((l, i) => (
               <div key={i} style={{ display: "flex", gap: 6, marginBottom: 6 }}>
-                <input style={{ ...inputStyle, flex: 1 }} placeholder="etiqueta" value={l.label} onChange={(e) => updateLink(i, "label", e.target.value)} />
+                <input style={{ ...inputStyle, flex: 1 }} placeholder={t("glossary.linkLabel")} value={l.label} onChange={(e) => updateLink(i, "label", e.target.value)} />
                 <input style={{ ...inputStyle, flex: 2 }} placeholder="https://…" value={l.url} onChange={(e) => updateLink(i, "url", e.target.value)} />
                 <button className="btn btn-ghost" type="button" onClick={() => removeLink(i)} aria-label="Quitar enlace" style={{ minHeight: 44, padding: "0 10px" }}><X size={16} /></button>
               </div>
@@ -206,10 +213,10 @@ export default function GlossaryList() {
           {formError && <p style={{ color: "var(--clay)", fontSize: "0.85rem", margin: 0 }}>{formError}</p>}
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-bark" type="button" onClick={save} disabled={saving}>
-              {saving ? "Guardando…" : editingId ? "Guardar cambios" : "Guardar"}
+              {saving ? t("common.saving") : editingId ? t("glossary.saveChanges") : t("common.save")}
             </button>
             <button className="btn btn-ghost" type="button" onClick={closeForm} disabled={saving}>
-              Cancelar
+              {t("common.cancel")}
             </button>
           </div>
         </div>
@@ -217,7 +224,7 @@ export default function GlossaryList() {
 
       {entries.length === 0 && (
         <div className="card" style={{ padding: 24, textAlign: "center", color: "var(--text-muted)" }}>
-          No hay términos para ese filtro.
+          {t("glossary.empty")}
         </div>
       )}
 
@@ -229,15 +236,15 @@ export default function GlossaryList() {
                 <button
                   type="button"
                   onClick={() => router.push(`/glossary/${e.id}`)}
-                  title="Ver explicación extendida"
+                  title={t("glossary.viewExtended")}
                   style={termLink}
                 >
-                  {e.term} <ChevronRight size={15} style={{ opacity: 0.45 }} />
+                  {e.displayTerm} <ChevronRight size={15} style={{ opacity: 0.45 }} />
                 </button>
                 <span style={badgeStyle}>{CAT_LABEL[e.category] || e.category}</span>
-                {e.source === "user" && <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>tuyo</span>}
+                {e.source === "user" && <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{t("glossary.yours")}</span>}
               </div>
-              <p style={{ fontSize: "0.88rem", color: "var(--text)", margin: "6px 0 0", lineHeight: 1.5 }}>{e.definition}</p>
+              <p style={{ fontSize: "0.88rem", color: "var(--text)", margin: "6px 0 0", lineHeight: 1.5 }}>{e.displayDef}</p>
               {(e.links || []).length > 0 && (
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
                   {e.links.map((l, i) => (
@@ -251,14 +258,14 @@ export default function GlossaryList() {
             {e.source === "user" && (
               confirmId === e.id ? (
                 <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                  <span style={{ fontSize: "0.8rem", color: "var(--clay)" }}>¿Seguro?</span>
-                  <button className="btn btn-ghost" type="button" onClick={() => remove(e.id)} style={{ ...smallBtn, color: "var(--clay)" }}>Sí</button>
-                  <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(null)} style={smallBtn}>No</button>
+                  <span style={{ fontSize: "0.8rem", color: "var(--clay)" }}>{t("common.sure")}</span>
+                  <button className="btn btn-ghost" type="button" onClick={() => remove(e.id)} style={{ ...smallBtn, color: "var(--clay)" }}>{t("common.yes")}</button>
+                  <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(null)} style={smallBtn}>{t("common.no")}</button>
                 </div>
               ) : (
                 <div style={{ display: "flex", gap: 6 }}>
-                  <button className="btn btn-ghost" type="button" onClick={() => startEdit(e)} style={{ ...smallBtn, ...iconRow }}><Pencil size={14} /> Editar</button>
-                  <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(e.id)} style={{ ...smallBtn, ...iconRow }}><Trash2 size={14} /> Borrar</button>
+                  <button className="btn btn-ghost" type="button" onClick={() => startEdit(e)} style={{ ...smallBtn, ...iconRow }}><Pencil size={14} /> {t("common.edit")}</button>
+                  <button className="btn btn-ghost" type="button" onClick={() => setConfirmId(e.id)} style={{ ...smallBtn, ...iconRow }}><Trash2 size={14} /> {t("common.delete")}</button>
                 </div>
               )
             )}

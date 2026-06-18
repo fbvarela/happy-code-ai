@@ -5,23 +5,25 @@
 // files }. The user picks one, it pre-fills the editor, then tweaks + saves.
 
 export const SUGGESTION_CATEGORIES = [
-  { id: "review", label: "Revisión de código" },
-  { id: "testing", label: "Tests" },
-  { id: "git", label: "Git / PRs" },
-  { id: "docs", label: "Documentación" },
-  { id: "refactor", label: "Refactor" },
-  { id: "debug", label: "Depuración" },
-  { id: "security", label: "Seguridad" },
-  { id: "data", label: "Datos / SQL" },
-  { id: "context", label: "Contexto del proyecto" },
-  { id: "agents", label: "Agentes" },
+  { id: "review", label: "Revisión de código", label_en: "Code review" },
+  { id: "testing", label: "Tests", label_en: "Tests" },
+  { id: "git", label: "Git / PRs", label_en: "Git / PRs" },
+  { id: "docs", label: "Documentación", label_en: "Documentation" },
+  { id: "refactor", label: "Refactor", label_en: "Refactor" },
+  { id: "debug", label: "Depuración", label_en: "Debugging" },
+  { id: "security", label: "Seguridad", label_en: "Security" },
+  { id: "data", label: "Datos / SQL", label_en: "Data / SQL" },
+  { id: "context", label: "Contexto del proyecto", label_en: "Project context" },
+  { id: "agents", label: "Agentes", label_en: "Agents" },
 ];
 
 export const SUGGESTIONS = [
   {
     id: "code-reviewer",
     title: "Revisor de código",
+    title_en: "Code reviewer",
     summary: "Subagente que revisa un diff buscando bugs, fugas, estilo y casos límite.",
+    summary_en: "Subagent that reviews a diff for bugs, leaks, style and edge cases.",
     category: "review",
     tags: ["review", "calidad", "diff"],
     artifact: {
@@ -44,7 +46,9 @@ export const SUGGESTIONS = [
   {
     id: "test-writer",
     title: "Generar tests",
+    title_en: "Generate tests",
     summary: "Slash command que escribe tests unitarios para el código que le pases.",
+    summary_en: "Slash command that writes unit tests for the code you give it.",
     category: "testing",
     tags: ["tests", "unit", "tdd"],
     artifact: {
@@ -66,7 +70,9 @@ export const SUGGESTIONS = [
   {
     id: "conventional-commits",
     title: "Mensajes de commit",
+    title_en: "Commit messages",
     summary: "Skill que redacta mensajes de commit (Conventional Commits) desde el diff staged.",
+    summary_en: "Skill that drafts commit messages (Conventional Commits) from the staged diff.",
     category: "git",
     tags: ["git", "commits", "conventional"],
     artifact: {
@@ -91,7 +97,9 @@ export const SUGGESTIONS = [
   {
     id: "pr-describer",
     title: "Describir PR",
+    title_en: "Describe PR",
     summary: "Slash command que genera título y descripción de PR a partir de la rama.",
+    summary_en: "Slash command that generates a PR title and description from the branch.",
     category: "git",
     tags: ["git", "pr", "github"],
     artifact: {
@@ -115,7 +123,9 @@ export const SUGGESTIONS = [
   {
     id: "debugger",
     title: "Depurador",
+    title_en: "Debugger",
     summary: "Subagente que analiza un stack trace o test fallido y propone la causa raíz.",
+    summary_en: "Subagent that analyzes a stack trace or failing test and proposes the root cause.",
     category: "debug",
     tags: ["debug", "stacktrace", "rca"],
     artifact: {
@@ -137,7 +147,9 @@ export const SUGGESTIONS = [
   {
     id: "refactorer",
     title: "Refactorizador",
+    title_en: "Refactorer",
     summary: "Agente que mejora la legibilidad sin cambiar el comportamiento observable.",
+    summary_en: "Agent that improves readability without changing observable behavior.",
     category: "refactor",
     tags: ["refactor", "limpieza", "calidad"],
     artifact: {
@@ -162,7 +174,9 @@ export const SUGGESTIONS = [
   {
     id: "doc-writer",
     title: "Documentar API",
+    title_en: "Document API",
     summary: "Slash command que añade docstrings/JSDoc al código seleccionado.",
+    summary_en: "Slash command that adds docstrings/JSDoc to the selected code.",
     category: "docs",
     tags: ["docs", "docstring", "jsdoc"],
     artifact: {
@@ -185,7 +199,9 @@ export const SUGGESTIONS = [
   {
     id: "security-auditor",
     title: "Auditor de seguridad",
+    title_en: "Security auditor",
     summary: "Subagente que busca vulnerabilidades comunes (OWASP) en el código.",
+    summary_en: "Subagent that hunts for common vulnerabilities (OWASP) in the code.",
     category: "security",
     tags: ["seguridad", "owasp", "audit"],
     artifact: {
@@ -208,7 +224,9 @@ export const SUGGESTIONS = [
   {
     id: "sql-optimizer",
     title: "Optimizar SQL",
+    title_en: "Optimize SQL",
     summary: "Subagente que analiza una consulta SQL y propone mejoras e índices.",
+    summary_en: "Subagent that analyzes a SQL query and proposes rewrites and indexes.",
     category: "data",
     tags: ["sql", "rendimiento", "índices"],
     artifact: {
@@ -232,7 +250,9 @@ export const SUGGESTIONS = [
   {
     id: "project-conventions",
     title: "Convenciones del proyecto",
+    title_en: "Project conventions",
     summary: "Memoria que el CLI lee siempre: build, estilo y reglas del repo.",
+    summary_en: "Memory the CLI always reads: build, style and repo rules.",
     category: "context",
     tags: ["memoria", "convenciones", "contexto"],
     artifact: {
@@ -265,7 +285,9 @@ export const SUGGESTIONS = [
   {
     id: "hermes-agent",
     title: "Agente Hermes (Nous Research)",
+    title_en: "Hermes agent (Nous Research)",
     summary: "Agente que aprovecha Hermes 3: function calling fiable, salida estructurada y system prompt dirigido por el usuario.",
+    summary_en: "Agent that leverages Hermes 3: reliable function calling, structured output and user-steered system prompt.",
     category: "agents",
     tags: ["hermes", "nous", "function calling", "agente", "local"],
     artifact: {

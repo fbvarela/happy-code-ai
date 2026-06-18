@@ -16,10 +16,11 @@ export async function POST(request) {
 
   const body = await request.json().catch(() => ({}));
   const term = (body?.term || "").trim();
+  const lang = body?.lang === "en" ? "en" : "es";
   if (!term) return Response.json({ error: "term es obligatorio" }, { status: 400 });
 
   try {
-    const result = await defineTerm(term);
+    const result = await defineTerm(term, lang);
     return Response.json(result);
   } catch (err) {
     console.error("glossary define failed:", err);

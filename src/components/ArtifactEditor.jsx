@@ -4,14 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, Download, Plus, X, ArrowLeft } from "lucide-react";
 import { renderTemplate } from "@/lib/render";
-import { ARTIFACT_TYPES, TYPE_LABELS, TYPE_SCAFFOLDS } from "@/lib/artifact-types";
+import { ARTIFACT_TYPES, TYPE_SCAFFOLDS } from "@/lib/artifact-types";
 import { TARGETS, TARGET_LABELS } from "@/lib/targets";
 import { TYPE_HELP, FORMAT_BY_EXT } from "@/lib/artifact-help";
 import { getRenderer } from "@/lib/renderers";
 import { makeZip } from "@/lib/zip";
 import { generateArtifactLocal, LOCAL_DEFAULTS } from "@/lib/local-generate";
-
-const TYPES = ARTIFACT_TYPES.map((v) => [v, TYPE_LABELS[v]]);
+import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
 
 const EMPTY = {
   name: "",
@@ -26,6 +25,9 @@ const EMPTY = {
 
 export default function ArtifactEditor({ id }) {
   const router = useRouter();
+  const { t, lang } = useI18n();
+  const TYPE_LABELS = TYPE_LABELS_I18N[lang] || TYPE_LABELS_I18N.es;
+  const TYPES = ARTIFACT_TYPES.map((v) => [v, TYPE_LABELS[v]]);
   const isNew = !id;
   const [form, setForm] = useState(EMPTY);
   const [values, setValues] = useState({});
@@ -152,13 +154,13 @@ export default function ArtifactEditor({ id }) {
         });
         if (!res.ok) {
           const e = await res.json().catch(() => ({}));
-          throw new Error(e.error || "No se pudo generar.");
+          throw new Error(e.error || t("editor.errGenerate"));
         }
         draft = (await res.json()).draft;
       }
     } catch (e) {
       setGenerating(false);
-      setError(e.message || "No se pudo generar.");
+      setError(e.message || t("editor.errGenerate"));
       return;
     }
     setGenerating(false);
@@ -250,7 +252,7 @@ export default function ArtifactEditor({ id }) {
       return;
     }
     if (!artifact.name) {
-      setError("Pon un nombre antes de descargar.");
+      setError(t("editor.errNameDownload"));
       return;
     }
     const { files } = getRenderer(artifact.target).render(artifact, values);
@@ -293,7 +295,7 @@ export default function ArtifactEditor({ id }) {
     try {
       frontmatter = JSON.parse(form.frontmatterText || "{}");
     } catch {
-      throw new Error("El frontmatter no es JSON válido.");
+      throw new Error(t("editor.errFrontmatter"));
     }
     return {
       name: form.name.trim(),
@@ -317,7 +319,7 @@ export default function ArtifactEditor({ id }) {
       return;
     }
     if (!payload.name) {
-      setError("El nombre es obligatorio.");
+      setError(t("editor.errName"));
       return;
     }
     setSaving(true);
@@ -328,7 +330,7 @@ export default function ArtifactEditor({ id }) {
     });
     setSaving(false);
     if (!res.ok) {
-      setError("Error al guardar (revisa los campos).");
+      setError(t("editor.errSave"));
       return;
     }
     const saved = await res.json();
@@ -344,16 +346,16 @@ export default function ArtifactEditor({ id }) {
       <div style={{ display: "grid", gap: 14 }}>
         {isNew && (
           <div className="card" style={{ padding: 14, background: "var(--cream)" }}>
-            <div style={{ fontSize: "0.85rem", fontWeight: 600, marginBottom: 6 }}>Generar con IA</div>
+            <div style={{ fontSize: "0.85rem", fontWeight: 600, marginBottom: 6 }}>{t("editor.aiGenerate")}</div>
             <textarea
               style={{ ...input, minHeight: 60 }}
               value={genPrompt}
               onChange={(e) => setGenPrompt(e.target.value)}
-              placeholder="p. ej. un subagente que escribe tests JUnit5 + Mockito siguiendo mis convenciones"
+              placeholder={t("editor.aiPromptPlaceholder")}
             />
             <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, fontSize: "0.8rem", color: "var(--text-muted)" }}>
               <input type="checkbox" checked={local.enabled} onChange={(e) => setLocal((l) => ({ ...l, enabled: e.target.checked }))} />
-              Usar modelo local (Ollama / LM Studio) — 0 tokens
+              {t("editor.useLocalModel")}
             </label>
             {local.enabled && (
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
@@ -362,28 +364,28 @@ export default function ArtifactEditor({ id }) {
               </div>
             )}
             <button className="btn btn-bark" type="button" onClick={generate} disabled={generating} style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <Sparkles size={16} /> {generating ? "Generando…" : "Generar borrador"}
+              <Sparkles size={16} /> {generating ? t("editor.generating") : t("editor.generateDraft")}
             </button>
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 6 }}>
-              Rellena el formulario; revísalo y guárdalo. O rellena los campos a mano (0 tokens).
-              {local.enabled && " El modelo local requiere CORS (OLLAMA_ORIGINS) habilitado."}
+              {t("editor.aiHint")}
+              {local.enabled && ` ${t("editor.aiHintLocal")}`}
             </p>
           </div>
         )}
 
-        <Field label="Nombre">
+        <Field label={t("editor.name")}>
           <input style={input} value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="test-writer" />
         </Field>
 
         <div style={{ display: "flex", gap: 12 }}>
-          <Field label="Tipo">
+          <Field label={t("editor.type")}>
             <select style={input} value={form.type} onChange={(e) => onChangeType(e.target.value)}>
               {TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </Field>
-          <Field label="Target (CLI)">
+          <Field label={t("editor.target")}>
             <select style={input} value={form.target} onChange={(e) => set("target", e.target.value)}>
-              {TARGETS.map((t) => <option key={t} value={t}>{TARGET_LABELS[t]}</option>)}
+              {TARGETS.map((tg) => <option key={tg} value={tg}>{TARGET_LABELS[tg]}</option>)}
             </select>
           </Field>
         </div>
@@ -395,17 +397,17 @@ export default function ArtifactEditor({ id }) {
           aria-expanded={showHelp}
           style={{ minHeight: 32, padding: "0 12px", fontSize: "0.8rem", justifySelf: "start" }}
         >
-          {showHelp ? "Ocultar ayuda" : `¿Cómo se usa un ${TYPE_LABELS[form.type]}?`}
+          {showHelp ? t("editor.hideHelp") : t("editor.howToUse", { type: TYPE_LABELS[form.type] })}
         </button>
 
         {showHelp && helpInfo && (
           <div className="card" style={{ padding: 14, background: "var(--cream)", fontSize: "0.85rem", lineHeight: 1.5 }}>
             <p style={{ margin: "0 0 8px" }}>{helpInfo.what}</p>
             <p style={{ margin: "0 0 4px" }}>
-              <strong>Archivo en {TARGET_LABELS[form.target]}:</strong> <code>{helpInfo.path}</code>
+              <strong>{t("editor.fileIn", { target: TARGET_LABELS[form.target] })}</strong> <code>{helpInfo.path}</code>
             </p>
             <p style={{ margin: "0 0 8px" }}>
-              <strong>Formato:</strong> {helpInfo.format}
+              <strong>{t("editor.format")}</strong> {helpInfo.format}
             </p>
             <p style={{ margin: 0, color: "var(--text-muted)" }}>{helpInfo.usage}</p>
           </div>
@@ -418,38 +420,38 @@ export default function ArtifactEditor({ id }) {
             onClick={() => applyScaffold(form.type)}
             style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem", justifySelf: "start" }}
           >
-            Usar plantilla base de {TYPE_LABELS[form.type]}
+            {t("editor.useTemplate", { type: TYPE_LABELS[form.type] })}
           </button>
         )}
 
-        <Field label="Tags (separados por coma)">
+        <Field label={t("editor.tags")}>
           <input
             style={input}
             value={form.tags.join(", ")}
             onChange={(e) => set("tags", e.target.value.split(",").map((t) => t.trim()).filter(Boolean))}
-            placeholder="java, tests"
+            placeholder={t("editor.tagsPlaceholder")}
           />
         </Field>
 
-        <Field label="Frontmatter (JSON)">
+        <Field label={t("editor.frontmatter")}>
           <textarea style={{ ...input, minHeight: 90, fontFamily: "monospace" }} value={form.frontmatterText} onChange={(e) => set("frontmatterText", e.target.value)} />
         </Field>
 
-        <Field label="Cuerpo (plantilla Handlebars — usa {{variable}})">
+        <Field label={t("editor.body")}>
           <textarea style={{ ...input, minHeight: 180, fontFamily: "monospace" }} value={form.body_template} onChange={(e) => set("body_template", e.target.value)} />
         </Field>
 
         {/* Variables */}
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <strong style={{ fontSize: "0.9rem" }}>Variables</strong>
-            <button className="btn btn-ghost" type="button" onClick={addVar} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: 4 }}><Plus size={14} /> Añadir</button>
+            <strong style={{ fontSize: "0.9rem" }}>{t("editor.variables")}</strong>
+            <button className="btn btn-ghost" type="button" onClick={addVar} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: 4 }}><Plus size={14} /> {t("common.add")}</button>
           </div>
-          {form.variables.length === 0 && <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Sin variables. Añade las que uses en el cuerpo.</p>}
+          {form.variables.length === 0 && <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{t("editor.noVariables")}</p>}
           {form.variables.map((v, i) => (
             <div key={i} style={{ display: "flex", gap: 6, marginBottom: 6 }}>
-              <input style={{ ...input, flex: 1 }} placeholder="nombre" value={v.name} onChange={(e) => updateVar(i, "name", e.target.value)} />
-              <input style={{ ...input, flex: 1 }} placeholder="valor por defecto" value={v.default} onChange={(e) => updateVar(i, "default", e.target.value)} />
+              <input style={{ ...input, flex: 1 }} placeholder={t("editor.varName")} value={v.name} onChange={(e) => updateVar(i, "name", e.target.value)} />
+              <input style={{ ...input, flex: 1 }} placeholder={t("editor.varDefault")} value={v.default} onChange={(e) => updateVar(i, "default", e.target.value)} />
               <button className="btn btn-ghost" type="button" onClick={() => removeVar(i)} aria-label="Quitar variable" style={{ minHeight: 44, padding: "0 10px" }}><X size={16} /></button>
             </div>
           ))}
@@ -458,19 +460,19 @@ export default function ArtifactEditor({ id }) {
         {/* Extra files (e.g. a skill's helper files) */}
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <strong style={{ fontSize: "0.9rem" }}>Archivos adicionales</strong>
-            <button className="btn btn-ghost" type="button" onClick={addFile} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: 4 }}><Plus size={14} /> Añadir</button>
+            <strong style={{ fontSize: "0.9rem" }}>{t("editor.extraFiles")}</strong>
+            <button className="btn btn-ghost" type="button" onClick={addFile} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: 4 }}><Plus size={14} /> {t("common.add")}</button>
           </div>
           <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 6 }}>
-            Se commitean junto al principal (rutas relativas a la carpeta del artefacto). Comparten las mismas variables.
+            {t("editor.extraFilesHint")}
           </p>
           {form.files.map((f, i) => (
             <div key={i} style={{ display: "grid", gap: 4, marginBottom: 8, border: "1px solid var(--line)", borderRadius: 8, padding: 8 }}>
               <div style={{ display: "flex", gap: 6 }}>
-                <input style={{ ...input, flex: 1, minHeight: 36 }} placeholder="ruta, p. ej. scripts/run.sh" value={f.path} onChange={(e) => updateFile(i, "path", e.target.value)} />
+                <input style={{ ...input, flex: 1, minHeight: 36 }} placeholder={t("editor.filePathPlaceholder")} value={f.path} onChange={(e) => updateFile(i, "path", e.target.value)} />
                 <button className="btn btn-ghost" type="button" onClick={() => removeFile(i)} aria-label="Quitar archivo" style={{ minHeight: 36, padding: "0 10px" }}><X size={16} /></button>
               </div>
-              <textarea style={{ ...input, minHeight: 70, fontFamily: "monospace" }} placeholder="contenido (plantilla Handlebars)" value={f.body_template} onChange={(e) => updateFile(i, "body_template", e.target.value)} />
+              <textarea style={{ ...input, minHeight: 70, fontFamily: "monospace" }} placeholder={t("editor.fileBodyPlaceholder")} value={f.body_template} onChange={(e) => updateFile(i, "body_template", e.target.value)} />
             </div>
           ))}
         </div>
@@ -479,15 +481,15 @@ export default function ArtifactEditor({ id }) {
 
         <div style={{ display: "flex", gap: 10 }}>
           <button className="btn btn-bark" type="button" onClick={save} disabled={saving}>
-            {saving ? "Guardando…" : isNew ? "Crear" : "Guardar"}
+            {saving ? t("common.saving") : isNew ? t("editor.create") : t("common.save")}
           </button>
-          <button className="btn btn-ghost" type="button" onClick={() => router.push("/")} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><ArrowLeft size={16} /> Volver</button>
+          <button className="btn btn-ghost" type="button" onClick={() => router.push("/")} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><ArrowLeft size={16} /> {t("nav.back")}</button>
         </div>
       </div>
 
       {/* ── Preview column ── */}
       <div className="card" style={{ padding: 16, position: "sticky", top: 20 }}>
-        <strong style={{ fontSize: "0.9rem" }}>Vista previa (0 tokens)</strong>
+        <strong style={{ fontSize: "0.9rem" }}>{t("editor.preview")}</strong>
         {form.variables.length > 0 && (
           <div style={{ display: "grid", gap: 6, margin: "10px 0" }}>
             {form.variables.filter((v) => v.name).map((v, i) => (
@@ -508,50 +510,50 @@ export default function ArtifactEditor({ id }) {
           padding: 12, fontSize: "0.8rem", whiteSpace: "pre-wrap", wordBreak: "break-word",
           color: preview.ok ? "var(--text)" : "var(--clay)", maxHeight: 420, overflow: "auto",
         }}>
-          {preview.text || "(vacío)"}
+          {preview.text || t("editor.empty")}
         </pre>
 
         <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
           <button className="btn btn-ghost" type="button" onClick={() => download(false)} style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <Download size={15} /> {form.files.some((f) => f.path.trim()) ? "Descargar .zip" : "Descargar archivo"}
+            <Download size={15} /> {form.files.some((f) => f.path.trim()) ? t("editor.downloadZip") : t("editor.downloadFile")}
           </button>
           {!form.files.some((f) => f.path.trim()) && (
             <button className="btn btn-ghost" type="button" onClick={() => download(true)} style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <Download size={15} /> .zip (con ruta)
+              <Download size={15} /> {t("editor.zipWithPath")}
             </button>
           )}
           <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-            Renderizado con los valores actuales (0 tokens).
+            {t("editor.renderedNote")}
           </span>
         </div>
 
         {!isNew && (
           <div style={{ marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
-            <strong style={{ fontSize: "0.9rem" }}>Publicar en GitHub</strong>
+            <strong style={{ fontSize: "0.9rem" }}>{t("editor.publishGithub")}</strong>
             {pub.repos === null ? (
               <div style={{ marginTop: 8 }}>
                 <button className="btn btn-ghost" type="button" onClick={loadRepos} style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem" }}>
-                  Cargar mis repos
+                  {t("editor.loadRepos")}
                 </button>
               </div>
             ) : (
               <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
                 <select style={input} value={pub.repo} onChange={(e) => setPub((p) => ({ ...p, repo: e.target.value }))}>
-                  {pub.repos.map((r) => <option key={r.full_name} value={r.full_name}>{r.full_name}{r.private ? " (privado)" : ""}</option>)}
+                  {pub.repos.map((r) => <option key={r.full_name} value={r.full_name}>{r.full_name}{r.private ? " (private)" : ""}</option>)}
                 </select>
-                <input style={input} placeholder="rama (vacío = por defecto)" value={pub.branch} onChange={(e) => setPub((p) => ({ ...p, branch: e.target.value }))} />
-                <input style={input} placeholder="ruta (vacío = la del renderer)" value={pub.path} onChange={(e) => setPub((p) => ({ ...p, path: e.target.value }))} />
+                <input style={input} placeholder={t("editor.branchPlaceholder")} value={pub.branch} onChange={(e) => setPub((p) => ({ ...p, branch: e.target.value }))} />
+                <input style={input} placeholder={t("editor.pathPlaceholder")} value={pub.path} onChange={(e) => setPub((p) => ({ ...p, path: e.target.value }))} />
                 <div style={{ display: "flex", gap: 8 }}>
                   <button className="btn btn-bark" type="button" onClick={publish} disabled={pub.busy || !pub.repo} style={{ flex: 1 }}>
-                    {pub.busy ? "…" : "Publicar"}
+                    {pub.busy ? "…" : t("editor.publish")}
                   </button>
                   <button className="btn btn-ghost" type="button" onClick={testPublish} disabled={pub.busy || !pub.repo} style={{ flex: 1 }}>
-                    {pub.busy ? "…" : "Probar en rama"}
+                    {pub.busy ? "…" : t("editor.testBranch")}
                   </button>
                 </div>
                 <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.8rem", color: "var(--text-muted)" }}>
                   <input type="checkbox" checked={pub.openPr} onChange={(e) => setPub((p) => ({ ...p, openPr: e.target.checked }))} />
-                  Abrir PR al probar
+                  {t("editor.openPr")}
                 </label>
                 {pub.error && <p style={{ color: "var(--clay)", fontSize: "0.8rem" }}>{pub.error}</p>}
                 {pub.result && (
