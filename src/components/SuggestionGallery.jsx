@@ -34,8 +34,9 @@ export default function SuggestionGallery() {
   }, [cat, q, lang]);
 
   function use(s) {
+    const art = lang === "en" && s.artifact_en ? s.artifact_en : s.artifact;
     try {
-      sessionStorage.setItem(PREFILL_KEY, JSON.stringify(s.artifact));
+      sessionStorage.setItem(PREFILL_KEY, JSON.stringify(art));
     } catch {}
     router.push("/artifacts/new");
   }
