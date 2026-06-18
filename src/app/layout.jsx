@@ -1,5 +1,7 @@
 import "./globals.css";
 import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
+import { LanguageProvider, langScript } from "@/lib/i18n";
 
 // Runs before paint to set the theme class, avoiding a flash of the wrong
 // theme. Honors an explicit choice in localStorage, else the OS preference.
@@ -23,10 +25,14 @@ export default function RootLayout({ children }) {
     <html lang="es" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: langScript }} />
       </head>
       <body>
-        <ThemeToggle />
-        {children}
+        <LanguageProvider>
+          <LanguageToggle />
+          <ThemeToggle />
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

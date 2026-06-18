@@ -12,8 +12,9 @@ export const entryInput = z.object({
 });
 
 /** Ensure the entry has a definition; if blank, generate one with Groq.
+ *  `lang` ('es' | 'en') controls the generated language.
  *  Throws an Error with a `.status` (400/502) on failure. Mutates + returns e. */
-export async function ensureDefinition(e) {
+export async function ensureDefinition(e, lang = "es") {
   if (e.definition.trim()) return e;
   if (!isGroqConfigured()) {
     const err = new Error("Falta la definición y Groq no está configurado.");
@@ -21,7 +22,7 @@ export async function ensureDefinition(e) {
     throw err;
   }
   try {
-    const gen = await defineTerm(e.term);
+    const gen = await defineTerm(e.term, lang);
     e.definition = gen.definition;
     if (!e.links.length) e.links = gen.links || [];
     if (e.category === "concept" && gen.category) e.category = gen.category;

@@ -4,12 +4,16 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Sparkles, Pencil, RotateCw, Save, X } from "lucide-react";
 import { GLOSSARY_SEED, GLOSSARY_CATEGORIES } from "@/lib/glossary";
-
-const CAT_LABEL = Object.fromEntries(GLOSSARY_CATEGORIES.map((c) => [c.id, c.label]));
+import { useI18n, pickLang } from "@/lib/i18n";
 
 export default function GlossaryDetail({ id }) {
+  const { t, lang } = useI18n();
+  const CAT_LABEL = Object.fromEntries(GLOSSARY_CATEGORIES.map((c) => [c.id, pickLang(c, "label", lang)]));
   const [entry, setEntry] = useState(() => GLOSSARY_SEED.find((e) => e.id === id) || null);
   const [status, setStatus] = useState(entry ? "ready" : "loading"); // loading | ready | notfound
+
+  const displayTerm = entry ? pickLang(entry, "term", lang) : "";
+  const displayDef = entry ? pickLang(entry, "definition", lang) : "";
 
   const [explanation, setExplanation] = useState(null);
   const [generating, setGenerating] = useState(false);
@@ -61,10 +65,10 @@ export default function GlossaryDetail({ id }) {
         const res = await fetch("/api/glossary/explain", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ term: entry.term, definition: entry.definition }),
+          body: JSON.stringify({ term: pickLang(entry, "term", lang), definition: pickLang(entry, "definition", lang), lang }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "No se pudo generar la explicación.");
+        if (!res.ok) throw new Error(data.error || t("detail.errGenerate"));
         const text = data.explanation || "";
         if (intoDraft) {
           setDraft(text);
@@ -78,7 +82,7 @@ export default function GlossaryDetail({ id }) {
         setGenerating(false);
       }
     },
-    [entry, persist],
+    [entry, persist, lang, t],
   );
 
   // On entry ready: load the saved explanation, else generate one.
@@ -116,32 +120,32 @@ export default function GlossaryDetail({ id }) {
       setExplanation(draft);
       setEditing(false);
     } else {
-      setError("No se pudo guardar.");
+      setError(t("detail.errSave"));
     }
   }
 
   return (
     <div>
       <Link href="/glossary" style={backLink}>
-        <ArrowLeft size={15} /> Volver al glosario
+        <ArrowLeft size={15} /> {t("detail.back")}
       </Link>
 
-      {status === "loading" && <p style={{ color: "var(--text-muted)", marginTop: 20 }}>Cargando…</p>}
+      {status === "loading" && <p style={{ color: "var(--text-muted)", marginTop: 20 }}>{t("common.loading")}</p>}
 
       {status === "notfound" && (
         <div className="card" style={{ padding: 24, marginTop: 16, color: "var(--text-muted)" }}>
-          Ese término no existe o no es tuyo.
+          {t("detail.notFound")}
         </div>
       )}
 
       {entry && (
         <article style={{ marginTop: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <h1 style={{ fontSize: "1.6rem", margin: 0 }}>{entry.term}</h1>
+            <h1 style={{ fontSize: "1.6rem", margin: 0 }}>{displayTerm}</h1>
             <span style={badgeStyle}>{CAT_LABEL[entry.category] || entry.category}</span>
           </div>
 
-          <p style={{ fontSize: "1rem", lineHeight: 1.6, marginTop: 10, textAlign: "justify" }}>{entry.definition}</p>
+          <p style={{ fontSize: "1rem", lineHeight: 1.6, marginTop: 10, textAlign: "justify" }}>{displayDef}</p>
 
           {(entry.links || []).length > 0 && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
@@ -156,15 +160,15 @@ export default function GlossaryDetail({ id }) {
           <section className="card" style={{ padding: 18, marginTop: 18 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)", fontSize: "0.8rem" }}>
-                <Sparkles size={14} /> Explicación extendida
+                <Sparkles size={14} /> {t("detail.extended")}
               </div>
               {!editing && (
                 <div style={{ display: "flex", gap: 6 }}>
                   <button className="btn btn-ghost" type="button" onClick={startEdit} disabled={generating} style={smallIcon}>
-                    <Pencil size={14} /> Editar
+                    <Pencil size={14} /> {t("common.edit")}
                   </button>
                   <button className="btn btn-ghost" type="button" onClick={() => generate()} disabled={generating} style={smallIcon}>
-                    <RotateCw size={14} /> {generating ? "Generando…" : "Regenerar"}
+                    <RotateCw size={14} /> {generating ? t("glossary.generating") : t("detail.regenerate")}
                   </button>
                 </div>
               )}
@@ -176,29 +180,29 @@ export default function GlossaryDetail({ id }) {
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   style={textareaStyle}
-                  placeholder="Escribe la explicación (o pulsa Regenerar para una nueva con IA)…"
+                  placeholder={t("detail.explanationPlaceholder")}
                 />
                 {error && <p style={{ color: "var(--clay)", margin: 0, fontSize: "0.85rem" }}>{error}</p>}
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button className="btn btn-bark" type="button" onClick={saveEdit} disabled={saving} style={smallIcon}>
-                    <Save size={14} /> {saving ? "Guardando…" : "Guardar"}
+                    <Save size={14} /> {saving ? t("common.saving") : t("common.save")}
                   </button>
                   <button className="btn btn-ghost" type="button" onClick={cancelEdit} disabled={saving} style={smallIcon}>
-                    <X size={14} /> Cancelar
+                    <X size={14} /> {t("common.cancel")}
                   </button>
                   <button className="btn btn-ghost" type="button" onClick={() => generate({ intoDraft: true })} disabled={generating} style={smallIcon}>
-                    <RotateCw size={14} /> {generating ? "Generando…" : "Regenerar"}
+                    <RotateCw size={14} /> {generating ? t("glossary.generating") : t("detail.regenerate")}
                   </button>
                 </div>
               </div>
             ) : generating && !explanation ? (
-              <p style={{ color: "var(--text-muted)", margin: 0 }}>Generando explicación…</p>
+              <p style={{ color: "var(--text-muted)", margin: 0 }}>{t("detail.generatingExplanation")}</p>
             ) : explanation ? (
               <RichText text={explanation} />
             ) : error ? (
-              <p style={{ color: "var(--clay)", margin: 0 }}>{error} <span style={{ color: "var(--text-muted)" }}>Puedes escribirla con «Editar».</span></p>
+              <p style={{ color: "var(--clay)", margin: 0 }}>{error} <span style={{ color: "var(--text-muted)" }}>{t("detail.writeYourself")}</span></p>
             ) : (
-              <p style={{ color: "var(--text-muted)", margin: 0 }}>Sin explicación extendida.</p>
+              <p style={{ color: "var(--text-muted)", margin: 0 }}>{t("detail.noExplanation")}</p>
             )}
           </section>
         </article>

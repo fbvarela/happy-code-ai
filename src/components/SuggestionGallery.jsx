@@ -4,15 +4,17 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Wand2 } from "lucide-react";
 import { SUGGESTIONS, SUGGESTION_CATEGORIES } from "@/lib/suggestions";
-import { TYPE_LABELS } from "@/lib/artifact-types";
+import { ARTIFACT_TYPES } from "@/lib/artifact-types";
+import { useI18n, pickLang, TYPE_LABELS_I18N } from "@/lib/i18n";
 
 // sessionStorage key the editor reads on mount (new mode) to pre-fill itself.
 export const PREFILL_KEY = "hc:suggestion";
 
-const CAT_LABEL = Object.fromEntries(SUGGESTION_CATEGORIES.map((c) => [c.id, c.label]));
-
 export default function SuggestionGallery() {
   const router = useRouter();
+  const { t, lang } = useI18n();
+  const TYPE_LABELS = TYPE_LABELS_I18N[lang] || TYPE_LABELS_I18N.es;
+  const CAT_LABEL = Object.fromEntries(SUGGESTION_CATEGORIES.map((c) => [c.id, pickLang(c, "label", lang)]));
   const [cat, setCat] = useState("");
   const [q, setQ] = useState("");
 
@@ -21,13 +23,15 @@ export default function SuggestionGallery() {
     return SUGGESTIONS.filter((s) => {
       if (cat && s.category !== cat) return false;
       if (!needle) return true;
+      const title = pickLang(s, "title", lang);
+      const summary = pickLang(s, "summary", lang);
       return (
-        s.title.toLowerCase().includes(needle) ||
-        s.summary.toLowerCase().includes(needle) ||
+        title.toLowerCase().includes(needle) ||
+        summary.toLowerCase().includes(needle) ||
         (s.tags || []).some((t) => t.toLowerCase().includes(needle))
       );
     });
-  }, [cat, q]);
+  }, [cat, q, lang]);
 
   function use(s) {
     try {
@@ -42,20 +46,20 @@ export default function SuggestionGallery() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Buscar sugerencia…"
+          placeholder={t("suggestions.searchPlaceholder")}
           style={inputStyle}
         />
         <select value={cat} onChange={(e) => setCat(e.target.value)} style={inputStyle}>
-          <option value="">Todas las categorías</option>
+          <option value="">{t("common.allCategories")}</option>
           {SUGGESTION_CATEGORIES.map((c) => (
-            <option key={c.id} value={c.id}>{c.label}</option>
+            <option key={c.id} value={c.id}>{pickLang(c, "label", lang)}</option>
           ))}
         </select>
       </div>
 
       {items.length === 0 && (
         <div className="card" style={{ padding: 24, textAlign: "center", color: "var(--text-muted)" }}>
-          No hay sugerencias para ese filtro.
+          {t("suggestions.empty")}
         </div>
       )}
 
@@ -66,10 +70,10 @@ export default function SuggestionGallery() {
               <span style={badgeStyle}>{TYPE_LABELS[s.artifact.type] || s.artifact.type}</span>
               <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{CAT_LABEL[s.category] || s.category}</span>
             </div>
-            <div style={{ fontWeight: 600, fontSize: "1rem" }}>{s.title}</div>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: 0, flex: 1, lineHeight: 1.45 }}>{s.summary}</p>
+            <div style={{ fontWeight: 600, fontSize: "1rem" }}>{pickLang(s, "title", lang)}</div>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: 0, flex: 1, lineHeight: 1.45 }}>{pickLang(s, "summary", lang)}</p>
             <button className="btn btn-bark" type="button" onClick={() => use(s)} style={{ minHeight: 40, alignSelf: "start", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <Wand2 size={16} /> Usar plantilla
+              <Wand2 size={16} /> {t("suggestions.use")}
             </button>
           </li>
         ))}
