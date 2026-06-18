@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/session";
 import LogoutButton from "@/components/LogoutButton";
 import ArtifactLibrary from "@/components/ArtifactLibrary";
+import T from "@/components/T";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export default async function HomePage() {
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
         <div>
           <h1 style={{ fontSize: "1.8rem", marginBottom: 2 }}>Happy Code</h1>
-          <p style={{ color: "var(--text-muted)" }}>Agent Artifact Manager</p>
+          <p style={{ color: "var(--text-muted)" }}><T k="app.tagline" /></p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {session.avatarUrl && (

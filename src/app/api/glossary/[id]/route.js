@@ -30,14 +30,16 @@ export async function PUT(request, { params }) {
 
   const { id } = await params;
   if (!UUID_RE.test(id)) return Response.json({ error: "No encontrado" }, { status: 404 });
-  const parsed = entryInput.safeParse(await request.json().catch(() => null));
+  const raw = await request.json().catch(() => null);
+  const parsed = entryInput.safeParse(raw);
   if (!parsed.success) {
     return Response.json({ error: "Payload inválido", details: parsed.error.flatten() }, { status: 400 });
   }
   const e = parsed.data;
+  const lang = raw?.lang === "en" ? "en" : "es";
 
   try {
-    await ensureDefinition(e);
+    await ensureDefinition(e, lang);
   } catch (err) {
     return Response.json({ error: err.message }, { status: err.status || 502 });
   }
