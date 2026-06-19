@@ -17,6 +17,7 @@ export const SUGGESTION_CATEGORIES = [
   { id: "agents", label: "Agentes", label_en: "Agents" },
   { id: "quality", label: "Calidad de código", label_en: "Code quality" },
   { id: "perf", label: "Rendimiento", label_en: "Performance" },
+  { id: "openspec", label: "OpenSpec", label_en: "OpenSpec" },
 ];
 
 export const SUGGESTIONS = [
@@ -1152,6 +1153,500 @@ export const SUGGESTIONS = [
         "5. Confirm the tool `description` states *when* to call it, not just *what* it does.\n\n" +
         "Report each issue with a suggested fix.\n",
       variables: [],
+      files: [],
+    },
+  },
+  // ── OpenSpec templates ────────────────────────────────────────────────────
+  {
+    id: "os-feature",
+    title: "Especificación de feature",
+    title_en: "Feature specification",
+    summary: "Plantilla OpenSpec completa con Propósito, 3 Requisitos SHALL y escenarios Gherkin para cualquier feature.",
+    summary_en: "Full OpenSpec template with Purpose, 3 SHALL Requirements and Gherkin scenarios for any feature.",
+    category: "openspec",
+    tags: ["openspec", "spec", "requirements", "gherkin", "shall"],
+    artifact: {
+      name: "feature-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{feature}} Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "{{purpose}}\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Funcionalidad principal\n\n" +
+        "El sistema DEBE {{req_core}}.\n\n" +
+        "#### Escenario: Caso exitoso\n\n" +
+        "- DADO {{dado_1}}\n" +
+        "- CUANDO {{cuando_1}}\n" +
+        "- ENTONCES {{entonces_1}}\n\n" +
+        "### Requirement: Manejo de errores\n\n" +
+        "El sistema DEBE rechazar {{req_error}} y retornar un error descriptivo.\n\n" +
+        "#### Escenario: Entrada inválida\n\n" +
+        "- DADO {{dado_2}}\n" +
+        "- CUANDO {{cuando_2}}\n" +
+        "- ENTONCES {{entonces_2}}\n\n" +
+        "### Requirement: Rendimiento\n\n" +
+        "El sistema DEBE responder en menos de {{max_latency}} bajo carga normal.\n\n" +
+        "#### Escenario: Carga esperada\n\n" +
+        "- DADO {{dado_3}}\n" +
+        "- CUANDO {{cuando_3}}\n" +
+        "- ENTONCES {{entonces_3}}\n",
+      variables: [
+        { name: "feature", label: "Nombre del feature", default: "Autenticación de usuarios", required: true },
+        { name: "version", label: "Versión", default: "1.0", required: false },
+        { name: "status", label: "Estado", default: "draft", required: false },
+        { name: "agents", label: "Agentes objetivo", default: "claude-code, opencode", required: false },
+        { name: "purpose", label: "Propósito (un párrafo)", default: "Gestiona la autenticación de usuarios mediante magic-link. Emite una sesión cifrada al verificar el token.", required: true },
+        { name: "req_core", label: "Req. principal (tras DEBE)", default: "enviar un enlace de verificación al email y crear una sesión al confirmarlo", required: true },
+        { name: "dado_1", label: "DADO (caso exitoso)", default: "un usuario registrado con email válido", required: true },
+        { name: "cuando_1", label: "CUANDO (caso exitoso)", default: "solicita un magic-link", required: true },
+        { name: "entonces_1", label: "ENTONCES (caso exitoso)", default: "recibe un email con enlace de un solo uso válido 15 minutos", required: true },
+        { name: "req_error", label: "Req. error (tras DEBE rechazar)", default: "emails malformados o dominios no permitidos", required: true },
+        { name: "dado_2", label: "DADO (error)", default: "un email con dominio bloqueado", required: true },
+        { name: "cuando_2", label: "CUANDO (error)", default: "se solicita el magic-link", required: true },
+        { name: "entonces_2", label: "ENTONCES (error)", default: "retorna 422 con mensaje 'Dominio no permitido'", required: true },
+        { name: "max_latency", label: "Latencia máxima", default: "300 ms", required: true },
+        { name: "dado_3", label: "DADO (rendimiento)", default: "100 peticiones concurrentes", required: true },
+        { name: "cuando_3", label: "CUANDO (rendimiento)", default: "llegan al endpoint de login", required: true },
+        { name: "entonces_3", label: "ENTONCES (rendimiento)", default: "el p95 de latencia está bajo 300 ms", required: true },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "feature-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{feature}} Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "{{purpose}}\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Core behavior\n\n" +
+        "The system SHALL {{req_core}}.\n\n" +
+        "#### Scenario: Happy path\n\n" +
+        "- GIVEN {{given_1}}\n" +
+        "- WHEN {{when_1}}\n" +
+        "- THEN {{then_1}}\n\n" +
+        "### Requirement: Error handling\n\n" +
+        "The system SHALL reject {{req_error}} and return a descriptive error.\n\n" +
+        "#### Scenario: Invalid input\n\n" +
+        "- GIVEN {{given_2}}\n" +
+        "- WHEN {{when_2}}\n" +
+        "- THEN {{then_2}}\n\n" +
+        "### Requirement: Performance\n\n" +
+        "The system SHALL respond within {{max_latency}} under normal load.\n\n" +
+        "#### Scenario: Expected load\n\n" +
+        "- GIVEN {{given_3}}\n" +
+        "- WHEN {{when_3}}\n" +
+        "- THEN {{then_3}}\n",
+      variables: [
+        { name: "feature", label: "Feature name", default: "User Authentication", required: true },
+        { name: "version", label: "Version", default: "1.0", required: false },
+        { name: "status", label: "Status", default: "draft", required: false },
+        { name: "agents", label: "Target agents", default: "claude-code, opencode", required: false },
+        { name: "purpose", label: "Purpose (one paragraph)", default: "Manages user authentication via magic-link. Issues an encrypted session upon token verification.", required: true },
+        { name: "req_core", label: "Core req (after SHALL)", default: "send a verification link to the email and create a session upon confirmation", required: true },
+        { name: "given_1", label: "GIVEN (happy path)", default: "a registered user with a valid email", required: true },
+        { name: "when_1", label: "WHEN (happy path)", default: "they request a magic-link", required: true },
+        { name: "then_1", label: "THEN (happy path)", default: "they receive an email with a single-use link valid for 15 minutes", required: true },
+        { name: "req_error", label: "Error req (after SHALL reject)", default: "malformed emails or disallowed domains", required: true },
+        { name: "given_2", label: "GIVEN (error)", default: "an email with a blocked domain", required: true },
+        { name: "when_2", label: "WHEN (error)", default: "the magic-link is requested", required: true },
+        { name: "then_2", label: "THEN (error)", default: "returns 422 with message 'Domain not allowed'", required: true },
+        { name: "max_latency", label: "Max latency", default: "300 ms", required: true },
+        { name: "given_3", label: "GIVEN (performance)", default: "100 concurrent requests", required: true },
+        { name: "when_3", label: "WHEN (performance)", default: "they hit the login endpoint", required: true },
+        { name: "then_3", label: "THEN (performance)", default: "p95 latency is under 300 ms", required: true },
+      ],
+      files: [],
+    },
+  },
+  {
+    id: "os-api-endpoint",
+    title: "Spec de endpoint REST",
+    title_en: "REST API endpoint spec",
+    summary: "Especificación OpenSpec para un endpoint HTTP: request, response, auth, errores y rate limiting.",
+    summary_en: "OpenSpec for one HTTP endpoint: request, response, auth, errors and rate limiting.",
+    category: "openspec",
+    tags: ["openspec", "api", "rest", "endpoint", "http"],
+    artifact: {
+      name: "api-endpoint-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{method}} {{path}} Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "{{purpose}}\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Contrato de request\n\n" +
+        "El sistema DEBE aceptar {{method}} en `{{path}}` con Content-Type `application/json`.\n" +
+        "El cuerpo DEBE incluir: `{{required_fields}}`.\n\n" +
+        "#### Escenario: Request válido\n\n" +
+        "- DADO un cliente autenticado con {{auth_method}}\n" +
+        "- CUANDO envía {{method}} `{{path}}` con campos válidos\n" +
+        "- ENTONCES retorna {{success_status}} con `{{response_fields}}`\n\n" +
+        "### Requirement: Autenticación\n\n" +
+        "El sistema DEBE rechazar requests sin {{auth_method}} válido con 401.\n\n" +
+        "#### Escenario: Sin autenticación\n\n" +
+        "- DADO un cliente sin cabecera de autenticación\n" +
+        "- CUANDO llama a {{method}} `{{path}}`\n" +
+        "- ENTONCES retorna 401 con `{ \"error\": \"Unauthorized\" }`\n\n" +
+        "### Requirement: Rate limiting\n\n" +
+        "El sistema DEBE limitar a {{rate_limit}} por IP y retornar 429 al superarlo.\n\n" +
+        "#### Escenario: Límite superado\n\n" +
+        "- DADO una IP que ha realizado {{rate_limit}} en los últimos 60 s\n" +
+        "- CUANDO envía una petición adicional\n" +
+        "- ENTONCES retorna 429 con cabecera `Retry-After`\n",
+      variables: [
+        { name: "method", label: "Método HTTP", default: "POST", required: true },
+        { name: "path", label: "Ruta", default: "/api/users", required: true },
+        { name: "version", label: "Versión", default: "1.0", required: false },
+        { name: "status", label: "Estado", default: "draft", required: false },
+        { name: "agents", label: "Agentes objetivo", default: "claude-code, opencode", required: false },
+        { name: "purpose", label: "Propósito", default: "Crea un nuevo usuario y retorna el perfil creado.", required: true },
+        { name: "required_fields", label: "Campos requeridos", default: "email, name", required: true },
+        { name: "auth_method", label: "Método de auth", default: "Bearer token en cabecera Authorization", required: true },
+        { name: "success_status", label: "Código de éxito", default: "201 Created", required: true },
+        { name: "response_fields", label: "Campos de respuesta", default: "id, email, createdAt", required: true },
+        { name: "rate_limit", label: "Rate limit", default: "100 peticiones", required: true },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "api-endpoint-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{method}} {{path}} Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "{{purpose}}\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Request contract\n\n" +
+        "The system SHALL accept {{method}} at `{{path}}` with Content-Type `application/json`.\n" +
+        "The body SHALL include: `{{required_fields}}`.\n\n" +
+        "#### Scenario: Valid request\n\n" +
+        "- GIVEN an authenticated client with {{auth_method}}\n" +
+        "- WHEN they send {{method}} `{{path}}` with valid fields\n" +
+        "- THEN returns {{success_status}} with `{{response_fields}}`\n\n" +
+        "### Requirement: Authentication\n\n" +
+        "The system SHALL reject requests without a valid {{auth_method}} with 401.\n\n" +
+        "#### Scenario: Missing authentication\n\n" +
+        "- GIVEN a client without an authentication header\n" +
+        "- WHEN they call {{method}} `{{path}}`\n" +
+        "- THEN returns 401 with `{ \"error\": \"Unauthorized\" }`\n\n" +
+        "### Requirement: Rate limiting\n\n" +
+        "The system SHALL limit to {{rate_limit}} per IP and return 429 when exceeded.\n\n" +
+        "#### Scenario: Limit exceeded\n\n" +
+        "- GIVEN an IP that has made {{rate_limit}} in the last 60 s\n" +
+        "- WHEN they send one more request\n" +
+        "- THEN returns 429 with a `Retry-After` header\n",
+      variables: [
+        { name: "method", label: "HTTP method", default: "POST", required: true },
+        { name: "path", label: "Path", default: "/api/users", required: true },
+        { name: "version", label: "Version", default: "1.0", required: false },
+        { name: "status", label: "Status", default: "draft", required: false },
+        { name: "agents", label: "Target agents", default: "claude-code, opencode", required: false },
+        { name: "purpose", label: "Purpose", default: "Creates a new user and returns the created profile.", required: true },
+        { name: "required_fields", label: "Required fields", default: "email, name", required: true },
+        { name: "auth_method", label: "Auth method", default: "Bearer token in Authorization header", required: true },
+        { name: "success_status", label: "Success status", default: "201 Created", required: true },
+        { name: "response_fields", label: "Response fields", default: "id, email, createdAt", required: true },
+        { name: "rate_limit", label: "Rate limit", default: "100 requests", required: true },
+      ],
+      files: [],
+    },
+  },
+  {
+    id: "os-auth-flow",
+    title: "Spec de flujo de autenticación",
+    title_en: "Authentication flow spec",
+    summary: "Especificación OpenSpec para flujos de auth: magic-link, OAuth o JWT, con escenarios de éxito y fallo.",
+    summary_en: "OpenSpec for auth flows: magic-link, OAuth or JWT, with success and failure scenarios.",
+    category: "openspec",
+    tags: ["openspec", "auth", "login", "jwt", "oauth", "magic-link"],
+    artifact: {
+      name: "auth-flow-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{auth_method}} Authentication Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "Gestiona la autenticación de usuarios mediante {{auth_method}}. " +
+        "Los tokens tienen un TTL de {{token_ttl}} y no se almacenan en localStorage.\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Emisión de token\n\n" +
+        "El sistema DEBE generar un token firmado con {{signing_alg}} al verificar la identidad del usuario.\n\n" +
+        "#### Escenario: Login exitoso\n\n" +
+        "- DADO un usuario registrado\n" +
+        "- CUANDO completa el flujo de {{auth_method}}\n" +
+        "- ENTONCES recibe una cookie HttpOnly con el token de sesión válida {{token_ttl}}\n\n" +
+        "### Requirement: Expiración\n\n" +
+        "El sistema DEBE invalidar tokens tras {{token_ttl}} y redirigir al login.\n\n" +
+        "#### Escenario: Token expirado\n\n" +
+        "- DADO un usuario con sesión de más de {{token_ttl}}\n" +
+        "- CUANDO realiza una petición autenticada\n" +
+        "- ENTONCES recibe 401 y es redirigido a /login\n\n" +
+        "### Requirement: Protección de rutas\n\n" +
+        "El sistema DEBE bloquear el acceso a rutas protegidas sin sesión válida.\n\n" +
+        "#### Escenario: Acceso sin sesión\n\n" +
+        "- DADO un visitante sin cookie de sesión\n" +
+        "- CUANDO navega a {{protected_route}}\n" +
+        "- ENTONCES es redirigido a /login con `?redirect={{protected_route}}`\n",
+      variables: [
+        { name: "auth_method", label: "Método de auth", default: "Magic-link", required: true },
+        { name: "version", label: "Versión", default: "1.0", required: false },
+        { name: "status", label: "Estado", default: "draft", required: false },
+        { name: "agents", label: "Agentes objetivo", default: "claude-code, opencode", required: false },
+        { name: "token_ttl", label: "TTL del token", default: "7 días", required: true },
+        { name: "signing_alg", label: "Algoritmo de firma", default: "HS256 e iron-session", required: true },
+        { name: "protected_route", label: "Ruta protegida de ejemplo", default: "/dashboard", required: true },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "auth-flow-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{auth_method}} Authentication Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "Manages user authentication via {{auth_method}}. " +
+        "Tokens have a TTL of {{token_ttl}} and are never stored in localStorage.\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Token issuance\n\n" +
+        "The system SHALL generate a token signed with {{signing_alg}} upon verifying the user identity.\n\n" +
+        "#### Scenario: Successful login\n\n" +
+        "- GIVEN a registered user\n" +
+        "- WHEN they complete the {{auth_method}} flow\n" +
+        "- THEN they receive an HttpOnly cookie with a session token valid for {{token_ttl}}\n\n" +
+        "### Requirement: Expiration\n\n" +
+        "The system SHALL invalidate tokens after {{token_ttl}} and redirect to login.\n\n" +
+        "#### Scenario: Expired token\n\n" +
+        "- GIVEN a user whose session is older than {{token_ttl}}\n" +
+        "- WHEN they make an authenticated request\n" +
+        "- THEN they receive 401 and are redirected to /login\n\n" +
+        "### Requirement: Route protection\n\n" +
+        "The system SHALL block access to protected routes without a valid session.\n\n" +
+        "#### Scenario: Unauthenticated access\n\n" +
+        "- GIVEN a visitor without a session cookie\n" +
+        "- WHEN they navigate to {{protected_route}}\n" +
+        "- THEN they are redirected to /login with `?redirect={{protected_route}}`\n",
+      variables: [
+        { name: "auth_method", label: "Auth method", default: "Magic-link", required: true },
+        { name: "version", label: "Version", default: "1.0", required: false },
+        { name: "status", label: "Status", default: "draft", required: false },
+        { name: "agents", label: "Target agents", default: "claude-code, opencode", required: false },
+        { name: "token_ttl", label: "Token TTL", default: "7 days", required: true },
+        { name: "signing_alg", label: "Signing algorithm", default: "HS256 via iron-session", required: true },
+        { name: "protected_route", label: "Example protected route", default: "/dashboard", required: true },
+      ],
+      files: [],
+    },
+  },
+  {
+    id: "os-data-model",
+    title: "Spec de modelo de datos",
+    title_en: "Data model spec",
+    summary: "Especificación OpenSpec para esquemas de base de datos: restricciones, validaciones y escenarios de migración.",
+    summary_en: "OpenSpec for database schemas: constraints, validations and migration scenarios.",
+    category: "openspec",
+    tags: ["openspec", "database", "schema", "migration", "sql"],
+    artifact: {
+      name: "data-model-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{entity}} Data Model Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "Define el esquema de la tabla `{{table}}`, sus restricciones e invariantes " +
+        "para garantizar integridad de datos sin lógica en capa de aplicación.\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Esquema de la tabla\n\n" +
+        "El sistema DEBE crear la tabla `{{table}}` con las columnas: {{columns}}.\n" +
+        "El campo `id` DEBE ser {{id_format}} y primary key.\n\n" +
+        "#### Escenario: Inserción válida\n\n" +
+        "- DADO los campos requeridos con valores válidos\n" +
+        "- CUANDO se inserta un registro en `{{table}}`\n" +
+        "- ENTONCES retorna el registro con `id` generado y `created_at` en UTC\n\n" +
+        "### Requirement: Restricciones de integridad\n\n" +
+        "El sistema DEBE rechazar {{null_constraint}} nulos y {{unique_constraint}} duplicados a nivel de base de datos.\n\n" +
+        "#### Escenario: Valor nulo en campo requerido\n\n" +
+        "- DADO un insert con {{null_constraint}} = NULL\n" +
+        "- CUANDO se ejecuta la query\n" +
+        "- ENTONCES la base de datos lanza NOT NULL constraint violation\n\n" +
+        "### Requirement: Migración sin downtime\n\n" +
+        "El sistema DEBE aplicar la migración de `{{table}}` sin bloquear lecturas en producción.\n\n" +
+        "#### Escenario: Migración en producción\n\n" +
+        "- DADO una tabla existente con datos\n" +
+        "- CUANDO se ejecuta `npm run db:migrate`\n" +
+        "- ENTONCES la migración completa sin error y sin bloquear queries en vuelo\n",
+      variables: [
+        { name: "entity", label: "Nombre de la entidad", default: "User", required: true },
+        { name: "table", label: "Nombre de la tabla", default: "users", required: true },
+        { name: "version", label: "Versión", default: "1.0", required: false },
+        { name: "status", label: "Estado", default: "draft", required: false },
+        { name: "agents", label: "Agentes objetivo", default: "claude-code, opencode", required: false },
+        { name: "columns", label: "Columnas", default: "id, email, name, created_at, updated_at", required: true },
+        { name: "id_format", label: "Formato del ID", default: "UUID v4", required: true },
+        { name: "null_constraint", label: "Campo NOT NULL principal", default: "email", required: true },
+        { name: "unique_constraint", label: "Campo UNIQUE", default: "email", required: true },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "data-model-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{entity}} Data Model Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "Defines the schema for the `{{table}}` table, its constraints and invariants " +
+        "to guarantee data integrity without logic in the application layer.\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Table schema\n\n" +
+        "The system SHALL create the `{{table}}` table with columns: {{columns}}.\n" +
+        "The `id` field SHALL be {{id_format}} and the primary key.\n\n" +
+        "#### Scenario: Valid insert\n\n" +
+        "- GIVEN all required fields with valid values\n" +
+        "- WHEN a record is inserted into `{{table}}`\n" +
+        "- THEN the record is returned with a generated `id` and `created_at` in UTC\n\n" +
+        "### Requirement: Integrity constraints\n\n" +
+        "The system SHALL reject null {{null_constraint}} and duplicate {{unique_constraint}} at the database level.\n\n" +
+        "#### Scenario: Null value in required field\n\n" +
+        "- GIVEN an insert with {{null_constraint}} = NULL\n" +
+        "- WHEN the query is executed\n" +
+        "- THEN the database raises a NOT NULL constraint violation\n\n" +
+        "### Requirement: Zero-downtime migration\n\n" +
+        "The system SHALL apply the `{{table}}` migration without blocking reads in production.\n\n" +
+        "#### Scenario: Production migration\n\n" +
+        "- GIVEN an existing table with data\n" +
+        "- WHEN `npm run db:migrate` is executed\n" +
+        "- THEN the migration completes without error and without blocking in-flight queries\n",
+      variables: [
+        { name: "entity", label: "Entity name", default: "User", required: true },
+        { name: "table", label: "Table name", default: "users", required: true },
+        { name: "version", label: "Version", default: "1.0", required: false },
+        { name: "status", label: "Status", default: "draft", required: false },
+        { name: "agents", label: "Target agents", default: "claude-code, opencode", required: false },
+        { name: "columns", label: "Columns", default: "id, email, name, created_at, updated_at", required: true },
+        { name: "id_format", label: "ID format", default: "UUID v4", required: true },
+        { name: "null_constraint", label: "Primary NOT NULL field", default: "email", required: true },
+        { name: "unique_constraint", label: "UNIQUE field", default: "email", required: true },
+      ],
+      files: [],
+    },
+  },
+  {
+    id: "os-background-job",
+    title: "Spec de job en segundo plano",
+    title_en: "Background job spec",
+    summary: "Especificación OpenSpec para jobs asíncronos: schedule, reintentos, idempotencia y alertas de fallo.",
+    summary_en: "OpenSpec for async background jobs: schedule, retries, idempotency and failure alerts.",
+    category: "openspec",
+    tags: ["openspec", "job", "queue", "async", "cron", "retry"],
+    artifact: {
+      name: "background-job-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{job_name}} Background Job Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "{{purpose}}\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Programación\n\n" +
+        "El sistema DEBE ejecutar `{{job_name}}` según el schedule `{{schedule}}` " +
+        "con un timeout de {{timeout}} por ejecución.\n\n" +
+        "#### Escenario: Ejecución programada\n\n" +
+        "- DADO que el schedule `{{schedule}}` se cumple\n" +
+        "- CUANDO el job runner lo activa\n" +
+        "- ENTONCES el job completa en menos de {{timeout}} y registra éxito en el log\n\n" +
+        "### Requirement: Reintentos e idempotencia\n\n" +
+        "El sistema DEBE reintentar hasta {{retry_count}} veces con backoff exponencial " +
+        "y DEBE ser idempotente (reintentos no duplican efectos).\n\n" +
+        "#### Escenario: Fallo transitorio\n\n" +
+        "- DADO que el job falla con error de red\n" +
+        "- CUANDO el runner lo reintenta\n" +
+        "- ENTONCES el intento #2 retoma donde falló sin crear duplicados\n\n" +
+        "### Requirement: Alerta de fallo permanente\n\n" +
+        "El sistema DEBE emitir una alerta cuando el job falla {{retry_count}} veces consecutivas.\n\n" +
+        "#### Escenario: Agotamiento de reintentos\n\n" +
+        "- DADO que el job ha fallado {{retry_count}} veces seguidas\n" +
+        "- CUANDO ocurre el último fallo\n" +
+        "- ENTONCES se envía una alerta a {{alert_channel}} y el job queda en estado 'failed'\n",
+      variables: [
+        { name: "job_name", label: "Nombre del job", default: "EmailDigestJob", required: true },
+        { name: "version", label: "Versión", default: "1.0", required: false },
+        { name: "status", label: "Estado", default: "draft", required: false },
+        { name: "agents", label: "Agentes objetivo", default: "claude-code, opencode", required: false },
+        { name: "purpose", label: "Propósito", default: "Envía un resumen diario de actividad por email a los usuarios activos.", required: true },
+        { name: "schedule", label: "Schedule (cron)", default: "0 8 * * *", required: true },
+        { name: "timeout", label: "Timeout", default: "5 minutos", required: true },
+        { name: "retry_count", label: "Reintentos máximos", default: "3", required: true },
+        { name: "alert_channel", label: "Canal de alerta", default: "#alerts en Slack", required: true },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "background-job-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{job_name}} Background Job Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "{{purpose}}\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Scheduling\n\n" +
+        "The system SHALL run `{{job_name}}` on the `{{schedule}}` schedule " +
+        "with a timeout of {{timeout}} per execution.\n\n" +
+        "#### Scenario: Scheduled execution\n\n" +
+        "- GIVEN the `{{schedule}}` schedule fires\n" +
+        "- WHEN the job runner activates it\n" +
+        "- THEN the job completes within {{timeout}} and logs success\n\n" +
+        "### Requirement: Retries and idempotency\n\n" +
+        "The system SHALL retry up to {{retry_count}} times with exponential backoff " +
+        "and SHALL be idempotent (retries do not duplicate effects).\n\n" +
+        "#### Scenario: Transient failure\n\n" +
+        "- GIVEN the job fails with a network error\n" +
+        "- WHEN the runner retries it\n" +
+        "- THEN attempt #2 resumes without creating duplicates\n\n" +
+        "### Requirement: Permanent failure alert\n\n" +
+        "The system SHALL emit an alert when the job fails {{retry_count}} consecutive times.\n\n" +
+        "#### Scenario: Retry exhaustion\n\n" +
+        "- GIVEN the job has failed {{retry_count}} times in a row\n" +
+        "- WHEN the last failure occurs\n" +
+        "- THEN an alert is sent to {{alert_channel}} and the job is marked 'failed'\n",
+      variables: [
+        { name: "job_name", label: "Job name", default: "EmailDigestJob", required: true },
+        { name: "version", label: "Version", default: "1.0", required: false },
+        { name: "status", label: "Status", default: "draft", required: false },
+        { name: "agents", label: "Target agents", default: "claude-code, opencode", required: false },
+        { name: "purpose", label: "Purpose", default: "Sends a daily activity digest email to active users.", required: true },
+        { name: "schedule", label: "Schedule (cron)", default: "0 8 * * *", required: true },
+        { name: "timeout", label: "Timeout", default: "5 minutes", required: true },
+        { name: "retry_count", label: "Max retries", default: "3", required: true },
+        { name: "alert_channel", label: "Alert channel", default: "#alerts on Slack", required: true },
+      ],
       files: [],
     },
   },

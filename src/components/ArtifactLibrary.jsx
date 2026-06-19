@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, BookOpen, FileText, Plus, Copy, Trash2 } from "lucide-react";
+import { Sparkles, BookOpen, FileText, FileCode, Plus, Copy, Trash2 } from "lucide-react";
 import { ARTIFACT_TYPES } from "@/lib/artifact-types";
 import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
 
@@ -81,6 +81,9 @@ export default function ArtifactLibrary() {
         </button>
         <button className="btn btn-ghost" type="button" onClick={() => router.push("/docs/prompt-guide")} style={iconBtn}>
           <FileText size={16} /> {t("nav.guide")}
+        </button>
+        <button className="btn btn-ghost" type="button" onClick={() => router.push("/docs/openspec")} style={iconBtn}>
+          <FileCode size={16} /> OpenSpec
         </button>
         <button className="btn btn-bark" type="button" onClick={() => router.push("/artifacts/new")} style={iconBtn}>
           <Plus size={16} /> {t("nav.new")}

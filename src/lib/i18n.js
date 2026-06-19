@@ -391,6 +391,6 @@ const MESSAGES = {
 
 /** Translated artifact type labels (used in the library + editor selects). */
 export const TYPE_LABELS_I18N = {
-  es: { agent: "Agente", subagent: "Subagente", skill: "Skill", command: "Slash command", config_snippet: "Config", memory: "Memoria", mcp: "MCP" },
-  en: { agent: "Agent", subagent: "Subagent", skill: "Skill", command: "Slash command", config_snippet: "Config", memory: "Memory", mcp: "MCP" },
+  es: { agent: "Agente", subagent: "Subagente", skill: "Skill", command: "Slash command", config_snippet: "Config", memory: "Memoria", mcp: "MCP", openspec: "OpenSpec" },
+  en: { agent: "Agent", subagent: "Subagent", skill: "Skill", command: "Slash command", config_snippet: "Config", memory: "Memory", mcp: "MCP", openspec: "OpenSpec" },
 };
