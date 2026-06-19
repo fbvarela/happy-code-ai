@@ -37,10 +37,16 @@ export function createRenderer({ target, pathFor, markdownTypes = DEFAULT_MARKDO
     target,
     render(artifact, values = {}) {
       const body = renderTemplate(artifact.body_template, artifact.variables, values);
-      const content = mdSet.has(artifact.type)
-        ? frontmatterBlock(artifact.frontmatter) + body
-        : body; // mcp / config / (Gemini) command are raw
-      const primaryPath = pathFor(artifact.type, slugify(artifact.name));
+      // openspec artifacts use a fixed path and emit raw body (format is self-contained)
+      const isOpenSpec = artifact.type === "openspec";
+      const content = isOpenSpec
+        ? body
+        : mdSet.has(artifact.type)
+          ? frontmatterBlock(artifact.frontmatter) + body
+          : body;
+      const primaryPath = isOpenSpec
+        ? `openspec/specs/${slugify(artifact.name)}.md`
+        : pathFor(artifact.type, slugify(artifact.name));
 
       const files = [{ path: primaryPath, content }];
       const baseDir = dirOf(primaryPath);

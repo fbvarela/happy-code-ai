@@ -9,6 +9,7 @@ export const ARTIFACT_TYPES = [
   "config_snippet",
   "memory",
   "mcp",
+  "openspec",
 ];
 
 export const TYPE_LABELS = {
@@ -41,6 +42,34 @@ export const TYPE_SCAFFOLDS = {
     variables: [
       { name: "title", label: "Título", default: "Contexto del proyecto", required: true },
       { name: "content", label: "Contenido", default: "- ", required: false },
+    ],
+  },
+  openspec: {
+    frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+    body:
+      "# {{feature}} Specification\n" +
+      "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+      "## Purpose\n\n" +
+      "{{purpose}}\n\n" +
+      "## Requirements\n\n" +
+      "### Requirement: {{req1_name}}\n\n" +
+      "The system SHALL {{req1}}.\n\n" +
+      "#### Scenario: {{scenario1_name}}\n\n" +
+      "- GIVEN {{given1}}\n" +
+      "- WHEN {{when1}}\n" +
+      "- THEN {{then1}}\n",
+    variables: [
+      { name: "feature", label: "Feature name", default: "User Authentication", required: true },
+      { name: "version", label: "Version", default: "1.0", required: false },
+      { name: "status", label: "Status", default: "draft", required: false },
+      { name: "agents", label: "Target agents", default: "claude-code, opencode", required: false },
+      { name: "purpose", label: "Purpose (one paragraph)", default: "Describe what this feature manages and why it exists.", required: true },
+      { name: "req1_name", label: "Requirement name", default: "Core Behavior", required: true },
+      { name: "req1", label: "Requirement (after SHALL)", default: "accept valid credentials and return a session token", required: true },
+      { name: "scenario1_name", label: "Scenario name", default: "Successful login", required: true },
+      { name: "given1", label: "GIVEN", default: "a registered user with valid credentials", required: true },
+      { name: "when1", label: "WHEN", default: "the user submits the login form", required: true },
+      { name: "then1", label: "THEN", default: "the system returns a 200 response with a session token", required: true },
     ],
   },
   mcp: {
