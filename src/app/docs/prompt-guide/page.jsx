@@ -100,6 +100,7 @@ No adivines.`,
   {
     n: 9,
     title: "Usa prefilling para controlar el formato de salida",
+    scope: "api",
     why: "Precompleting el turno del asistente (iniciando la respuesta del modelo) es la forma más fiable de hacer cumplir el formato de salida en llamadas API.",
     pattern: `// En la API de Anthropic:
 {
@@ -121,6 +122,7 @@ No adivines.`,
   {
     n: 11,
     title: "Calibra el presupuesto de pensamiento según la tarea",
+    scope: "not-haiku",
     why: "El pensamiento extendido (donde Claude razona paso a paso antes de responder) cuesta más tokens pero mejora significativamente la precisión en tareas de razonamiento multi-paso. Es excesivo para conversiones de formato o búsquedas simples.",
     pattern: null,
     antipattern: null,
@@ -249,6 +251,7 @@ Do not guess.`,
   {
     n: 9,
     title: "Use prefilling to control output format",
+    scope: "api",
     why: "Prefilling the assistant turn (starting the model's response for it) is the most reliable way to enforce output format in API calls.",
     pattern: `// Anthropic API:
 {
@@ -270,6 +273,7 @@ Do not guess.`,
   {
     n: 11,
     title: "Calibrate the thinking budget to the task",
+    scope: "not-haiku",
     why: "Extended thinking costs more tokens but significantly improves accuracy on multi-step reasoning tasks. It is overkill for format conversions or simple lookups.",
     pattern: null,
     antipattern: null,
@@ -301,6 +305,67 @@ Skip it when:
       "Variable content is in variables ({{…}}), not hardcoded.",
       "Tested with at least one real input.",
     ],
+  },
+];
+
+// ── Models ─────────────────────────────────────────────────────────────────
+
+const MODELS = [
+  {
+    name: "Haiku 4.5",
+    id: "claude-haiku-4-5-20251001",
+    tagline_es: "Velocidad máxima, coste mínimo",
+    tagline_en: "Maximum speed, minimum cost",
+    context: "200K",
+    extendedThinking: false,
+    promptCaching: true,
+    vision: true,
+    toolUse: true,
+    isNew: false,
+    strengths_es: "Clasificación, extracción, conversión de formato, tareas de alto volumen, baja latencia.",
+    strengths_en: "Classification, extraction, format conversion, high-volume tasks, low-latency responses.",
+  },
+  {
+    name: "Sonnet 4.6",
+    id: "claude-sonnet-4-6",
+    tagline_es: "Equilibrio calidad/velocidad — modelo por defecto de Claude Code",
+    tagline_en: "Quality/speed balance — Claude Code default model",
+    context: "200K",
+    extendedThinking: true,
+    promptCaching: true,
+    vision: true,
+    toolUse: true,
+    isNew: false,
+    strengths_es: "Agentes, código, análisis, redacción, mayoría de tareas en producción.",
+    strengths_en: "Agents, coding, analysis, writing, most production tasks.",
+  },
+  {
+    name: "Opus 4.8",
+    id: "claude-opus-4-8",
+    tagline_es: "Máxima capacidad de razonamiento",
+    tagline_en: "Highest reasoning capability",
+    context: "200K",
+    extendedThinking: true,
+    promptCaching: true,
+    vision: true,
+    toolUse: true,
+    isNew: false,
+    strengths_es: "Razonamiento complejo, investigación, planificación estratégica, decisiones matizadas.",
+    strengths_en: "Complex reasoning, research, strategic planning, nuanced decisions.",
+  },
+  {
+    name: "Fable 5",
+    id: "claude-fable-5",
+    tagline_es: "Modelo narrativo más reciente de Anthropic",
+    tagline_en: "Anthropic latest narrative model",
+    context: "200K",
+    extendedThinking: true,
+    promptCaching: true,
+    vision: true,
+    toolUse: true,
+    isNew: true,
+    strengths_es: "Narrativa, roleplay, conversación larga. Consulta docs para capacidades específicas.",
+    strengths_en: "Narrative, roleplay, long-form conversation. Check docs for specific capabilities.",
   },
 ];
 
@@ -406,9 +471,15 @@ export default function PromptGuidePage() {
       <div style={{ display: "grid", gap: 20 }}>
         {principles.map((p) => (
           <section key={p.n} className="card" style={{ padding: "20px 24px" }}>
-            <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: 10, display: "flex", gap: 10, alignItems: "baseline" }}>
+            <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: 10, display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
               <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: "0.85rem", minWidth: 20 }}>{p.n}.</span>
-              {p.title}
+              <span style={{ flex: 1 }}>{p.title}</span>
+              {p.scope === "api" && (
+                <span style={scopeBadge("var(--leaf)")}>{t("guide.models.apiOnly")}</span>
+              )}
+              {p.scope === "not-haiku" && (
+                <span style={scopeBadge("var(--sun)")}>{t("guide.models.notHaiku")}</span>
+              )}
             </h2>
 
             <p style={{ fontSize: "0.88rem", lineHeight: 1.6, marginBottom: p.pattern || p.antipattern || p.note || p.checklist ? 12 : 0 }}>
@@ -446,6 +517,39 @@ export default function PromptGuidePage() {
         ))}
       </div>
 
+      {/* Model comparison */}
+      <div style={{ marginTop: 40 }}>
+        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 20 }}>{t("guide.models.title")}</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+          {MODELS.map((m) => (
+            <div key={m.id} className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span style={{ fontWeight: 700, fontSize: "1rem" }}>{m.name}</span>
+                {m.isNew && <span style={scopeBadge("var(--leaf)")}>{t("guide.models.new")}</span>}
+              </div>
+              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: 0 }}>
+                {lang === "en" ? m.tagline_en : m.tagline_es}
+              </p>
+              <code style={{ fontSize: "0.72rem", background: "var(--cream)", border: "1px solid var(--line)", borderRadius: 4, padding: "2px 6px", color: "var(--text-muted)", display: "block", wordBreak: "break-all" }}>
+                {m.id}
+              </code>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                <CapBadge ok={m.extendedThinking} label={t("guide.models.extended")} />
+                <CapBadge ok={m.promptCaching} label={t("guide.models.caching")} />
+                <CapBadge ok={m.vision} label={t("guide.models.vision")} />
+                <CapBadge ok={m.toolUse} label={t("guide.models.tools")} />
+                <span style={{ ...capBase, background: "var(--cream)", color: "var(--text-muted)" }}>
+                  {t("guide.models.context")}: {m.context}
+                </span>
+              </div>
+              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: 0 }}>
+                <strong>{t("guide.models.bestFor")}:</strong> {lang === "en" ? m.strengths_en : m.strengths_es}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Useful links */}
       <div style={{ marginTop: 40 }}>
         <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 20 }}>{t("guide.links.title")}</h2>
@@ -476,6 +580,35 @@ export default function PromptGuidePage() {
       </div>
     </main>
   );
+}
+
+function CapBadge({ ok, label }) {
+  return (
+    <span style={{ ...capBase, background: ok ? "color-mix(in srgb, var(--leaf) 15%, transparent)" : "color-mix(in srgb, var(--clay) 12%, transparent)", color: ok ? "var(--leaf)" : "var(--clay)" }}>
+      {ok ? "✓" : "✗"} {label}
+    </span>
+  );
+}
+
+const capBase = {
+  fontSize: "0.7rem",
+  fontWeight: 600,
+  borderRadius: 4,
+  padding: "2px 7px",
+  border: "1px solid color-mix(in srgb, currentColor 25%, transparent)",
+};
+
+function scopeBadge(color) {
+  return {
+    fontSize: "0.68rem",
+    fontWeight: 700,
+    color,
+    background: "color-mix(in srgb, " + color + " 12%, transparent)",
+    border: "1px solid color-mix(in srgb, " + color + " 30%, transparent)",
+    borderRadius: 4,
+    padding: "1px 7px",
+    whiteSpace: "nowrap",
+  };
 }
 
 function labelStyle(color) {
