@@ -189,6 +189,26 @@ const MESSAGES = {
     "editor.publish": "Publicar",
     "editor.testBranch": "Probar en rama",
     "editor.openPr": "Abrir PR al probar",
+
+    "nav.guide": "Guía de prompts",
+
+    "guide.title": "Cómo escribir prompts como un dev de Claude",
+    "guide.intro": "12 principios que los ingenieros de Anthropic aplican para obtener resultados más fiables, baratos y seguros.",
+    "guide.checklist.title": "Checklist de calidad",
+    "guide.checklist.hint": "Revísalo antes de guardar. Los ítems con ✓/✗ se comprueban automáticamente.",
+    "guide.checklist.viewFull": "Ver guía completa →",
+    "guide.checklist.autoNote": "auto",
+
+    "prompt.check.role": "Rol definido en la primera frase",
+    "prompt.check.instructions": "Instrucciones antes del contenido (manual)",
+    "prompt.check.xml": "Tags XML para separar secciones",
+    "prompt.check.negative": "Al menos una instrucción negativa («no hagas…»)",
+    "prompt.check.one_job": "El prompt hace UN solo trabajo (manual)",
+    "prompt.check.example": "Al menos un ejemplo de formato concreto",
+    "prompt.check.fallback": "El caso «no sé» está manejado explícitamente",
+    "prompt.check.specificity": "Sin calificadores vagos (manual)",
+    "prompt.check.variables": "Contenido variable en {{variables}}, no hardcodeado",
+    "prompt.check.tested": "Probado con al menos una entrada real (manual)",
   },
   en: {
     "app.tagline": "Agent Artifact Manager",
@@ -249,7 +269,7 @@ const MESSAGES = {
     "detail.generatingExplanation": "Generating explanation…",
     "detail.noExplanation": "No extended explanation.",
     "detail.notFound": "That term doesn't exist or isn't yours.",
-    "detail.writeYourself": "You can write it with “Edit”.",
+    "detail.writeYourself": 'You can write it with "Edit".',
     "detail.explanationPlaceholder": "Write the explanation (or click Regenerate for a new AI one)…",
     "detail.errGenerate": "Could not generate the explanation.",
     "detail.errSave": "Could not save.",
@@ -310,6 +330,26 @@ const MESSAGES = {
     "editor.publish": "Publish",
     "editor.testBranch": "Test on a branch",
     "editor.openPr": "Open PR when testing",
+
+    "nav.guide": "Prompt guide",
+
+    "guide.title": "How to Write Prompts Like a Claude Developer",
+    "guide.intro": "12 principles Anthropic engineers apply to get more reliable, cheaper and safer results.",
+    "guide.checklist.title": "Quality checklist",
+    "guide.checklist.hint": "Review before saving. Items with ✓/✗ are checked automatically.",
+    "guide.checklist.viewFull": "View full guide →",
+    "guide.checklist.autoNote": "auto",
+
+    "prompt.check.role": "Role defined in the first sentence",
+    "prompt.check.instructions": "Instructions before content (manual)",
+    "prompt.check.xml": "XML tags to separate sections",
+    "prompt.check.negative": 'At least one negative instruction ("do not…")',
+    "prompt.check.one_job": "Prompt does ONE job (manual)",
+    "prompt.check.example": "At least one concrete format example",
+    "prompt.check.fallback": `The "I don’t know" case is handled explicitly`,
+    "prompt.check.specificity": "No vague qualifiers (manual)",
+    "prompt.check.variables": "Variable content in {{variables}}, not hardcoded",
+    "prompt.check.tested": "Tested with at least one real input (manual)",
   },
 };
 
