@@ -11,6 +11,7 @@ import { getRenderer } from "@/lib/renderers";
 import { makeZip } from "@/lib/zip";
 import { generateArtifactLocal, LOCAL_DEFAULTS } from "@/lib/local-generate";
 import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
+import PromptChecklist from "@/components/PromptChecklist";
 
 const EMPTY = {
   name: "",
@@ -526,6 +527,8 @@ export default function ArtifactEditor({ id }) {
             {t("editor.renderedNote")}
           </span>
         </div>
+
+        <PromptChecklist body={form.body_template} />
 
         {!isNew && (
           <div style={{ marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
