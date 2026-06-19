@@ -304,6 +304,89 @@ Skip it when:
   },
 ];
 
+// ── Links ──────────────────────────────────────────────────────────────────
+
+const LINKS = [
+  {
+    category_es: "Fundamentos",
+    category_en: "Foundations",
+    items: [
+      {
+        label: "Prompt engineering overview",
+        url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview",
+        desc_es: "Guía oficial de Anthropic sobre técnicas de prompting.",
+        desc_en: "Anthropic's official guide to prompting techniques.",
+      },
+      {
+        label: "Claude models overview",
+        url: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
+        desc_es: "IDs de modelo actuales y capacidades de cada versión de Claude.",
+        desc_en: "Current model IDs and capabilities for each Claude version.",
+      },
+    ],
+  },
+  {
+    category_es: "Técnicas avanzadas",
+    category_en: "Advanced techniques",
+    items: [
+      {
+        label: "Extended thinking",
+        url: "https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking",
+        desc_es: "Cuándo y cómo activar el razonamiento extendido paso a paso.",
+        desc_en: "When and how to enable step-by-step extended reasoning.",
+      },
+      {
+        label: "Prompt caching",
+        url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+        desc_es: "Reduce costes hasta 10× cacheando el system prompt entre llamadas.",
+        desc_en: "Cut costs up to 10× by caching the system prompt across calls.",
+      },
+      {
+        label: "Tool use (function calling)",
+        url: "https://docs.anthropic.com/en/docs/build-with-claude/tool-use/overview",
+        desc_es: "Integra Claude con herramientas y APIs externas.",
+        desc_en: "Integrate Claude with external tools and APIs.",
+      },
+    ],
+  },
+  {
+    category_es: "Claude Code",
+    category_en: "Claude Code",
+    items: [
+      {
+        label: "Claude Code documentation",
+        url: "https://docs.anthropic.com/en/docs/claude-code/overview",
+        desc_es: "Referencia completa del CLI de Claude Code: comandos, hooks, MCP.",
+        desc_en: "Full Claude Code CLI reference: commands, hooks, MCP.",
+      },
+      {
+        label: "Claude Code skills (slash commands)",
+        url: "https://docs.anthropic.com/en/docs/claude-code/slash-commands",
+        desc_es: "Cómo crear y compartir skills reutilizables en Claude Code.",
+        desc_en: "How to create and share reusable skills in Claude Code.",
+      },
+    ],
+  },
+  {
+    category_es: "Ejemplos y recetas",
+    category_en: "Examples & recipes",
+    items: [
+      {
+        label: "Anthropic Cookbook (GitHub)",
+        url: "https://github.com/anthropics/anthropic-cookbook",
+        desc_es: "Notebooks y recetas para patrones comunes de uso de la API.",
+        desc_en: "Notebooks and recipes for common API usage patterns.",
+      },
+      {
+        label: "Anthropic Courses (GitHub)",
+        url: "https://github.com/anthropics/courses",
+        desc_es: "Cursos oficiales de Anthropic sobre prompt engineering y agentes.",
+        desc_en: "Anthropic's official courses on prompt engineering and agents.",
+      },
+    ],
+  },
+];
+
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function PromptGuidePage() {
@@ -361,6 +444,35 @@ export default function PromptGuidePage() {
             )}
           </section>
         ))}
+      </div>
+
+      {/* Useful links */}
+      <div style={{ marginTop: 40 }}>
+        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 20 }}>{t("guide.links.title")}</h2>
+        <div style={{ display: "grid", gap: 16 }}>
+          {LINKS.map((group) => (
+            <div key={group.category_en}>
+              <h3 style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 10 }}>
+                {lang === "en" ? group.category_en : group.category_es}
+              </h3>
+              <div style={{ display: "grid", gap: 8 }}>
+                {group.items.map((link) => (
+                  <a
+                    key={link.url}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="card"
+                    style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 2, textDecoration: "none", color: "inherit" }}
+                  >
+                    <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--bark)" }}>{link.label}</span>
+                    <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>{lang === "en" ? link.desc_en : link.desc_es}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </main>
   );
