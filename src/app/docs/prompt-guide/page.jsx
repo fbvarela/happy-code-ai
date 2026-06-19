@@ -308,66 +308,130 @@ Skip it when:
   },
 ];
 
-// ── Models ─────────────────────────────────────────────────────────────────
+// ── Agents ─────────────────────────────────────────────────────────────────
 
-const MODELS = [
+// xmlTags / prefilling / caching / thinking:
+//   true = supported  |  false = not supported
+//   "partial" = limited/workaround  |  "builtin" = automatic, no user control
+
+const AGENTS = [
   {
-    name: "Haiku 4.5",
-    id: "claude-haiku-4-5-20251001",
-    tagline_es: "Velocidad máxima, coste mínimo",
-    tagline_en: "Maximum speed, minimum cost",
+    name: "Claude",
+    provider: "Anthropic",
     context: "200K",
-    extendedThinking: false,
-    promptCaching: true,
-    vision: true,
-    toolUse: true,
     isNew: false,
-    strengths_es: "Clasificación, extracción, conversión de formato, tareas de alto volumen, baja latencia.",
-    strengths_en: "Classification, extraction, format conversion, high-volume tasks, low-latency responses.",
+    isDeprecated: false,
+    tagline_es: "El único agente entrenado con XML estructural nativo. Caché de prompts y pensamiento extendido en Sonnet/Opus.",
+    tagline_en: "The only agent trained with native structural XML. Prompt caching and extended thinking on Sonnet/Opus.",
+    xmlTags: true,
+    prefilling: true,
+    caching: true,
+    thinking: true,
+    bestFor_es: "Agentes, código, análisis, roleplay, razonamiento complejo.",
+    bestFor_en: "Agents, coding, analysis, roleplay, complex reasoning.",
+    tip_es: "Principios 3, 9 y 10 de esta guía son exclusivos de Claude. El pensamiento extendido no está disponible en Haiku.",
+    tip_en: "Principles 3, 9 and 10 in this guide are Claude-specific. Extended thinking is not available on Haiku.",
+    docs: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview",
   },
   {
-    name: "Sonnet 4.6",
-    id: "claude-sonnet-4-6",
-    tagline_es: "Equilibrio calidad/velocidad — modelo por defecto de Claude Code",
-    tagline_en: "Quality/speed balance — Claude Code default model",
-    context: "200K",
-    extendedThinking: true,
-    promptCaching: true,
-    vision: true,
-    toolUse: true,
+    name: "GPT-4o / o1 / o3",
+    provider: "OpenAI",
+    context: "128K–200K",
     isNew: false,
-    strengths_es: "Agentes, código, análisis, redacción, mayoría de tareas en producción.",
-    strengths_en: "Agents, coding, analysis, writing, most production tasks.",
+    isDeprecated: false,
+    tagline_es: "Prefiere Markdown sobre XML. o1/o3 tienen razonamiento integrado sin control de budget.",
+    tagline_en: "Prefers Markdown over XML. o1/o3 have built-in reasoning with no budget control.",
+    xmlTags: false,
+    prefilling: "partial",
+    caching: "partial",
+    thinking: "builtin",
+    bestFor_es: "Tareas generales, código, análisis. o1/o3 para razonamiento multi-paso.",
+    bestFor_en: "General tasks, coding, analysis. o1/o3 for multi-step reasoning.",
+    tip_es: "Reemplaza los tags XML por Markdown (## Sección) o delimitadores como ---. Los modelos o1/o3 razonan solos, no uses chain-of-thought explícito.",
+    tip_en: "Replace XML tags with Markdown (## Section) or delimiters like ---. o1/o3 reason on their own — do not use explicit chain-of-thought.",
+    docs: "https://platform.openai.com/docs/guides/prompt-engineering",
   },
   {
-    name: "Opus 4.8",
-    id: "claude-opus-4-8",
-    tagline_es: "Máxima capacidad de razonamiento",
-    tagline_en: "Highest reasoning capability",
-    context: "200K",
-    extendedThinking: true,
-    promptCaching: true,
-    vision: true,
-    toolUse: true,
+    name: "GitHub Copilot",
+    provider: "Microsoft / OpenAI",
+    context: "repo-aware",
     isNew: false,
-    strengths_es: "Razonamiento complejo, investigación, planificación estratégica, decisiones matizadas.",
-    strengths_en: "Complex reasoning, research, strategic planning, nuanced decisions.",
+    isDeprecated: false,
+    tagline_es: "Instrucciones persistentes vía .github/copilot-instructions.md. Sin control directo de modelo.",
+    tagline_en: "Persistent instructions via .github/copilot-instructions.md. No direct model control.",
+    xmlTags: false,
+    prefilling: false,
+    caching: false,
+    thinking: false,
+    bestFor_es: "Autocompletado en IDE, revisión de PR, comandos de terminal con Copilot CLI.",
+    bestFor_en: "IDE autocomplete, PR review, terminal commands via Copilot CLI.",
+    tip_es: "Pon las convenciones del proyecto en .github/copilot-instructions.md. Ese archivo actúa como system prompt persistente para todo el repo.",
+    tip_en: "Put project conventions in .github/copilot-instructions.md. That file acts as a persistent system prompt for the whole repo.",
+    docs: "https://docs.github.com/en/copilot/using-github-copilot/prompt-engineering-for-github-copilot",
   },
   {
-    name: "Fable 5",
-    id: "claude-fable-5",
-    tagline_es: "Modelo narrativo más reciente de Anthropic",
-    tagline_en: "Anthropic latest narrative model",
-    context: "200K",
-    extendedThinking: true,
-    promptCaching: true,
-    vision: true,
-    toolUse: true,
-    isNew: true,
-    strengths_es: "Narrativa, roleplay, conversación larga. Consulta docs para capacidades específicas.",
-    strengths_en: "Narrative, roleplay, long-form conversation. Check docs for specific capabilities.",
+    name: "Gemini",
+    provider: "Google",
+    context: "1M–2M",
+    isNew: false,
+    isDeprecated: false,
+    tagline_es: "Ventana de contexto enorme. Caché de contexto explícita. Flash Thinking en algunos modelos.",
+    tagline_en: "Huge context window. Explicit context caching. Flash Thinking on some models.",
+    xmlTags: false,
+    prefilling: false,
+    caching: true,
+    thinking: "partial",
+    bestFor_es: "Bases de código grandes, análisis de documentos largos, tareas que requieren contexto masivo.",
+    bestFor_en: "Large codebases, long-document analysis, tasks requiring massive context.",
+    tip_es: "Mete el repo entero en el contexto y cachea el contenido base. Prefiere texto natural o Markdown, no XML.",
+    tip_en: "Include the entire repo in context and cache the base content. Prefer natural text or Markdown, not XML.",
+    docs: "https://ai.google.dev/gemini-api/docs/prompting-strategies",
+  },
+  {
+    name: "Hermes / Nous",
+    provider: "Nous Research",
+    context: "8K–128K",
+    isNew: false,
+    isDeprecated: false,
+    tagline_es: "Modelos open-source con formato ChatML. Compatible con Ollama y llama.cpp.",
+    tagline_en: "Open-source models using ChatML format. Compatible with Ollama and llama.cpp.",
+    xmlTags: false,
+    prefilling: true,
+    caching: false,
+    thinking: false,
+    bestFor_es: "Despliegue local, privacidad total, fine-tuning, prototipado sin API externa.",
+    bestFor_en: "Local deployment, full privacy, fine-tuning, prototyping without external API.",
+    tip_es: "Usa el formato ChatML (<|im_start|>system ... <|im_end|>). El prefilling funciona con control total sobre el modelo.",
+    tip_en: "Use ChatML format (<|im_start|>system ... <|im_end|>). Prefilling works with full model control.",
+    docs: "https://huggingface.co/NousResearch",
+  },
+  {
+    name: "Codex",
+    provider: "OpenAI",
+    context: "8K",
+    isNew: false,
+    isDeprecated: true,
+    tagline_es: "Modelo original de generación de código de OpenAI. Reemplazado por GPT-4o.",
+    tagline_en: "OpenAI original code generation model. Superseded by GPT-4o.",
+    xmlTags: false,
+    prefilling: false,
+    caching: false,
+    thinking: false,
+    bestFor_es: "Ya no se recomienda para nuevos proyectos. Usa GPT-4o o GitHub Copilot.",
+    bestFor_en: "No longer recommended for new projects. Use GPT-4o or GitHub Copilot.",
+    tip_es: "Codex está deprecado. Si lo ves en proyectos heredados, los mismos principios de claridad y especificidad aplican.",
+    tip_en: "Codex is deprecated. If you encounter it in legacy projects, the same clarity and specificity principles apply.",
+    docs: "https://openai.com/index/openai-codex/",
   },
 ];
+
+// Principles with agent-specific scope (number → badge label keys)
+const PRINCIPLE_SCOPE = {
+  3:  { key: "claudeOnly",     color: "var(--bark)" },
+  9:  { key: "apiOnly",        color: "var(--leaf)" },
+  10: { key: "claudeGemini",   color: "var(--leaf)" },
+  11: { key: "thinkingAgents", color: "var(--sun)"  },
+};
 
 // ── Links ──────────────────────────────────────────────────────────────────
 
@@ -474,11 +538,8 @@ export default function PromptGuidePage() {
             <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: 10, display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
               <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: "0.85rem", minWidth: 20 }}>{p.n}.</span>
               <span style={{ flex: 1 }}>{p.title}</span>
-              {p.scope === "api" && (
-                <span style={scopeBadge("var(--leaf)")}>{t("guide.models.apiOnly")}</span>
-              )}
-              {p.scope === "not-haiku" && (
-                <span style={scopeBadge("var(--sun)")}>{t("guide.models.notHaiku")}</span>
+              {PRINCIPLE_SCOPE[p.n] && (
+                <span style={scopeBadge(PRINCIPLE_SCOPE[p.n].color)}>{t("guide.models." + PRINCIPLE_SCOPE[p.n].key)}</span>
               )}
             </h2>
 
@@ -517,35 +578,44 @@ export default function PromptGuidePage() {
         ))}
       </div>
 
-      {/* Model comparison */}
+      {/* Agent comparison */}
       <div style={{ marginTop: 40 }}>
         <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 20 }}>{t("guide.models.title")}</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
-          {MODELS.map((m) => (
-            <div key={m.id} className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 12 }}>
+          {AGENTS.map((a) => (
+            <a
+              key={a.name}
+              href={a.docs}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="card"
+              style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10, textDecoration: "none", color: "inherit", opacity: a.isDeprecated ? 0.65 : 1 }}
+            >
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontWeight: 700, fontSize: "1rem" }}>{m.name}</span>
-                {m.isNew && <span style={scopeBadge("var(--leaf)")}>{t("guide.models.new")}</span>}
+                <span style={{ fontWeight: 700, fontSize: "1rem" }}>{a.name}</span>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{a.provider}</span>
+                {a.isNew && <span style={scopeBadge("var(--leaf)")}>{t("guide.models.new")}</span>}
+                {a.isDeprecated && <span style={scopeBadge("var(--clay)")}>{t("guide.models.deprecated")}</span>}
               </div>
-              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: 0 }}>
-                {lang === "en" ? m.tagline_en : m.tagline_es}
+              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
+                {lang === "en" ? a.tagline_en : a.tagline_es}
               </p>
-              <code style={{ fontSize: "0.72rem", background: "var(--cream)", border: "1px solid var(--line)", borderRadius: 4, padding: "2px 6px", color: "var(--text-muted)", display: "block", wordBreak: "break-all" }}>
-                {m.id}
-              </code>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                <CapBadge ok={m.extendedThinking} label={t("guide.models.extended")} />
-                <CapBadge ok={m.promptCaching} label={t("guide.models.caching")} />
-                <CapBadge ok={m.vision} label={t("guide.models.vision")} />
-                <CapBadge ok={m.toolUse} label={t("guide.models.tools")} />
+                <CapBadge ok={a.xmlTags} label={t("guide.models.xmlTags")} partial={t("guide.models.partial")} builtin={t("guide.models.builtin")} />
+                <CapBadge ok={a.prefilling} label={t("guide.models.prefilling")} partial={t("guide.models.partial")} builtin={t("guide.models.builtin")} />
+                <CapBadge ok={a.caching} label={t("guide.models.caching")} partial={t("guide.models.partial")} builtin={t("guide.models.builtin")} />
+                <CapBadge ok={a.thinking} label={t("guide.models.thinking")} partial={t("guide.models.partial")} builtin={t("guide.models.builtin")} />
                 <span style={{ ...capBase, background: "var(--cream)", color: "var(--text-muted)" }}>
-                  {t("guide.models.context")}: {m.context}
+                  {t("guide.models.context")}: {a.context}
                 </span>
               </div>
               <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: 0 }}>
-                <strong>{t("guide.models.bestFor")}:</strong> {lang === "en" ? m.strengths_en : m.strengths_es}
+                <strong>{t("guide.models.bestFor")}:</strong> {lang === "en" ? a.bestFor_en : a.bestFor_es}
               </p>
-            </div>
+              <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0, background: "var(--cream)", borderRadius: 6, padding: "6px 10px", lineHeight: 1.5 }}>
+                <strong>{t("guide.models.tip")}:</strong> {lang === "en" ? a.tip_en : a.tip_es}
+              </p>
+            </a>
           ))}
         </div>
       </div>
@@ -582,10 +652,15 @@ export default function PromptGuidePage() {
   );
 }
 
-function CapBadge({ ok, label }) {
+function CapBadge({ ok, label, partial, builtin }) {
+  const isPartial = ok === "partial";
+  const isBuiltin = ok === "builtin";
+  const color = ok === true || isBuiltin ? "var(--leaf)" : isPartial ? "var(--sun)" : "var(--clay)";
+  const icon = ok === true ? "✓" : isBuiltin ? "⊙" : isPartial ? "~" : "✗";
+  const suffix = isPartial ? ` (${partial})` : isBuiltin ? ` (${builtin})` : "";
   return (
-    <span style={{ ...capBase, background: ok ? "color-mix(in srgb, var(--leaf) 15%, transparent)" : "color-mix(in srgb, var(--clay) 12%, transparent)", color: ok ? "var(--leaf)" : "var(--clay)" }}>
-      {ok ? "✓" : "✗"} {label}
+    <span style={{ ...capBase, background: "color-mix(in srgb, " + color + " 13%, transparent)", color }}>
+      {icon} {label}{suffix}
     </span>
   );
 }
