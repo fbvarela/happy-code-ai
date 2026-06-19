@@ -12,6 +12,7 @@ import { makeZip } from "@/lib/zip";
 import { generateArtifactLocal, LOCAL_DEFAULTS } from "@/lib/local-generate";
 import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
 import PromptChecklist from "@/components/PromptChecklist";
+import TokenMeter from "@/components/TokenMeter";
 
 const EMPTY = {
   name: "",
@@ -441,6 +442,7 @@ export default function ArtifactEditor({ id }) {
         <Field label={t("editor.body")}>
           <textarea style={{ ...input, minHeight: 180, fontFamily: "monospace" }} value={form.body_template} onChange={(e) => set("body_template", e.target.value)} />
         </Field>
+        <TokenMeter body={form.body_template} target={form.target} />
 
         {/* Variables */}
         <div>
