@@ -198,6 +198,7 @@ const MESSAGES = {
     "guide.checklist.hint": "Revísalo antes de guardar. Los ítems con ✓/✗ se comprueban automáticamente.",
     "guide.checklist.viewFull": "Ver guía completa →",
     "guide.checklist.autoNote": "auto",
+    "guide.links.title": "Documentación oficial",
 
     "prompt.check.role": "Rol definido en la primera frase",
     "prompt.check.instructions": "Instrucciones antes del contenido (manual)",
@@ -339,6 +340,7 @@ const MESSAGES = {
     "guide.checklist.hint": "Review before saving. Items with ✓/✗ are checked automatically.",
     "guide.checklist.viewFull": "View full guide →",
     "guide.checklist.autoNote": "auto",
+    "guide.links.title": "Official documentation",
 
     "prompt.check.role": "Role defined in the first sentence",
     "prompt.check.instructions": "Instructions before content (manual)",
