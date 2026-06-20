@@ -179,16 +179,16 @@ export default function OpenSpecGuidePage() {
   const sections = lang === "en" ? SECTIONS_EN : SECTIONS_ES;
 
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: "32px 20px 64px" }}>
+    <main style={{ maxWidth: 860, margin: "0 auto", padding: "32px 20px 64px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
-        <h1 style={{ fontSize: "1.4rem", lineHeight: 1.3 }}>
+        <h1 style={{ fontSize: "1.75rem", lineHeight: 1.3 }}>
           {lang === "en" ? "OpenSpec Guide" : "Guía de OpenSpec"}
         </h1>
-        <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+        <Link href="/" style={{ fontSize: "0.95rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
           <ArrowLeft size={14} /> {t("nav.back")}
         </Link>
       </div>
-      <p style={{ color: "var(--text-muted)", marginBottom: 8, fontSize: "0.9rem" }}>
+      <p style={{ color: "var(--text-muted)", marginBottom: 8, fontSize: "1.05rem" }}>
         {lang === "en"
           ? "Spec-driven development for coding agents — write intent, let the agent write code."
           : "Desarrollo orientado a specs para coding agents — escribe intención, deja que el agent escriba el código."}
@@ -197,7 +197,7 @@ export default function OpenSpecGuidePage() {
         href="https://openspec.dev/"
         target="_blank"
         rel="noopener noreferrer"
-        style={{ fontSize: "0.82rem", color: "var(--bark)", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 32 }}
+        style={{ fontSize: "0.95rem", color: "var(--bark)", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 32 }}
       >
         openspec.dev <ExternalLink size={12} />
       </a>
@@ -205,16 +205,16 @@ export default function OpenSpecGuidePage() {
       <div style={{ display: "grid", gap: 20 }}>
         {sections.map((s) => (
           <section key={s.id} className="card" style={{ padding: "20px 24px" }}>
-            <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: 12 }}>{s.title}</h2>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: 12 }}>{s.title}</h2>
 
             {s.body && (
-              <p style={{ fontSize: "0.88rem", lineHeight: 1.65 }}>{s.body}</p>
+              <p style={{ fontSize: "1rem", lineHeight: 1.65 }}>{s.body}</p>
             )}
 
             {s.bullets && (
               <ul style={{ margin: 0, paddingLeft: 20, display: "grid", gap: 6 }}>
                 {s.bullets.map((b, i) => (
-                  <li key={i} style={{ fontSize: "0.88rem", lineHeight: 1.5 }}>{b}</li>
+                  <li key={i} style={{ fontSize: "1rem", lineHeight: 1.5 }}>{b}</li>
                 ))}
               </ul>
             )}
@@ -222,13 +222,13 @@ export default function OpenSpecGuidePage() {
             {s.example && (
               <>
                 {s.note && (
-                  <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: 10 }}>{s.note}</p>
+                  <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", marginBottom: 10 }}>{s.note}</p>
                 )}
                 <pre style={codeStyle}>{s.example}</pre>
                 {s.annotations && (
                   <div style={{ display: "grid", gap: 6, marginTop: 12 }}>
                     {s.annotations.map((a) => (
-                      <div key={a.label} style={{ display: "flex", gap: 8, fontSize: "0.82rem", lineHeight: 1.5 }}>
+                      <div key={a.label} style={{ display: "flex", gap: 8, fontSize: "0.95rem", lineHeight: 1.5 }}>
                         <span style={annotationLabel}>{a.label}</span>
                         <span style={{ color: "var(--text-muted)" }}>{a.text}</span>
                       </div>
@@ -241,7 +241,7 @@ export default function OpenSpecGuidePage() {
             {s.rules && Array.isArray(s.rules) && typeof s.rules[0] === "string" && (
               <ul style={{ margin: 0, paddingLeft: 20, display: "grid", gap: 6 }}>
                 {s.rules.map((r, i) => (
-                  <li key={i} style={{ fontSize: "0.88rem", lineHeight: 1.5 }}>{r}</li>
+                  <li key={i} style={{ fontSize: "1rem", lineHeight: 1.5 }}>{r}</li>
                 ))}
               </ul>
             )}
@@ -250,7 +250,7 @@ export default function OpenSpecGuidePage() {
               <div style={{ display: "grid", gap: 14 }}>
                 {s.rules.map((r) => (
                   <div key={r.title}>
-                    <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: 6 }}>{r.title}</div>
+                    <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: 6 }}>{r.title}</div>
                     <div style={{ display: "grid", gap: 4 }}>
                       <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
                         <span style={okBadge}>OK</span>
@@ -272,8 +272,8 @@ export default function OpenSpecGuidePage() {
                   <div key={step.n} style={{ display: "flex", gap: 12 }}>
                     <span style={stepNum}>{step.n}</span>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: "0.88rem", marginBottom: 3 }}>{step.title}</div>
-                      <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.55 }}>{step.body}</p>
+                      <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 3 }}>{step.title}</div>
+                      <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.55 }}>{step.body}</p>
                     </div>
                   </div>
                 ))}
@@ -300,7 +300,7 @@ const codeStyle = {
   border: "1px solid var(--line)",
   borderRadius: 6,
   padding: "12px 14px",
-  fontSize: "0.78rem",
+  fontSize: "0.88rem",
   whiteSpace: "pre-wrap",
   wordBreak: "break-word",
   margin: 0,
@@ -309,7 +309,7 @@ const codeStyle = {
 };
 
 const annotationLabel = {
-  fontSize: "0.7rem",
+  fontSize: "0.8rem",
   fontWeight: 700,
   background: "var(--cream)",
   border: "1px solid var(--line)",
@@ -321,7 +321,7 @@ const annotationLabel = {
 };
 
 const okBadge = {
-  fontSize: "0.65rem",
+  fontSize: "0.75rem",
   fontWeight: 700,
   color: "var(--leaf)",
   background: "color-mix(in srgb, var(--leaf) 12%, transparent)",
@@ -341,18 +341,18 @@ const noBadge = {
 };
 
 const inlineCode = {
-  fontSize: "0.8rem",
+  fontSize: "0.92rem",
   fontFamily: "monospace",
   lineHeight: 1.5,
 };
 
 const stepNum = {
-  minWidth: 26,
-  height: 26,
+  minWidth: 30,
+  height: 30,
   borderRadius: "50%",
   background: "var(--bark)",
   color: "#fff",
-  fontSize: "0.75rem",
+  fontSize: "0.85rem",
   fontWeight: 700,
   display: "inline-flex",
   alignItems: "center",
@@ -365,7 +365,7 @@ const linkBtn = {
   display: "inline-flex",
   alignItems: "center",
   gap: 4,
-  fontSize: "0.85rem",
+  fontSize: "1rem",
   color: "var(--bark)",
   textDecoration: "none",
   fontWeight: 600,
