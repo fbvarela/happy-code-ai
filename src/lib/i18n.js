@@ -102,6 +102,11 @@ const MESSAGES = {
     "suggestions.searchPlaceholder": "Buscar sugerencia…",
     "suggestions.empty": "No hay sugerencias para ese filtro.",
     "suggestions.use": "Usar plantilla",
+    "suggestions.aiPrompt": "Describe lo que necesitas y generamos un artefacto a medida.",
+    "suggestions.aiPlaceholder": "Ej: Un agente que escriba tests unitarios para React con Vitest…",
+    "suggestions.aiGenerate": "Generar sugerencia",
+    "suggestions.aiGenerating": "Generando…",
+    "suggestions.aiError": "Error al generar. Revisa la configuración del proveedor.",
 
     "glossary.title": "Glosario de IA",
     "glossary.intro": "Términos de IA y agentes de programación, con enlaces a las herramientas más usadas. Añade los tuyos: si dejas la definición vacía, la genera Groq.",
@@ -261,6 +266,11 @@ const MESSAGES = {
     "suggestions.searchPlaceholder": "Search suggestions…",
     "suggestions.empty": "No suggestions for that filter.",
     "suggestions.use": "Use template",
+    "suggestions.aiPrompt": "Describe what you need and we'll generate a custom artifact.",
+    "suggestions.aiPlaceholder": "E.g.: An agent that writes unit tests for React with Vitest…",
+    "suggestions.aiGenerate": "Generate suggestion",
+    "suggestions.aiGenerating": "Generating…",
+    "suggestions.aiError": "Generation failed. Check provider configuration.",
 
     "glossary.title": "AI Glossary",
     "glossary.intro": "AI and coding-agent terms, with links to the most-used tools. Add your own: leave the definition empty and Groq generates it.",

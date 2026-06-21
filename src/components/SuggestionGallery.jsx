@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Wand2 } from "lucide-react";
+import { Wand2, Sparkles } from "lucide-react";
 import { SUGGESTIONS, SUGGESTION_CATEGORIES } from "@/lib/suggestions";
 import { ARTIFACT_TYPES } from "@/lib/artifact-types";
 import { useI18n, pickLang, TYPE_LABELS_I18N } from "@/lib/i18n";
@@ -17,6 +17,9 @@ export default function SuggestionGallery() {
   const CAT_LABEL = Object.fromEntries(SUGGESTION_CATEGORIES.map((c) => [c.id, pickLang(c, "label", lang)]));
   const [cat, setCat] = useState("");
   const [q, setQ] = useState("");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState(null);
 
   const items = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -41,8 +44,57 @@ export default function SuggestionGallery() {
     router.push("/artifacts/new");
   }
 
+  async function generateFromPrompt() {
+    if (!aiPrompt.trim() || aiLoading) return;
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: aiPrompt.trim() }),
+      });
+      if (!res.ok) throw new Error();
+      const { draft } = await res.json();
+      try {
+        sessionStorage.setItem(PREFILL_KEY, JSON.stringify(draft));
+      } catch {}
+      router.push("/artifacts/new");
+    } catch {
+      setAiError(t("suggestions.aiError"));
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   return (
     <section>
+      <div className="card" style={{ padding: 16, marginBottom: 20, background: "var(--cream)" }}>
+        <p style={{ fontSize: "0.9rem", marginBottom: 8, fontWeight: 600 }}>
+          <Sparkles size={16} style={{ display: "inline", verticalAlign: "-2px", marginRight: 6 }} />
+          {t("suggestions.aiPrompt")}
+        </p>
+        <div style={{ display: "flex", gap: 10 }}>
+          <input
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && generateFromPrompt()}
+            placeholder={t("suggestions.aiPlaceholder")}
+            style={{ ...inputStyle, flex: 1 }}
+          />
+          <button
+            className="btn btn-bark"
+            type="button"
+            onClick={generateFromPrompt}
+            disabled={aiLoading || !aiPrompt.trim()}
+            style={{ minHeight: 44, padding: "0 16px", whiteSpace: "nowrap" }}
+          >
+            {aiLoading ? t("suggestions.aiGenerating") : t("suggestions.aiGenerate")}
+          </button>
+        </div>
+        {aiError && <p style={{ color: "var(--clay)", fontSize: "0.85rem", marginTop: 8 }}>{aiError}</p>}
+      </div>
+
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
         <input
           value={q}
