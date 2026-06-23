@@ -234,6 +234,7 @@ const MESSAGES = {
     "prompt.check.tested": "Probado con al menos una entrada real (manual)",
 
     "nav.memory": "Memoria",
+    "nav.memoryGuide": "Guía de memoria",
     "memory.title": "Gestor de memoria de agentes",
     "memory.selectRepo": "Selecciona un repositorio",
     "memory.branch": "Rama",
@@ -445,6 +446,7 @@ const MESSAGES = {
     "prompt.check.tested": "Tested with at least one real input (manual)",
 
     "nav.memory": "Memory",
+    "nav.memoryGuide": "Memory guide",
     "memory.title": "Agent Memory Manager",
     "memory.selectRepo": "Select a repository",
     "memory.branch": "Branch",

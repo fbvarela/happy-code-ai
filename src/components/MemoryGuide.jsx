@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, BookOpen } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 const CLI_FILES = [
@@ -79,9 +80,14 @@ export default function MemoryGuide() {
 
           {/* File reference table */}
           <div className="card" style={{ padding: "14px 16px" }}>
-            <p style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 10 }}>
-              {t("memory.guide.filesTitle")}
-            </p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <p style={{ fontWeight: 700, fontSize: "0.95rem", margin: 0 }}>
+                {t("memory.guide.filesTitle")}
+              </p>
+              <Link href="/docs/memory-guide" style={{ fontSize: "0.85rem", color: "var(--bark)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <BookOpen size={13} /> {t("nav.memoryGuide")} →
+              </Link>
+            </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 8 }}>
               {CLI_FILES.map(({ cli, root, dir, ext }) => (
                 <div key={cli} style={{ background: "var(--cream)", borderRadius: 8, padding: "10px 12px" }}>
