@@ -88,6 +88,9 @@ export default function ArtifactLibrary() {
         <button className="btn btn-ghost" type="button" onClick={() => router.push("/memory")} style={iconBtn}>
           <Brain size={16} /> {t("nav.memory")}
         </button>
+        <button className="btn btn-ghost" type="button" onClick={() => router.push("/docs/memory-guide")} style={iconBtn}>
+          <BookOpen size={16} /> {t("nav.memoryGuide")}
+        </button>
         <button className="btn btn-bark" type="button" onClick={() => router.push("/artifacts/new")} style={iconBtn}>
           <Plus size={16} /> {t("nav.new")}
         </button>
