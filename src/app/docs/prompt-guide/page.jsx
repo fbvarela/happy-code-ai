@@ -523,27 +523,27 @@ export default function PromptGuidePage() {
   const principles = lang === "en" ? PRINCIPLES_EN : PRINCIPLES_ES;
 
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: "32px 20px 64px" }}>
+    <main style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 20px 64px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
-        <h1 style={{ fontSize: "1.4rem", lineHeight: 1.3 }}>{t("guide.title")}</h1>
-        <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+        <h1 style={{ fontSize: "1.75rem", lineHeight: 1.3 }}>{t("guide.title")}</h1>
+        <Link href="/" style={{ fontSize: "0.95rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
           <ArrowLeft size={14} /> {t("nav.back")}
         </Link>
       </div>
-      <p style={{ color: "var(--text-muted)", marginBottom: 32, fontSize: "0.9rem" }}>{t("guide.intro")}</p>
+      <p style={{ color: "var(--text-muted)", marginBottom: 32, fontSize: "1.05rem" }}>{t("guide.intro")}</p>
 
       <div style={{ display: "grid", gap: 20 }}>
         {principles.map((p) => (
           <section key={p.n} className="card" style={{ padding: "20px 24px" }}>
-            <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: 10, display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
-              <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: "0.85rem", minWidth: 20 }}>{p.n}.</span>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: 10, display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
+              <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: "1rem", minWidth: 20 }}>{p.n}.</span>
               <span style={{ flex: 1 }}>{p.title}</span>
               {PRINCIPLE_SCOPE[p.n] && (
                 <span style={scopeBadge(PRINCIPLE_SCOPE[p.n].color)}>{t("guide.models." + PRINCIPLE_SCOPE[p.n].key)}</span>
               )}
             </h2>
 
-            <p style={{ fontSize: "0.88rem", lineHeight: 1.6, marginBottom: p.pattern || p.antipattern || p.note || p.checklist ? 12 : 0 }}>
+            <p style={{ fontSize: "1rem", lineHeight: 1.65, marginBottom: p.pattern || p.antipattern || p.note || p.checklist ? 12 : 0 }}>
               {p.why}
             </p>
 
@@ -562,7 +562,7 @@ export default function PromptGuidePage() {
             )}
 
             {p.note && (
-              <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", background: "var(--cream)", borderRadius: 6, padding: "8px 12px", margin: 0, whiteSpace: "pre-line" }}>
+              <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", background: "var(--cream)", borderRadius: 6, padding: "10px 14px", margin: 0, whiteSpace: "pre-line" }}>
                 {p.note}
               </p>
             )}
@@ -570,7 +570,7 @@ export default function PromptGuidePage() {
             {p.checklist && (
               <ol style={{ margin: "4px 0 0", paddingLeft: 22, display: "grid", gap: 6 }}>
                 {p.checklist.map((item, i) => (
-                  <li key={i} style={{ fontSize: "0.88rem", lineHeight: 1.5 }}>{item}</li>
+                  <li key={i} style={{ fontSize: "1rem", lineHeight: 1.55 }}>{item}</li>
                 ))}
               </ol>
             )}
@@ -580,8 +580,8 @@ export default function PromptGuidePage() {
 
       {/* Agent comparison */}
       <div style={{ marginTop: 40 }}>
-        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 20 }}>{t("guide.models.title")}</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 12 }}>
+        <h2 style={{ fontSize: "1.35rem", fontWeight: 700, marginBottom: 20 }}>{t("guide.models.title")}</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
           {AGENTS.map((a) => (
             <a
               key={a.name}
@@ -592,12 +592,12 @@ export default function PromptGuidePage() {
               style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10, textDecoration: "none", color: "inherit", opacity: a.isDeprecated ? 0.65 : 1 }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontWeight: 700, fontSize: "1rem" }}>{a.name}</span>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{a.provider}</span>
+                <span style={{ fontWeight: 700, fontSize: "1.1rem" }}>{a.name}</span>
+                <span style={{ fontSize: "0.88rem", color: "var(--text-muted)" }}>{a.provider}</span>
                 {a.isNew && <span style={scopeBadge("var(--leaf)")}>{t("guide.models.new")}</span>}
                 {a.isDeprecated && <span style={scopeBadge("var(--clay)")}>{t("guide.models.deprecated")}</span>}
               </div>
-              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
                 {lang === "en" ? a.tagline_en : a.tagline_es}
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -609,10 +609,10 @@ export default function PromptGuidePage() {
                   {t("guide.models.context")}: {a.context}
                 </span>
               </div>
-              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: 0 }}>
+              <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", margin: 0 }}>
                 <strong>{t("guide.models.bestFor")}:</strong> {lang === "en" ? a.bestFor_en : a.bestFor_es}
               </p>
-              <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0, background: "var(--cream)", borderRadius: 6, padding: "6px 10px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", margin: 0, background: "var(--cream)", borderRadius: 6, padding: "8px 12px", lineHeight: 1.55 }}>
                 <strong>{t("guide.models.tip")}:</strong> {lang === "en" ? a.tip_en : a.tip_es}
               </p>
             </a>
@@ -622,11 +622,11 @@ export default function PromptGuidePage() {
 
       {/* Useful links */}
       <div style={{ marginTop: 40 }}>
-        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 20 }}>{t("guide.links.title")}</h2>
+        <h2 style={{ fontSize: "1.35rem", fontWeight: 700, marginBottom: 20 }}>{t("guide.links.title")}</h2>
         <div style={{ display: "grid", gap: 16 }}>
           {LINKS.map((group) => (
             <div key={group.category_en}>
-              <h3 style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 10 }}>
+              <h3 style={{ fontSize: "0.88rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 10 }}>
                 {lang === "en" ? group.category_en : group.category_es}
               </h3>
               <div style={{ display: "grid", gap: 8 }}>
@@ -639,8 +639,8 @@ export default function PromptGuidePage() {
                     className="card"
                     style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 2, textDecoration: "none", color: "inherit" }}
                   >
-                    <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--bark)" }}>{link.label}</span>
-                    <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>{lang === "en" ? link.desc_en : link.desc_es}</span>
+                    <span style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--bark)" }}>{link.label}</span>
+                    <span style={{ fontSize: "0.95rem", color: "var(--text-muted)" }}>{lang === "en" ? link.desc_en : link.desc_es}</span>
                   </a>
                 ))}
               </div>
@@ -666,7 +666,7 @@ function CapBadge({ ok, label, partial, builtin }) {
 }
 
 const capBase = {
-  fontSize: "0.7rem",
+  fontSize: "0.82rem",
   fontWeight: 600,
   borderRadius: 4,
   padding: "2px 7px",
@@ -675,7 +675,7 @@ const capBase = {
 
 function scopeBadge(color) {
   return {
-    fontSize: "0.68rem",
+    fontSize: "0.82rem",
     fontWeight: 700,
     color,
     background: "color-mix(in srgb, " + color + " 12%, transparent)",
@@ -689,7 +689,7 @@ function scopeBadge(color) {
 function labelStyle(color) {
   return {
     display: "inline-block",
-    fontSize: "0.7rem",
+    fontSize: "0.82rem",
     fontWeight: 700,
     color,
     textTransform: "uppercase",
@@ -703,7 +703,7 @@ const codeStyle = {
   border: "1px solid var(--line)",
   borderRadius: 6,
   padding: "10px 12px",
-  fontSize: "0.8rem",
+  fontSize: "0.95rem",
   whiteSpace: "pre-wrap",
   wordBreak: "break-word",
   margin: 0,
