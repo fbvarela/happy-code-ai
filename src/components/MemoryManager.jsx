@@ -14,6 +14,8 @@ export default function MemoryManager() {
   const [repos, setRepos] = useState(null);
   const [selectedRepo, setSelectedRepo] = useState("");
   const [branch, setBranch] = useState("");
+  const [branches, setBranches] = useState([]);
+  const [loadingBranches, setLoadingBranches] = useState(false);
 
   // ── Scan state ──
   const [scanning, setScanning] = useState(false);
@@ -45,6 +47,25 @@ export default function MemoryManager() {
       .then((r) => (r.ok ? r.json() : []))
       .then(setRepos);
   }, []);
+
+  // Load branches when repo changes
+  useEffect(() => {
+    if (!selectedRepo) { setBranches([]); setBranch(""); return; }
+    setLoadingBranches(true);
+    setBranches([]);
+    setBranch("");
+    fetch(`/api/repos/branches?repo=${encodeURIComponent(selectedRepo)}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list) => {
+        setBranches(list);
+        // pre-select default branch from repos list
+        const repo = repos?.find((r) => r.full_name === selectedRepo);
+        const def = repo?.default_branch || (list[0] ?? "");
+        setBranch(def);
+      })
+      .finally(() => setLoadingBranches(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRepo]);
 
   // ── Scan ──
   async function scan() {
@@ -222,12 +243,18 @@ export default function MemoryManager() {
                   <option key={r.full_name} value={r.full_name}>{r.full_name}</option>
                 ))}
               </select>
-              <input
+              <select
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
-                placeholder={t("memory.branch")}
-                style={{ ...inputStyle, width: 140 }}
-              />
+                disabled={!selectedRepo || loadingBranches}
+                style={{ ...inputStyle, width: 160 }}
+              >
+                {loadingBranches && <option value="">{t("common.loading")}</option>}
+                {!loadingBranches && branches.length === 0 && <option value="">—</option>}
+                {branches.map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
               <button
                 className="btn btn-bark"
                 onClick={scan}
@@ -373,13 +400,13 @@ export default function MemoryManager() {
           const sharedTargets = rootFile ? SHARED_ROOTS[rootFile.path] : null;
 
           return (
-            <div key={target} className="card" style={{ padding: 14 }}>
+            <div key={target} className="card" style={{ padding: 14, display: "flex", flexDirection: "column" }}>
               <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 10 }}>
                 {TARGET_LABELS[target]}
               </div>
 
               {/* Root memory */}
-              <div style={{ marginBottom: 8 }}>
+              <div style={{ marginBottom: 12 }}>
                 <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em" }}>
                   {t("memory.rootMemory")}
                 </p>
@@ -405,54 +432,55 @@ export default function MemoryManager() {
                 )}
               </div>
 
-              {/* Named memories */}
-              <div>
+              {/* Named memories — flex: 1 so this section stretches and pins the button to the bottom */}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                 <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em" }}>
                   {t("memory.namedMemories")}
                 </p>
-                {named.length === 0 && (
-                  <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontStyle: "italic" }}>—</span>
-                )}
-                {named.map((f) => (
-                  <button
-                    key={f.path}
-                    className="btn btn-ghost"
-                    onClick={() => setActiveFile(f.path)}
-                    style={{ ...fileBtn, width: "100%", marginBottom: 4 }}
-                  >
-                    <span>{f.slug || f.path}</span>
-                    {isModified(f.path) && <span style={modBadge}>{t("memory.modified")}</span>}
-                    {isNew(f.path) && <span style={newBadge}>{t("memory.added")}</span>}
-                  </button>
-                ))}
+                <div style={{ flex: 1 }}>
+                  {named.map((f) => (
+                    <button
+                      key={f.path}
+                      className="btn btn-ghost"
+                      onClick={() => setActiveFile(f.path)}
+                      style={{ ...fileBtn, width: "100%", marginBottom: 4 }}
+                    >
+                      <span>{f.slug || f.path}</span>
+                      {isModified(f.path) && <span style={modBadge}>{t("memory.modified")}</span>}
+                      {isNew(f.path) && <span style={newBadge}>{t("memory.added")}</span>}
+                    </button>
+                  ))}
+                </div>
 
-                {/* Create new */}
-                {newFileTarget === target ? (
-                  <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
-                    <input
-                      value={newSlug}
-                      onChange={(e) => setNewSlug(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && createNewFile(target)}
-                      placeholder={t("memory.newSlug")}
-                      style={{ ...inputStyle, flex: 1, fontSize: "0.82rem", minHeight: 32, padding: "0 8px" }}
-                      autoFocus
-                    />
-                    <button className="btn btn-bark" onClick={() => createNewFile(target)} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem" }}>
-                      <Plus size={13} />
+                {/* Create new — always at the bottom */}
+                <div style={{ marginTop: 8, borderTop: "1px solid var(--line)", paddingTop: 8 }}>
+                  {newFileTarget === target ? (
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <input
+                        value={newSlug}
+                        onChange={(e) => setNewSlug(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && createNewFile(target)}
+                        placeholder={t("memory.newSlug")}
+                        style={{ ...inputStyle, flex: 1, fontSize: "0.82rem", minHeight: 32, padding: "0 8px" }}
+                        autoFocus
+                      />
+                      <button className="btn btn-bark" onClick={() => createNewFile(target)} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem" }}>
+                        <Plus size={13} />
+                      </button>
+                      <button className="btn btn-ghost" onClick={() => { setNewFileTarget(null); setNewSlug(""); }} style={{ minHeight: 32, padding: "0 8px", fontSize: "0.8rem" }}>
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => setNewFileTarget(target)}
+                      style={{ fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: 4, width: "100%", justifyContent: "center", padding: "6px 0" }}
+                    >
+                      <Plus size={14} /> {t("memory.createNew")}
                     </button>
-                    <button className="btn btn-ghost" onClick={() => { setNewFileTarget(null); setNewSlug(""); }} style={{ minHeight: 32, padding: "0 8px", fontSize: "0.8rem" }}>
-                      ×
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className="btn btn-ghost"
-                    onClick={() => setNewFileTarget(target)}
-                    style={{ fontSize: "0.78rem", marginTop: 4, display: "inline-flex", alignItems: "center", gap: 3 }}
-                  >
-                    <Plus size={12} /> {t("memory.createNew")}
-                  </button>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           );
