@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, BookOpen, FileText, FileCode, Brain, Plus, Copy, Trash2 } from "lucide-react";
+import { Sparkles, BookOpen, FileText, FileCode, Brain, Plus, Copy, Trash2, ChevronDown } from "lucide-react";
 import { ARTIFACT_TYPES } from "@/lib/artifact-types";
 import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
 
@@ -14,6 +14,16 @@ export default function ArtifactLibrary() {
   const [q, setQ] = useState("");
   const [type, setType] = useState("");
   const [confirmId, setConfirmId] = useState(null);
+  const [guidesOpen, setGuidesOpen] = useState(false);
+  const guidesRef = useRef(null);
+
+  useEffect(() => {
+    function onClickOutside(e) {
+      if (guidesRef.current && !guidesRef.current.contains(e.target)) setGuidesOpen(false);
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
 
   async function load() {
     const params = new URLSearchParams();
@@ -79,18 +89,49 @@ export default function ArtifactLibrary() {
         <button className="btn btn-ghost" type="button" onClick={() => router.push("/glossary")} style={iconBtn}>
           <BookOpen size={16} /> {t("nav.glossary")}
         </button>
-        <button className="btn btn-ghost" type="button" onClick={() => router.push("/docs/prompt-guide")} style={iconBtn}>
-          <FileText size={16} /> {t("nav.guide")}
-        </button>
         <button className="btn btn-ghost" type="button" onClick={() => router.push("/docs/openspec")} style={iconBtn}>
           <FileCode size={16} /> OpenSpec
         </button>
         <button className="btn btn-ghost" type="button" onClick={() => router.push("/memory")} style={iconBtn}>
           <Brain size={16} /> {t("nav.memory")}
         </button>
-        <button className="btn btn-ghost" type="button" onClick={() => router.push("/docs/memory-guide")} style={iconBtn}>
-          <BookOpen size={16} /> {t("nav.memoryGuide")}
-        </button>
+        <div ref={guidesRef} style={{ position: "relative" }}>
+          <button
+            className="btn btn-ghost"
+            type="button"
+            onClick={() => setGuidesOpen((o) => !o)}
+            style={iconBtn}
+            aria-expanded={guidesOpen}
+          >
+            <BookOpen size={16} /> {t("nav.guides")} <ChevronDown size={14} />
+          </button>
+          {guidesOpen && (
+            <div
+              style={{
+                position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 10,
+                background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 8,
+                minWidth: 180, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", overflow: "hidden",
+              }}
+            >
+              <button
+                className="btn btn-ghost"
+                type="button"
+                onClick={() => { setGuidesOpen(false); router.push("/docs/prompt-guide"); }}
+                style={{ ...iconBtn, width: "100%", justifyContent: "flex-start", borderRadius: 0 }}
+              >
+                <FileText size={16} /> {t("nav.guide")}
+              </button>
+              <button
+                className="btn btn-ghost"
+                type="button"
+                onClick={() => { setGuidesOpen(false); router.push("/docs/memory-guide"); }}
+                style={{ ...iconBtn, width: "100%", justifyContent: "flex-start", borderRadius: 0 }}
+              >
+                <BookOpen size={16} /> {t("nav.memoryGuide")}
+              </button>
+            </div>
+          )}
+        </div>
         <button className="btn btn-bark" type="button" onClick={() => router.push("/artifacts/new")} style={iconBtn}>
           <Plus size={16} /> {t("nav.new")}
         </button>
