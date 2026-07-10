@@ -6,10 +6,51 @@ export const MEMORY_PATHS = {
   claude:   { root: "CLAUDE.md", dir: ".claude/memory",   ext: ".md" },
   cursor:   { root: "AGENTS.md", dir: ".cursor/rules",    ext: ".mdc" },
   gemini:   { root: "GEMINI.md", dir: ".gemini",           ext: ".md" },
+  junie:    { root: "AGENTS.md", dir: ".junie/memory",     ext: ".md" },
 };
 
 // Targets that share the same root file.
-export const SHARED_ROOTS = { "AGENTS.md": ["opencode", "cursor"] };
+export const SHARED_ROOTS = { "AGENTS.md": ["opencode", "cursor", "junie"] };
+
+// ── Path matching (module-aware) ──
+// A repo may be a Maven/Gradle multi-module project with per-module memory
+// files (e.g. "service-a/CLAUDE.md"), not just one at the repo root. These
+// helpers classify a path as belonging to a given target's root or named
+// memory convention, returning which "module" (subdirectory, "" = repo root)
+// it lives under. Shared by the scan API route and the UI so both agree on
+// what counts as a memory file.
+
+/** If `path` is `root` (repo root) or `<module>/root`, return the module
+ *  ("" for repo root); otherwise null. */
+export function matchRootPath(path, root) {
+  if (path === root) return "";
+  if (path.endsWith("/" + root)) return path.slice(0, -(root.length + 1));
+  return null;
+}
+
+/** If `path` is a named memory file directly inside `<module>/<dir>/`,
+ *  return { module, slug }; otherwise null. */
+export function matchNamedPath(path, dir, ext) {
+  const marker = dir + "/";
+  const idx = path.indexOf(marker);
+  if (idx === -1 || (idx !== 0 && path[idx - 1] !== "/")) return null;
+  const rest = path.slice(idx + marker.length);
+  if (!rest.endsWith(ext) || rest.includes("/")) return null;
+  return { module: path.slice(0, idx).replace(/\/$/, ""), slug: rest.slice(0, -ext.length) };
+}
+
+/** Resolve which target (from `targets`) + module a path belongs to, using
+ *  `memoryPaths` (a MEMORY_PATHS-shaped map). Returns null if no match. */
+export function resolveMemoryPath(path, targets, memoryPaths) {
+  for (const target of targets) {
+    const paths = memoryPaths[target];
+    const rootModule = matchRootPath(path, paths.root);
+    if (rootModule !== null) return { target, module: rootModule, isRoot: true, slug: null };
+    const named = matchNamedPath(path, paths.dir, paths.ext);
+    if (named) return { target, module: named.module, isRoot: false, slug: named.slug };
+  }
+  return null;
+}
 
 export function parseMemorySections(markdown) {
   const lines = (markdown || "").split("\n");

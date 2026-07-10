@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Brain, RefreshCw, Upload, ChevronLeft, Plus, Copy, Check } from "lucide-react";
 import { TARGETS, TARGET_LABELS } from "@/lib/targets";
-import { MEMORY_PATHS, SHARED_ROOTS, parseMemorySections, renderSections } from "@/lib/memory-paths";
+import { MEMORY_PATHS, SHARED_ROOTS, parseMemorySections, renderSections, resolveMemoryPath } from "@/lib/memory-paths";
 import { useI18n } from "@/lib/i18n";
 import DiffPreview from "@/components/DiffPreview";
 
@@ -26,6 +26,9 @@ export default function MemoryManager() {
   // ── Editing ──
   const [editedFiles, setEditedFiles] = useState({});
   const [activeFile, setActiveFile] = useState(null);
+
+  // ── Module (multi-module repo) selection ──
+  const [selectedModule, setSelectedModule] = useState("");
 
   // ── Sync ──
   const [syncSource, setSyncSource] = useState(null);
@@ -77,6 +80,7 @@ export default function MemoryManager() {
     setActiveFile(null);
     setPublishResult(null);
     setPublishError(null);
+    setSelectedModule("");
     try {
       const res = await fetch("/api/memory/scan", {
         method: "POST",
@@ -115,28 +119,36 @@ export default function MemoryManager() {
     return !memoryFiles?.some((f) => f.path === path);
   }
 
-  // ── Group files by target ──
-  const filesByTarget = useMemo(() => {
-    if (!memoryFiles) return {};
-    const map = {};
-    for (const target of TARGETS) map[target] = [];
-    for (const f of memoryFiles) {
-      if (map[f.target]) map[f.target].push(f);
-    }
-    // Include new files from editedFiles
+  // ── All files (scanned + new-from-editor), each resolved to a target/module ──
+  const allFiles = useMemo(() => {
+    if (!memoryFiles) return [];
+    const list = [...memoryFiles];
     for (const path of Object.keys(editedFiles)) {
       if (memoryFiles.some((f) => f.path === path)) continue;
-      const target = TARGETS.find((t) => {
-        const p = MEMORY_PATHS[t];
-        return path === p.root || path.startsWith(p.dir + "/");
-      });
-      if (target && map[target]) {
-        const slug = path.split("/").pop().replace(/\.[^.]+$/, "");
-        map[target].push({ target, path, isRoot: false, slug, content: "", sha: null });
-      }
+      const resolved = resolveMemoryPath(path, TARGETS, MEMORY_PATHS);
+      if (!resolved) continue;
+      list.push({ ...resolved, path, content: "", sha: null });
+    }
+    return list;
+  }, [memoryFiles, editedFiles]);
+
+  // ── Modules present in this repo ("" = repo root) ──
+  const modules = useMemo(() => {
+    const set = new Set(allFiles.map((f) => f.module || ""));
+    set.add("");
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [allFiles]);
+
+  // ── Group files by target, scoped to the selected module ──
+  const filesByTarget = useMemo(() => {
+    const map = {};
+    for (const target of TARGETS) map[target] = [];
+    for (const f of allFiles) {
+      if ((f.module || "") !== selectedModule) continue;
+      if (map[f.target]) map[f.target].push(f);
     }
     return map;
-  }, [memoryFiles, editedFiles]);
+  }, [allFiles, selectedModule]);
 
   // ── Changed files for publish ──
   const changedFiles = useMemo(() => {
@@ -150,26 +162,27 @@ export default function MemoryManager() {
     return result;
   }, [editedFiles, memoryFiles]);
 
-  // ── Create new memory file ──
+  // ── Create new memory file (scoped to the currently selected module) ──
   function createNewFile(target) {
     if (!newSlug.trim()) return;
     const slug = newSlug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     const paths = MEMORY_PATHS[target];
-    const path = `${paths.dir}/${slug}${paths.ext}`;
+    const prefix = selectedModule ? `${selectedModule}/` : "";
+    const path = `${prefix}${paths.dir}/${slug}${paths.ext}`;
     setContent(path, `# ${slug}\n\n`);
     setActiveFile(path);
     setNewFileTarget(null);
     setNewSlug("");
   }
 
-  // ── Sync section to other targets ──
-  function syncSection(sectionContent, heading, fromTarget) {
+  // ── Sync section to other targets (within the same module) ──
+  function syncSection(sectionContent, heading, fromTarget, module) {
     for (const target of TARGETS) {
       if (target === fromTarget) continue;
       if (!syncSource?.targets?.[target]) continue;
 
       const paths = MEMORY_PATHS[target];
-      const rootPath = paths.root;
+      const rootPath = module ? `${module}/${paths.root}` : paths.root;
       const currentContent = getContent(rootPath);
 
       if (!currentContent && !memoryFiles?.some((f) => f.path === rootPath)) {
@@ -274,10 +287,9 @@ export default function MemoryManager() {
   // File editor view
   if (activeFile) {
     const sections = parseMemorySections(getContent(activeFile));
-    const fileTarget = TARGETS.find((t) => {
-      const p = MEMORY_PATHS[t];
-      return activeFile === p.root || activeFile.startsWith(p.dir + "/");
-    });
+    const resolved = resolveMemoryPath(activeFile, TARGETS, MEMORY_PATHS);
+    const fileTarget = resolved?.target;
+    const fileModule = resolved?.module || "";
 
     return (
       <section>
@@ -342,7 +354,7 @@ export default function MemoryManager() {
                     className="btn btn-bark"
                     style={{ fontSize: "0.8rem", padding: "4px 12px", minHeight: 32 }}
                     disabled={!Object.values(syncSource.targets).some(Boolean)}
-                    onClick={() => syncSection(sec.content, sec.heading, fileTarget)}
+                    onClick={() => syncSection(sec.content, sec.heading, fileTarget, fileModule)}
                   >
                     <Check size={13} style={{ marginRight: 4 }} />
                     {t("memory.syncTo")}
@@ -391,13 +403,30 @@ export default function MemoryManager() {
         </button>
       </div>
 
+      {/* Module selector — only shown for multi-module repos (e.g. Maven/Gradle
+          repos with a CLAUDE.md/AGENTS.md per module, not just at the root) */}
+      {modules.length > 1 && (
+        <div style={{ display: "flex", gap: 10, marginBottom: 16, alignItems: "center" }}>
+          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{t("memory.module")}</span>
+          <select
+            value={selectedModule}
+            onChange={(e) => setSelectedModule(e.target.value)}
+            style={{ ...inputStyle, width: 260, minHeight: 36 }}
+          >
+            {modules.map((m) => (
+              <option key={m} value={m}>{m || t("memory.rootModule")}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* Target columns */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12, marginBottom: 20 }}>
         {TARGETS.map((target) => {
           const files = filesByTarget[target] || [];
           const rootFile = files.find((f) => f.isRoot);
           const named = files.filter((f) => !f.isRoot);
-          const sharedTargets = rootFile ? SHARED_ROOTS[rootFile.path] : null;
+          const sharedTargets = rootFile ? SHARED_ROOTS[rootFile.path.split("/").pop()] : null;
 
           return (
             <div key={target} className="card" style={{ padding: 14, display: "flex", flexDirection: "column" }}>

@@ -1650,6 +1650,397 @@ export const SUGGESTIONS = [
       files: [],
     },
   },
+
+  // ── Java / Spring Boot ────────────────────────────────────────────────────
+  {
+    id: "spring-data-repository-reviewer",
+    title: "Revisor de Spring Data",
+    title_en: "Spring Data reviewer",
+    summary: "Subagente que revisa repositorios y queries de Spring Data JPA en busca de N+1, fetch strategies y uso incorrecto de @Transactional.",
+    summary_en: "Subagent that reviews Spring Data JPA repositories and queries for N+1s, fetch strategies and @Transactional misuse.",
+    category: "data",
+    tags: ["spring", "spring-data", "jpa", "hibernate", "n+1"],
+    artifact: {
+      name: "spring-data-reviewer",
+      type: "subagent",
+      target: "opencode",
+      frontmatter: { description: "Revisa repositorios y servicios de Spring Data JPA/Hibernate buscando N+1, fetch strategies y problemas transaccionales. Invócalo al tocar código de acceso a datos." },
+      body_template:
+        "Eres un revisor experto en Spring Data JPA / Hibernate centrado en {{focus}}.\n\n" +
+        "Para el repositorio o servicio dado:\n" +
+        "1. Detecta problemas N+1: relaciones `@OneToMany`/`@ManyToMany` con fetch LAZY accedidas en bucle sin `JOIN FETCH` ni `@EntityGraph`.\n" +
+        "2. Revisa el uso de `@Transactional`: métodos de solo lectura sin `readOnly = true`, propagación incorrecta, o transacciones abiertas más de lo necesario.\n" +
+        "3. Verifica que los métodos derivados de `Repository` (`findBy...`) no oculten una query costosa; sugiere `@Query` con paginación si aplica.\n" +
+        "4. Comprueba el uso de `Pageable`/`Sort` en vez de cargar colecciones completas en memoria.\n" +
+        "5. Señala cualquier `EntityManager`/`Session` usado directamente sin necesidad clara.\n\n" +
+        "Para cada hallazgo: archivo:línea, problema, y la corrección concreta (código, no solo descripción).\n",
+      variables: [
+        { name: "focus", label: "Enfoque de la revisión", default: "N+1, fetch strategies y transacciones", required: true },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "spring-data-reviewer",
+      type: "subagent",
+      target: "opencode",
+      frontmatter: { description: "Reviews Spring Data JPA/Hibernate repositories and services for N+1s, fetch strategies and transactional issues. Invoke it when touching data-access code." },
+      body_template:
+        "You are an expert Spring Data JPA / Hibernate reviewer focused on {{focus}}.\n\n" +
+        "For the given repository or service:\n" +
+        "1. Detect N+1 problems: LAZY `@OneToMany`/`@ManyToMany` relations accessed in a loop without `JOIN FETCH` or `@EntityGraph`.\n" +
+        "2. Review `@Transactional` usage: read-only methods missing `readOnly = true`, wrong propagation, or transactions held open longer than needed.\n" +
+        "3. Verify derived `Repository` methods (`findBy...`) don't hide an expensive query; suggest `@Query` with pagination where relevant.\n" +
+        "4. Check for `Pageable`/`Sort` usage instead of loading entire collections into memory.\n" +
+        "5. Flag any `EntityManager`/`Session` used directly without a clear need.\n\n" +
+        "For each finding: file:line, problem, and a concrete fix (code, not just description).\n",
+      variables: [
+        { name: "focus", label: "Review focus", default: "N+1s, fetch strategies and transactions", required: true },
+      ],
+      files: [],
+    },
+  },
+  {
+    id: "spring-controller-openapi",
+    title: "Controlador → OpenAPI",
+    title_en: "Controller → OpenAPI",
+    summary: "Slash command que genera la especificación OpenAPI/Swagger a partir de un @RestController de Spring.",
+    summary_en: "Slash command that generates the OpenAPI/Swagger spec from a Spring @RestController.",
+    category: "docs",
+    tags: ["spring", "openapi", "swagger", "rest", "docs"],
+    artifact: {
+      name: "controller-to-openapi",
+      type: "command",
+      target: "opencode",
+      frontmatter: { description: "Genera la especificación OpenAPI 3 a partir de un @RestController de Spring" },
+      body_template:
+        "A partir del @RestController/@RequestMapping indicado, genera la especificación OpenAPI 3 (YAML) para {{scope}}.\n\n" +
+        "- Un `path` por cada método anotado con `@GetMapping`/`@PostMapping`/`@PutMapping`/`@DeleteMapping`/`@PatchMapping`.\n" +
+        "- Infiere el schema del request body desde el DTO del parámetro `@RequestBody` (incluye validaciones `@NotNull`/`@Size` como `required`/`minLength`/`maxLength`).\n" +
+        "- Infiere las respuestas desde el tipo de retorno y las anotaciones `@ResponseStatus`/`ResponseEntity<...>`.\n" +
+        "- Incluye los parámetros de `@PathVariable` y `@RequestParam` con su tipo y si son opcionales.\n" +
+        "- No inventes endpoints que no existan en el código.\n\n" +
+        "Controlador: $ARGUMENTS\n",
+      variables: [
+        { name: "scope", label: "Alcance", default: "este controlador", required: false },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "controller-to-openapi",
+      type: "command",
+      target: "opencode",
+      frontmatter: { description: "Generates the OpenAPI 3 spec from a Spring @RestController" },
+      body_template:
+        "From the given @RestController/@RequestMapping, generate the OpenAPI 3 spec (YAML) for {{scope}}.\n\n" +
+        "- One `path` per method annotated `@GetMapping`/`@PostMapping`/`@PutMapping`/`@DeleteMapping`/`@PatchMapping`.\n" +
+        "- Infer the request body schema from the `@RequestBody` parameter's DTO (map `@NotNull`/`@Size` to `required`/`minLength`/`maxLength`).\n" +
+        "- Infer responses from the return type and `@ResponseStatus`/`ResponseEntity<...>` annotations.\n" +
+        "- Include `@PathVariable` and `@RequestParam` parameters with their type and whether they're optional.\n" +
+        "- Don't invent endpoints that aren't in the code.\n\n" +
+        "Controller: $ARGUMENTS\n",
+      variables: [
+        { name: "scope", label: "Scope", default: "this controller", required: false },
+      ],
+      files: [],
+    },
+  },
+  {
+    id: "mapstruct-mapper-generator",
+    title: "Generar mapper MapStruct",
+    title_en: "Generate MapStruct mapper",
+    summary: "Slash command que genera una interfaz @Mapper de MapStruct entre una entidad JPA y su DTO.",
+    summary_en: "Slash command that generates a MapStruct @Mapper interface between a JPA entity and its DTO.",
+    category: "quality",
+    tags: ["mapstruct", "dto", "jpa", "mapper", "boilerplate"],
+    artifact: {
+      name: "mapstruct-mapper",
+      type: "command",
+      target: "opencode",
+      frontmatter: { description: "Genera una interfaz @Mapper de MapStruct entre una entidad y su DTO" },
+      body_template:
+        "Genera una interfaz `@Mapper(componentModel = \"{{component_model}}\")` de MapStruct que convierta entre {{entity}} y {{dto}}.\n\n" +
+        "- Usa `@Mapping` explícito para cada campo cuyo nombre difiera entre entidad y DTO.\n" +
+        "- Para relaciones anidadas, delega en otro mapper (`uses = {...}`) en vez de mapear manualmente.\n" +
+        "- Añade métodos `toDto`, `toEntity` y, si se pide, `updateEntityFromDto` (`@MappingTarget`) para actualizaciones parciales.\n" +
+        "- Ignora explícitamente (`ignore = true`) los campos gestionados por JPA (`id`, `createdAt`, `version`) al mapear hacia la entidad.\n" +
+        "- No escribas la implementación: MapStruct la genera en tiempo de compilación.\n\n" +
+        "Entidad: {{entity}}\nDTO: {{dto}}\n",
+      variables: [
+        { name: "entity", label: "Clase entidad", default: "User", required: true },
+        { name: "dto", label: "Clase DTO", default: "UserDto", required: true },
+        { name: "component_model", label: "componentModel", default: "spring", required: false },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "mapstruct-mapper",
+      type: "command",
+      target: "opencode",
+      frontmatter: { description: "Generates a MapStruct @Mapper interface between an entity and its DTO" },
+      body_template:
+        "Generate a MapStruct `@Mapper(componentModel = \"{{component_model}}\")` interface converting between {{entity}} and {{dto}}.\n\n" +
+        "- Use explicit `@Mapping` for every field whose name differs between entity and DTO.\n" +
+        "- For nested relations, delegate to another mapper (`uses = {...}`) instead of mapping manually.\n" +
+        "- Add `toDto`, `toEntity` and, if requested, `updateEntityFromDto` (`@MappingTarget`) for partial updates.\n" +
+        "- Explicitly ignore (`ignore = true`) JPA-managed fields (`id`, `createdAt`, `version`) when mapping onto the entity.\n" +
+        "- Don't write the implementation: MapStruct generates it at compile time.\n\n" +
+        "Entity: {{entity}}\nDTO: {{dto}}\n",
+      variables: [
+        { name: "entity", label: "Entity class", default: "User", required: true },
+        { name: "dto", label: "DTO class", default: "UserDto", required: true },
+        { name: "component_model", label: "componentModel", default: "spring", required: false },
+      ],
+      files: [],
+    },
+  },
+  {
+    id: "flyway-migration-reviewer",
+    title: "Revisor de migraciones Flyway",
+    title_en: "Flyway migration reviewer",
+    summary: "Subagente que revisa scripts de migración Flyway/Liquibase en busca de cambios peligrosos o bloqueantes.",
+    summary_en: "Subagent that reviews Flyway/Liquibase migration scripts for dangerous or locking changes.",
+    category: "data",
+    tags: ["flyway", "liquibase", "migration", "sql", "zero-downtime"],
+    artifact: {
+      name: "flyway-migration-reviewer",
+      type: "subagent",
+      target: "opencode",
+      frontmatter: { description: "Revisa scripts de migración de base de datos buscando cambios que bloqueen tablas o rompan despliegues sin downtime." },
+      body_template:
+        "Eres un revisor de migraciones de base de datos ({{tool}}) centrado en despliegues sin downtime.\n\n" +
+        "Para el script de migración dado, verifica:\n" +
+        "1. `ALTER TABLE ADD COLUMN NOT NULL` sin `DEFAULT` — bloquea la tabla y rompe el código en despliegue; exige rehacerlo en pasos (nullable → backfill → not null).\n" +
+        "2. Añadir un índice sin `CONCURRENTLY` (Postgres) — bloquea escrituras; recomienda `CREATE INDEX CONCURRENTLY`.\n" +
+        "3. `DROP COLUMN`/`DROP TABLE` sin verificar que ningún código en producción los siga usando (rollout en dos fases).\n" +
+        "4. Cambios de tipo de columna incompatibles que fuercen un rewrite completo de la tabla.\n" +
+        "5. Migraciones no idempotentes o que no puedan revertirse limpiamente.\n\n" +
+        "Para cada problema: severidad, por qué es peligroso, y la versión segura en pasos.\n",
+      variables: [
+        { name: "tool", label: "Herramienta de migración", default: "Flyway", required: true },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "flyway-migration-reviewer",
+      type: "subagent",
+      target: "opencode",
+      frontmatter: { description: "Reviews database migration scripts for changes that lock tables or break zero-downtime deploys." },
+      body_template:
+        "You are a database migration reviewer focused on zero-downtime deploys ({{tool}}).\n\n" +
+        "For the given migration script, check:\n" +
+        "1. `ALTER TABLE ADD COLUMN NOT NULL` without a `DEFAULT` — locks the table and breaks in-flight code; require the phased version (nullable → backfill → not null).\n" +
+        "2. Adding an index without `CONCURRENTLY` (Postgres) — blocks writes; recommend `CREATE INDEX CONCURRENTLY`.\n" +
+        "3. `DROP COLUMN`/`DROP TABLE` without confirming no production code still references it (two-phase rollout).\n" +
+        "4. Incompatible column type changes that force a full table rewrite.\n" +
+        "5. Non-idempotent migrations, or ones that can't be cleanly rolled back.\n\n" +
+        "For each issue: severity, why it's dangerous, and the safe phased version.\n",
+      variables: [
+        { name: "tool", label: "Migration tool", default: "Flyway", required: true },
+      ],
+      files: [],
+    },
+  },
+  {
+    id: "testcontainers-scaffolder",
+    title: "Scaffold de test con Testcontainers",
+    title_en: "Testcontainers test scaffolder",
+    summary: "Slash command que genera un test de integración Spring Boot con Testcontainers para el repositorio/servicio indicado.",
+    summary_en: "Slash command that generates a Spring Boot integration test with Testcontainers for the given repository/service.",
+    category: "testing",
+    tags: ["testcontainers", "integration-test", "spring-boot", "junit5", "docker"],
+    artifact: {
+      name: "testcontainers-scaffold",
+      type: "command",
+      target: "opencode",
+      frontmatter: { description: "Genera un test de integración JUnit 5 con Testcontainers para el repositorio/servicio indicado" },
+      body_template:
+        "Genera un test de integración JUnit 5 con Testcontainers para {{target}}.\n\n" +
+        "- Usa `@SpringBootTest` + `@Testcontainers` con un contenedor `{{container}}` declarado como `static` y `@Container`.\n" +
+        "- Registra las propiedades de conexión dinámicamente con `@DynamicPropertySource` (no hardcodees host/puerto).\n" +
+        "- Reutiliza el contenedor entre clases de test si el proyecto ya tiene un patrón de contenedor compartido (singleton container); si no, créalo aquí.\n" +
+        "- Escribe al menos un test que ejercite {{target}} contra el contenedor real (no un mock), cubriendo el camino feliz y un caso de error/restricción de BD.\n" +
+        "- No uses H2 ni bases de datos en memoria: el objetivo es paridad con producción.\n\n" +
+        "Repositorio/servicio objetivo: $ARGUMENTS\n",
+      variables: [
+        { name: "target", label: "Repositorio/servicio a testear", default: "el repositorio indicado", required: true },
+        { name: "container", label: "Imagen de contenedor", default: "postgres:16-alpine", required: true },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "testcontainers-scaffold",
+      type: "command",
+      target: "opencode",
+      frontmatter: { description: "Generates a JUnit 5 integration test with Testcontainers for the given repository/service" },
+      body_template:
+        "Generate a JUnit 5 integration test with Testcontainers for {{target}}.\n\n" +
+        "- Use `@SpringBootTest` + `@Testcontainers` with a `{{container}}` container declared `static` and `@Container`.\n" +
+        "- Wire connection properties dynamically with `@DynamicPropertySource` (never hardcode host/port).\n" +
+        "- Reuse the container across test classes if the project already has a shared-container pattern (singleton container); otherwise create it here.\n" +
+        "- Write at least one test that exercises {{target}} against the real container (not a mock), covering the happy path and one error/DB-constraint case.\n" +
+        "- Don't use H2 or in-memory databases: the goal is production parity.\n\n" +
+        "Target repository/service: $ARGUMENTS\n",
+      variables: [
+        { name: "target", label: "Repository/service under test", default: "the given repository", required: true },
+        { name: "container", label: "Container image", default: "postgres:16-alpine", required: true },
+      ],
+      files: [],
+    },
+  },
+  {
+    id: "clean-code-review",
+    title: "Revisión Clean Code",
+    title_en: "Clean Code review",
+    summary: "Slash command que revisa código Java/Spring en busca de violaciones de SOLID, complejidad excesiva, mal naming y mal manejo de excepciones.",
+    summary_en: "Slash command that reviews Java/Spring code for SOLID violations, excess complexity, poor naming and exception misuse.",
+    category: "quality",
+    tags: ["clean-code", "solid", "java", "complexity", "naming"],
+    artifact: {
+      name: "clean-code-review",
+      type: "command",
+      target: "opencode",
+      frontmatter: { description: "Revisa el código en busca de violaciones de Clean Code/SOLID: complejidad, naming, excepciones e inmutabilidad." },
+      body_template:
+        "Revisa el siguiente código aplicando los principios de Clean Code y SOLID, con foco en {{focus}}.\n\n" +
+        "Comprueba específicamente:\n" +
+        "1. **SRP** — ¿la clase/método hace más de una cosa? Señala responsabilidades mezcladas.\n" +
+        "2. **Complejidad** — métodos de más de {{max_lines}} líneas o con complejidad ciclomática alta (muchos `if`/`else`/`switch` anidados); sugiere extraer método o usar polimorfismo.\n" +
+        "3. **Naming** — nombres de variables/métodos que no revelan intención (`data`, `tmp`, `process()`), booleanos sin prefijo `is`/`has`, abreviaturas poco claras.\n" +
+        "4. **Excepciones** — uso de excepciones checked para control de flujo, catch genéricos (`catch (Exception e)`), o excepciones tragadas sin log.\n" +
+        "5. **Inmutabilidad** — campos mutables que podrían ser `final`, setters innecesarios en objetos que deberían ser value objects.\n" +
+        "6. **Nivel de abstracción** — mezcla de código de alto nivel (orquestación) y bajo nivel (detalles de implementación) en el mismo método.\n\n" +
+        "Para cada hallazgo: archivo:línea, principio violado, y la corrección concreta. No reescribas todo el archivo.\n\n" +
+        "Código: $ARGUMENTS\n",
+      variables: [
+        { name: "focus", label: "Enfoque de la revisión", default: "SOLID, complejidad y naming", required: true },
+        { name: "max_lines", label: "Máx. líneas por método antes de sugerir extraer", default: "20", required: false },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "clean-code-review",
+      type: "command",
+      target: "opencode",
+      frontmatter: { description: "Reviews code for Clean Code/SOLID violations: complexity, naming, exceptions and immutability." },
+      body_template:
+        "Review the following code applying Clean Code and SOLID principles, focused on {{focus}}.\n\n" +
+        "Specifically check for:\n" +
+        "1. **SRP** — does the class/method do more than one thing? Flag mixed responsibilities.\n" +
+        "2. **Complexity** — methods longer than {{max_lines}} lines or with high cyclomatic complexity (deeply nested `if`/`else`/`switch`); suggest extract-method or polymorphism.\n" +
+        "3. **Naming** — variable/method names that don't reveal intent (`data`, `tmp`, `process()`), booleans missing an `is`/`has` prefix, unclear abbreviations.\n" +
+        "4. **Exceptions** — checked exceptions used for flow control, generic `catch (Exception e)`, or swallowed exceptions with no logging.\n" +
+        "5. **Immutability** — mutable fields that could be `final`, unnecessary setters on objects that should be value objects.\n" +
+        "6. **Abstraction level** — high-level orchestration code mixed with low-level implementation detail in the same method.\n\n" +
+        "For each finding: file:line, principle violated, and a concrete fix. Don't rewrite the whole file.\n\n" +
+        "Code: $ARGUMENTS\n",
+      variables: [
+        { name: "focus", label: "Review focus", default: "SOLID, complexity and naming", required: true },
+        { name: "max_lines", label: "Max lines per method before suggesting extraction", default: "20", required: false },
+      ],
+      files: [],
+    },
+  },
+  {
+    id: "os-spring-data-repository",
+    title: "Spec de repositorio Spring Data",
+    title_en: "Spring Data repository spec",
+    summary: "Especificación OpenSpec para un método de repositorio Spring Data: contrato de paginación, ordenación y límites transaccionales.",
+    summary_en: "OpenSpec for a Spring Data repository method: pagination/sorting contract and transaction boundaries.",
+    category: "openspec",
+    tags: ["openspec", "spring-data", "jpa", "repository", "pagination", "transaction"],
+    artifact: {
+      name: "spring-data-repository-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{repository}} Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "{{purpose}}\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Contrato de consulta\n\n" +
+        "El sistema DEBE exponer `{{method_signature}}` en `{{repository}}`, devolviendo resultados paginados y ordenados según se indique.\n\n" +
+        "#### Escenario: Página válida\n\n" +
+        "- DADO {{given_1}}\n" +
+        "- CUANDO se invoca `{{method_signature}}` con `{{page_params}}`\n" +
+        "- ENTONCES retorna una `Page<{{entity}}>` de tamaño ≤ {{page_size}}, ordenada por `{{sort_field}}`\n\n" +
+        "### Requirement: Límite transaccional\n\n" +
+        "El sistema DEBE ejecutar el método dentro de `@Transactional({{transaction_attrs}})`, sin dejar la conexión abierta más allá del método.\n\n" +
+        "#### Escenario: Acceso perezoso fuera de transacción\n\n" +
+        "- DADO que el método se invoca desde fuera de un contexto transaccional activo\n" +
+        "- CUANDO se accede a una colección `LAZY` del resultado tras retornar\n" +
+        "- ENTONCES la colección DEBE haberse cargado ya con `JOIN FETCH`/`@EntityGraph`, o DEBE lanzarse una excepción controlada en vez de un `LazyInitializationException` sin manejar\n\n" +
+        "### Requirement: Rendimiento\n\n" +
+        "El sistema DEBE resolver la consulta sin generar el patrón N+1 para {{eager_relations}}.\n\n" +
+        "#### Escenario: Colección anidada\n\n" +
+        "- DADO un resultado con {{eager_relations}} asociadas\n" +
+        "- CUANDO se serializa la respuesta\n" +
+        "- ENTONCES se ejecuta una única query adicional (o ninguna) para cargar {{eager_relations}}, no una por fila\n",
+      variables: [
+        { name: "repository", label: "Nombre del repositorio", default: "OrderRepository", required: true },
+        { name: "version", label: "Versión", default: "1.0", required: false },
+        { name: "status", label: "Estado", default: "draft", required: false },
+        { name: "agents", label: "Agentes objetivo", default: "claude-code, opencode", required: false },
+        { name: "purpose", label: "Propósito (un párrafo)", default: "Define el contrato de consulta paginada de pedidos por cliente, con ordenación estable y sin N+1.", required: true },
+        { name: "method_signature", label: "Firma del método", default: "Page<Order> findByCustomerId(Long customerId, Pageable pageable)", required: true },
+        { name: "entity", label: "Entidad devuelta", default: "Order", required: true },
+        { name: "given_1", label: "DADO (página válida)", default: "un cliente con 25 pedidos", required: true },
+        { name: "page_params", label: "Parámetros de página", default: "page=0, size=10, sort=createdAt,desc", required: true },
+        { name: "page_size", label: "Tamaño de página", default: "10", required: true },
+        { name: "sort_field", label: "Campo de ordenación", default: "createdAt", required: true },
+        { name: "transaction_attrs", label: "Atributos de @Transactional", default: "readOnly = true", required: true },
+        { name: "eager_relations", label: "Relaciones cargadas junto al resultado", default: "OrderItem", required: true },
+      ],
+      files: [],
+    },
+    artifact_en: {
+      name: "spring-data-repository-spec",
+      type: "openspec",
+      target: "opencode",
+      frontmatter: { feature: "", version: "1.0", status: "draft", agents: "claude-code, opencode" },
+      body_template:
+        "# {{repository}} Specification\n" +
+        "<!-- version: {{version}} | status: {{status}} | agents: {{agents}} -->\n\n" +
+        "## Purpose\n\n" +
+        "{{purpose}}\n\n" +
+        "## Requirements\n\n" +
+        "### Requirement: Query contract\n\n" +
+        "The system SHALL expose `{{method_signature}}` on `{{repository}}`, returning paginated and sorted results as requested.\n\n" +
+        "#### Scenario: Valid page\n\n" +
+        "- GIVEN {{given_1}}\n" +
+        "- WHEN `{{method_signature}}` is invoked with `{{page_params}}`\n" +
+        "- THEN it returns a `Page<{{entity}}>` of size ≤ {{page_size}}, sorted by `{{sort_field}}`\n\n" +
+        "### Requirement: Transaction boundary\n\n" +
+        "The system SHALL run the method inside `@Transactional({{transaction_attrs}})`, without holding the connection open beyond the method.\n\n" +
+        "#### Scenario: Lazy access outside a transaction\n\n" +
+        "- GIVEN the method is invoked from outside an active transactional context\n" +
+        "- WHEN a `LAZY` collection on the result is accessed after it returns\n" +
+        "- THEN the collection SHALL already have been loaded via `JOIN FETCH`/`@EntityGraph`, or a controlled exception SHALL be thrown instead of an unhandled `LazyInitializationException`\n\n" +
+        "### Requirement: Performance\n\n" +
+        "The system SHALL resolve the query without producing the N+1 pattern for {{eager_relations}}.\n\n" +
+        "#### Scenario: Nested collection\n\n" +
+        "- GIVEN a result with associated {{eager_relations}}\n" +
+        "- WHEN the response is serialized\n" +
+        "- THEN a single additional query (or none) loads {{eager_relations}}, not one per row\n",
+      variables: [
+        { name: "repository", label: "Repository name", default: "OrderRepository", required: true },
+        { name: "version", label: "Version", default: "1.0", required: false },
+        { name: "status", label: "Status", default: "draft", required: false },
+        { name: "agents", label: "Target agents", default: "claude-code, opencode", required: false },
+        { name: "purpose", label: "Purpose (one paragraph)", default: "Defines the paginated query contract for orders by customer, with stable sorting and no N+1s.", required: true },
+        { name: "method_signature", label: "Method signature", default: "Page<Order> findByCustomerId(Long customerId, Pageable pageable)", required: true },
+        { name: "entity", label: "Returned entity", default: "Order", required: true },
+        { name: "given_1", label: "GIVEN (valid page)", default: "a customer with 25 orders", required: true },
+        { name: "page_params", label: "Page params", default: "page=0, size=10, sort=createdAt,desc", required: true },
+        { name: "page_size", label: "Page size", default: "10", required: true },
+        { name: "sort_field", label: "Sort field", default: "createdAt", required: true },
+        { name: "transaction_attrs", label: "@Transactional attributes", default: "readOnly = true", required: true },
+        { name: "eager_relations", label: "Relations loaded with the result", default: "OrderItem", required: true },
+      ],
+      files: [],
+    },
+  },
 ];
 
 export function getSuggestion(id) {

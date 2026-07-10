@@ -11,6 +11,7 @@ export const GLOSSARY_CATEGORIES = [
   { id: "tool", label: "Herramientas / CLIs", label_en: "Tools / CLIs" },
   { id: "model", label: "Modelos", label_en: "Models" },
   { id: "protocol", label: "Protocolos", label_en: "Protocols" },
+  { id: "jvm", label: "JVM / Spring", label_en: "JVM / Spring" },
 ];
 
 export const GLOSSARY_CATEGORY_IDS = GLOSSARY_CATEGORIES.map((c) => c.id);
@@ -649,6 +650,66 @@ export const GLOSSARY_SEED = [
       "Modelo generativo que aprende a invertir un proceso de ruido: parte de ruido gaussiano y lo va «denoising» paso a paso hasta producir una muestra (imagen, audio). Domina la generación de imágenes (Stable Diffusion, DALL·E); distinto del paradigma autoregresivo de los LLM.",
     definition_en:
       "A generative model that learns to reverse a noising process: it starts from Gaussian noise and denoises it step by step until producing a sample (image, audio). It dominates image generation (Stable Diffusion, DALL·E); different from the autoregressive paradigm of LLMs.",
+    links: [],
+  },
+  {
+    id: "spring-bean",
+    term: "Bean (Spring)",
+    term_en: "Bean (Spring)",
+    category: "jvm",
+    aliases: ["bean", "IoC", "inyección de dependencias", "dependency injection"],
+    definition:
+      "Un objeto cuyo ciclo de vida (creación, configuración, destrucción) gestiona el contenedor de Spring en vez del propio código. Se declara con `@Component`/`@Service`/`@Repository`/`@Bean` y se inyecta donde haga falta (`@Autowired` o inyección por constructor), invirtiendo el control de quién crea las dependencias.",
+    definition_en:
+      "An object whose lifecycle (creation, configuration, destruction) is managed by the Spring container instead of your own code. Declared with `@Component`/`@Service`/`@Repository`/`@Bean` and injected wherever needed (`@Autowired` or constructor injection), inverting control over who creates dependencies.",
+    links: [],
+  },
+  {
+    id: "n-plus-one",
+    term: "Problema N+1",
+    term_en: "N+1 query problem",
+    category: "jvm",
+    aliases: ["n+1", "n plus one"],
+    definition:
+      "Antipatrón de acceso a datos donde cargar N registros dispara 1 query para la lista más N queries adicionales (una por registro) para cargar sus relaciones, típicamente por una asociación `LAZY` de JPA/Hibernate accedida dentro de un bucle. Se corrige con `JOIN FETCH`, `@EntityGraph` o batch fetching.",
+    definition_en:
+      "A data-access antipattern where loading N records fires 1 query for the list plus N additional queries (one per record) to load their relations — typically a JPA/Hibernate `LAZY` association accessed inside a loop. Fixed with `JOIN FETCH`, `@EntityGraph`, or batch fetching.",
+    links: [],
+  },
+  {
+    id: "aop-proxy",
+    term: "Proxy AOP",
+    term_en: "AOP proxy",
+    category: "jvm",
+    aliases: ["aop", "proxy", "programación orientada a aspectos"],
+    definition:
+      "El objeto envoltorio que Spring genera alrededor de un bean para aplicar comportamiento transversal (`@Transactional`, `@Cacheable`, `@Async`, seguridad) sin tocar su código. Explica por qué llamar a un método anotado *desde dentro de la misma clase* (self-invocation) se salta el aspecto: la llamada no pasa por el proxy.",
+    definition_en:
+      "The wrapper object Spring generates around a bean to apply cross-cutting behavior (`@Transactional`, `@Cacheable`, `@Async`, security) without touching its code. Explains why calling an annotated method *from within the same class* (self-invocation) skips the aspect: the call never goes through the proxy.",
+    links: [],
+  },
+  {
+    id: "virtual-threads",
+    term: "Hilos virtuales (Project Loom)",
+    term_en: "Virtual threads (Project Loom)",
+    category: "jvm",
+    aliases: ["virtual threads", "project loom", "hilos virtuales"],
+    definition:
+      "Hilos ligeros gestionados por la JVM (Java 21+) que se multiplexan sobre un pequeño número de hilos de plataforma (carrier threads), permitiendo millones de hilos concurrentes con el modelo de programación bloqueante tradicional. Con Spring Boot 3.2+, se activan con `spring.threads.virtual.enabled=true` para escalar I/O bloqueante (JDBC incluido) sin reescribir a reactivo.",
+    definition_en:
+      "Lightweight threads managed by the JVM (Java 21+) that are multiplexed over a small number of platform threads (carrier threads), enabling millions of concurrent threads while keeping the traditional blocking programming model. With Spring Boot 3.2+, enable via `spring.threads.virtual.enabled=true` to scale blocking I/O (including JDBC) without rewriting to reactive.",
+    links: [],
+  },
+  {
+    id: "transactional-propagation",
+    term: "Propagación transaccional",
+    term_en: "Transaction propagation",
+    category: "jvm",
+    aliases: ["propagation", "@transactional", "propagación"],
+    definition:
+      "La política que define cómo se comporta un método `@Transactional` cuando se llama dentro de una transacción ya activa: `REQUIRED` (por defecto, se une a la existente), `REQUIRES_NEW` (la suspende y abre una nueva e independiente), `NESTED` (savepoint dentro de la misma), etc. Elegir mal la propagación es una causa común de rollbacks parciales inesperados.",
+    definition_en:
+      "The policy defining how a `@Transactional` method behaves when called inside an already-active transaction: `REQUIRED` (default, joins the existing one), `REQUIRES_NEW` (suspends it and opens a new independent one), `NESTED` (savepoint within the same transaction), etc. Picking the wrong propagation is a common cause of unexpected partial rollbacks.",
     links: [],
   },
 ];
