@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, Download, Plus, X, ArrowLeft } from "lucide-react";
-import { renderTemplate } from "@/lib/render";
 import { ARTIFACT_TYPES, TYPE_SCAFFOLDS } from "@/lib/artifact-types";
 import { TARGETS, TARGET_LABELS } from "@/lib/targets";
 import { TYPE_HELP, FORMAT_BY_EXT } from "@/lib/artifact-help";
@@ -267,14 +266,36 @@ export default function ArtifactEditor({ id }) {
     }
   }
 
-  // ── Live preview (0 tokens, client-side Handlebars) ──
+  // ── Live preview (0 tokens, client-side) — reuses the real renderer so the
+  // preview matches the actual file(s) produced by download/publish (frontmatter
+  // block included for markdown types, plus any extra files).
   const preview = useMemo(() => {
+    let frontmatter;
     try {
-      return { ok: true, text: renderTemplate(form.body_template, form.variables, values) };
+      frontmatter = JSON.parse(form.frontmatterText || "{}");
+    } catch {
+      return { ok: false, text: t("editor.errFrontmatter") };
+    }
+    const artifact = {
+      name: form.name.trim() || "ejemplo",
+      type: form.type,
+      target: form.target.trim() || "opencode",
+      frontmatter,
+      body_template: form.body_template,
+      variables: form.variables,
+      files: form.files.filter((f) => f.path.trim()),
+      tags: form.tags,
+    };
+    try {
+      const { files } = getRenderer(artifact.target).render(artifact, values);
+      const text = files.length > 1
+        ? files.map((f) => `# ${f.path}\n${f.content}`).join("\n\n")
+        : files[0]?.content ?? "";
+      return { ok: true, text };
     } catch (e) {
       return { ok: false, text: String(e.message || e) };
     }
-  }, [form.body_template, form.variables, values]);
+  }, [form.frontmatterText, form.name, form.type, form.target, form.body_template, form.variables, form.files, values, t]);
 
   // Real destination path + format for the selected target/type, derived from
   // the renderer so the help stays accurate as targets grow.

@@ -196,6 +196,7 @@ const MESSAGES = {
     "editor.openPr": "Abrir PR al probar",
 
     "nav.guide": "Guía de prompts",
+    "nav.guides": "Guías",
 
     "guide.title": "Cómo escribir prompts como un dev de Claude",
     "guide.intro": "12 principios que los ingenieros de Anthropic aplican para obtener resultados más fiables, baratos y seguros.",
@@ -408,6 +409,7 @@ const MESSAGES = {
     "editor.openPr": "Open PR when testing",
 
     "nav.guide": "Prompt guide",
+    "nav.guides": "Guides",
 
     "guide.title": "How to Write Prompts Like a Claude Developer",
     "guide.intro": "12 principles Anthropic engineers apply to get more reliable, cheaper and safer results.",
