@@ -1,37 +1,11 @@
 import { requireAuth } from "@/utils/auth";
 import { octokitForUser } from "@/lib/github";
 import { TARGETS } from "@/lib/targets";
-import { MEMORY_PATHS } from "@/lib/memory-paths";
+import { MEMORY_PATHS, matchRootPath, matchNamedPath } from "@/lib/memory-paths";
 
-async function fetchFile(octokit, owner, repo, path, ref) {
-  try {
-    const { data } = await octokit.repos.getContent({ owner, repo, path, ref });
-    if (data.type !== "file") return null;
-    return {
-      path,
-      content: Buffer.from(data.content, "base64").toString("utf8"),
-      sha: data.sha,
-    };
-  } catch (e) {
-    if (e.status === 404) return null;
-    throw e;
-  }
-}
-
-async function listDir(octokit, owner, repo, dir, ext, ref) {
-  try {
-    const { data } = await octokit.repos.getContent({ owner, repo, path: dir, ref });
-    if (!Array.isArray(data)) return [];
-    return data
-      .filter((f) => f.type === "file" && f.name.endsWith(ext))
-      .map((f) => ({ path: f.path, name: f.name }));
-  } catch (e) {
-    if (e.status === 404) return [];
-    throw e;
-  }
-}
-
-/** POST /api/memory/scan — scan a GitHub repo for memory files across all targets. */
+/** POST /api/memory/scan — recursively scan a GitHub repo for memory files
+ *  across all targets, including per-module files in Maven/Gradle-style
+ *  multi-module repos (e.g. "service-a/CLAUDE.md", not just the repo root). */
 export async function POST(request) {
   const { session, error } = await requireAuth();
   if (error) return error;
@@ -52,38 +26,50 @@ export async function POST(request) {
       branch = data.default_branch;
     }
 
-    const seen = new Set();
-    const files = [];
+    const { data: ref } = await octokit.git.getRef({ owner, repo: repoName, ref: `heads/${branch}` });
+    const { data: commit } = await octokit.git.getCommit({ owner, repo: repoName, commit_sha: ref.object.sha });
+    const { data: tree } = await octokit.git.getTree({
+      owner, repo: repoName, tree_sha: commit.tree.sha, recursive: 1,
+    });
 
+    const blobs = (tree.tree || []).filter((e) => e.type === "blob");
+
+    // Classify every blob against every target's memory conventions, at any
+    // depth in the tree (dedup by target+path since a path only ever matches
+    // one target's convention once).
+    const matches = new Map();
     for (const target of TARGETS) {
       const paths = MEMORY_PATHS[target];
-
-      // Root file (skip if already fetched for a shared root like AGENTS.md)
-      if (!seen.has(paths.root)) {
-        seen.add(paths.root);
-        const root = await fetchFile(octokit, owner, repoName, paths.root, branch);
-        if (root) {
-          files.push({ target, ...root, isRoot: true });
+      for (const entry of blobs) {
+        const rootModule = matchRootPath(entry.path, paths.root);
+        if (rootModule !== null) {
+          matches.set(`${target}:${entry.path}`, {
+            path: entry.path, sha: entry.sha, target, module: rootModule, isRoot: true,
+          });
+          continue;
         }
-      } else {
-        const existing = files.find((f) => f.path === paths.root);
-        if (existing) {
-          files.push({ ...existing, target });
-        }
-      }
-
-      // Named memory files in directory
-      const entries = await listDir(octokit, owner, repoName, paths.dir, paths.ext, branch);
-      for (const entry of entries) {
-        if (seen.has(entry.path)) continue;
-        seen.add(entry.path);
-        const file = await fetchFile(octokit, owner, repoName, entry.path, branch);
-        if (file) {
-          const slug = entry.name.replace(/\.[^.]+$/, "");
-          files.push({ target, ...file, isRoot: false, slug });
+        const named = matchNamedPath(entry.path, paths.dir, paths.ext);
+        if (named) {
+          matches.set(`${target}:${entry.path}`, {
+            path: entry.path, sha: entry.sha, target, module: named.module, isRoot: false, slug: named.slug,
+          });
         }
       }
     }
+
+    const entries = [...matches.values()];
+
+    // Fetch each unique blob's content once (a shared root like AGENTS.md
+    // matches multiple targets but has a single sha).
+    const contentBySha = new Map();
+    await Promise.all(
+      [...new Set(entries.map((e) => e.sha))].map(async (sha) => {
+        const { data } = await octokit.git.getBlob({ owner, repo: repoName, file_sha: sha });
+        contentBySha.set(sha, Buffer.from(data.content, "base64").toString("utf8"));
+      }),
+    );
+
+    const files = entries.map((m) => ({ ...m, content: contentBySha.get(m.sha) }));
 
     return Response.json({ files, branch });
   } catch (err) {
