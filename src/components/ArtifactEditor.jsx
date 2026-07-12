@@ -364,7 +364,7 @@ export default function ArtifactEditor({ id }) {
   if (loading) return <p style={{ color: "var(--text-muted)" }}>Cargando…</p>;
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" }}>
+    <div className="grid2" style={{ gap: 20, alignItems: "start" }}>
       {/* ── Form column ── */}
       <div style={{ display: "grid", gap: 14 }}>
         {isNew && (

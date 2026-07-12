@@ -83,6 +83,19 @@
 }
 
 @layer components {
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) {
+    .card-grid, .grid2 { grid-template-columns: 1fr; }
+  }
   .card {
     background: var(--surface);
     border: 1px solid var(--line);

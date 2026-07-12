@@ -116,7 +116,7 @@ export default function SuggestionGallery() {
         </div>
       )}
 
-      <ul style={{ listStyle: "none", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12, padding: 0 }}>
+      <ul className="card-grid" style={{ listStyle: "none", padding: 0 }}>
         {items.map((s) => (
           <li key={s.id} className="card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
