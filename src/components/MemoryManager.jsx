@@ -421,7 +421,7 @@ export default function MemoryManager() {
       )}
 
       {/* Target columns */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12, marginBottom: 20 }}>
+      <div className="card-grid" style={{ marginBottom: 20 }}>
         {TARGETS.map((target) => {
           const files = filesByTarget[target] || [];
           const rootFile = files.find((f) => f.isRoot);

@@ -47,7 +47,7 @@ export default function MemoryGuide() {
       {open && (
         <div style={{ display: "grid", gap: 12 }}>
           {/* Steps */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10 }}>
+          <div className="card-grid" style={{ gap: 10 }}>
             {STEPS.map(({ key, n }) => (
               <div key={key} className="card" style={{ padding: "14px 16px", display: "flex", gap: 12, alignItems: "flex-start" }}>
                 <span style={{
@@ -88,7 +88,7 @@ export default function MemoryGuide() {
                 <BookOpen size={13} /> {t("nav.memoryGuide")} →
               </Link>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 8 }}>
+            <div className="card-grid" style={{ gap: 8 }}>
               {CLI_FILES.map(({ cli, root, dir, ext }) => (
                 <div key={cli} style={{ background: "var(--cream)", borderRadius: 8, padding: "10px 12px" }}>
                   <p style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: 6 }}>{cli}</p>

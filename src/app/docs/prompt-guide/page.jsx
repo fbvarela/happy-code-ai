@@ -581,7 +581,7 @@ export default function PromptGuidePage() {
       {/* Agent comparison */}
       <div style={{ marginTop: 40 }}>
         <h2 style={{ fontSize: "1.35rem", fontWeight: 700, marginBottom: 20 }}>{t("guide.models.title")}</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
+        <div className="card-grid" style={{ gap: 14 }}>
           {AGENTS.map((a) => (
             <a
               key={a.name}

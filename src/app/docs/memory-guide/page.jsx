@@ -361,7 +361,7 @@ export default function MemoryGuidePage() {
       {/* Root vs named */}
       <section style={{ marginBottom: 40 }}>
         <h2 style={{ fontSize: "1.35rem", fontWeight: 700, marginBottom: 16 }}>{rvn.title}</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: 14 }}>
+        <div className="card-grid" style={{ gap: 14 }}>
           {[rvn.root, rvn.named].map((col, i) => (
             <div key={i} className="card" style={{ padding: "18px 20px" }}>
               <p style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 12, color: i === 0 ? "var(--leaf, #2a7a2a)" : "var(--bark)" }}>{col.label}</p>
@@ -403,7 +403,7 @@ export default function MemoryGuidePage() {
       {/* Best practices */}
       <section>
         <h2 style={{ fontSize: "1.35rem", fontWeight: 700, marginBottom: 16 }}>{practicesTitle}</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: 10 }}>
+        <div className="card-grid" style={{ gap: 10 }}>
           {practices.map((p, i) => (
             <div
               key={i}
