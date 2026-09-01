@@ -361,7 +361,7 @@ export default function MemoryGuidePage() {
       {/* Root vs named */}
       <section style={{ marginBottom: 40 }}>
         <h2 style={{ fontSize: "1.35rem", fontWeight: 700, marginBottom: 16 }}>{rvn.title}</h2>
-        <div className="card-grid" style={{ gap: 14 }}>
+        <div className="grid2" style={{ gap: 14 }}>
           {[rvn.root, rvn.named].map((col, i) => (
             <div key={i} className="card" style={{ padding: "18px 20px" }}>
               <p style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 12, color: i === 0 ? "var(--leaf, #2a7a2a)" : "var(--bark)" }}>{col.label}</p>
