@@ -1,9 +1,19 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Settings } from "lucide-react";
+import { ChevronDown, ChevronUp, Settings, BookOpen } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { TARGET_LABELS } from "@/lib/targets";
+import { CONFIG_PATHS, GLOBAL_CONFIG_PATHS } from "@/lib/config-paths";
+
+const CLI_CONFIG_FILES = Object.entries(CONFIG_PATHS).map(([target, paths]) => ({
+  target,
+  label: TARGET_LABELS[target] || target,
+  files: [paths.settings, paths.mcp, paths.mcpDir].filter(Boolean),
+}));
+const GLOBAL_FILE = GLOBAL_CONFIG_PATHS.mcp;
+const USER_CONFIG = "~/.config/opencode/opencode.json";
 
 export default function ConfigGuide() {
   const { t } = useI18n();
@@ -69,27 +79,37 @@ export default function ConfigGuide() {
           </div>
 
           <div className="card" style={{ padding: "14px 16px" }}>
-            <p style={{ fontWeight: 700, fontSize: "0.95rem", margin: 0, marginBottom: 10 }}>
-              {t("config.guide.filesTitle")}
-            </p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <p style={{ fontWeight: 700, fontSize: "0.95rem", margin: 0 }}>
+                {t("config.guide.filesTitle")}
+              </p>
+              <Link href="/docs/config-guide" style={{ fontSize: "0.85rem", color: "var(--bark)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <BookOpen size={13} /> {t("nav.configGuide")} →
+              </Link>
+            </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
-              {Object.entries({
-                opencode: ".opencode/settings.json",
-                claude: ".claude/settings.json",
-                cursor: ".cursor/settings.json",
-                gemini: ".gemini/settings.json",
-                junie: ".junie/config.json",
-                global: ".mcp.json",
-              }).map(([target, path]) => (
+              {CLI_CONFIG_FILES.map(({ target, label, files }) => (
                 <div key={target} style={{ background: "var(--cream)", borderRadius: 8, padding: "10px 12px" }}>
-                  <p style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: 4 }}>
-                    {target === "global" ? t("config.global") : TARGET_LABELS[target] || target}
-                  </p>
-                  <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: 0, fontFamily: "monospace" }}>
-                    {path}
-                  </p>
+                  <p style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: 4 }}>{label}</p>
+                  {files.map((f) => (
+                    <p key={f} style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 2px", fontFamily: "monospace" }}>
+                      {f}
+                    </p>
+                  ))}
                 </div>
               ))}
+              <div style={{ background: "var(--cream)", borderRadius: 8, padding: "10px 12px" }}>
+                <p style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: 4 }}>{t("config.global")}</p>
+                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 2px", fontFamily: "monospace" }}>
+                  {GLOBAL_FILE}
+                </p>
+              </div>
+              <div style={{ background: "var(--cream)", borderRadius: 8, padding: "10px 12px", gridColumn: "1 / -1" }}>
+                <p style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: 4 }}>OpenCode global</p>
+                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: 0, fontFamily: "monospace" }}>
+                  {USER_CONFIG}
+                </p>
+              </div>
             </div>
           </div>
         </div>

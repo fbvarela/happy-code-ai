@@ -132,6 +132,14 @@ export default function ArtifactLibrary() {
               >
                 <BookOpen size={16} /> {t("nav.memoryGuide")}
               </button>
+              <button
+                className="btn btn-ghost"
+                type="button"
+                onClick={() => { setGuidesOpen(false); router.push("/docs/config-guide"); }}
+                style={{ ...iconBtn, width: "100%", justifyContent: "flex-start", borderRadius: 0 }}
+              >
+                <BookOpen size={16} /> {t("nav.configGuide")}
+              </button>
             </div>
           )}
         </div>
