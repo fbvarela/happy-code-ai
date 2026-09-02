@@ -2,7 +2,7 @@
 // Pure data — safe to import from server AND client.
 
 export const CONFIG_PATHS = {
-  opencode: { settings: ".opencode/settings.json", mcpDir: ".opencode/mcp" },
+  opencode: { settings: "opencode.json", mcpDir: ".opencode/mcp" },
   claude:   { settings: ".claude/settings.json" },
   cursor:   { settings: ".cursor/settings.json", mcp: ".cursor/mcp.json" },
   gemini:   { settings: ".gemini/settings.json" },

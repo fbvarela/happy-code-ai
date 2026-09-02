@@ -236,6 +236,7 @@ const MESSAGES = {
 
     "nav.memory": "Memoria",
     "nav.memoryGuide": "Guía de memoria",
+    "nav.configGuide": "Guía de configuración",
     "memory.title": "Gestor de memoria de agentes",
     "memory.selectRepo": "Selecciona un repositorio",
     "memory.branch": "Rama",
@@ -481,6 +482,7 @@ const MESSAGES = {
 
     "nav.memory": "Memory",
     "nav.memoryGuide": "Memory guide",
+    "nav.configGuide": "Config guide",
     "memory.title": "Agent Memory Manager",
     "memory.selectRepo": "Select a repository",
     "memory.branch": "Branch",
