@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, BookOpen, FileText, FileCode, Brain, Plus, Copy, Trash2, ChevronDown } from "lucide-react";
+import { Sparkles, BookOpen, FileText, FileCode, Brain, Plus, Copy, Trash2, ChevronDown, Settings } from "lucide-react";
 import { ARTIFACT_TYPES } from "@/lib/artifact-types";
 import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
 
@@ -94,6 +94,9 @@ export default function ArtifactLibrary() {
         </button>
         <button className="btn btn-ghost" type="button" onClick={() => router.push("/memory")} style={iconBtn}>
           <Brain size={16} /> {t("nav.memory")}
+        </button>
+        <button className="btn btn-ghost" type="button" onClick={() => router.push("/config")} style={iconBtn}>
+          <Settings size={16} /> {t("nav.config")}
         </button>
         <div ref={guidesRef} style={{ position: "relative" }}>
           <button
