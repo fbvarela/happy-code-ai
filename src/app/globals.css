@@ -257,7 +257,7 @@ body::before {
     flex-direction: column;
     overflow: hidden;
     height: 100dvh;
-    padding: 20px 90px 20px 24px;
+    padding: 50px 90px 20px 24px;
   }
   @media (max-width: 768px) {
     .main-content { padding: 16px; height: auto; overflow-y: auto; }
