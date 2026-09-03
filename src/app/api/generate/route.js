@@ -25,7 +25,9 @@ export async function POST(request) {
     const { draft, usage, provider, quality } = await generateArtifact({ prompt, type, target });
     return Response.json({ draft, usage, provider, quality });
   } catch (err) {
-    console.error("generate failed:", err);
+    console.error("generate failed:", err.message);
+    if (err.text) console.error("generate raw text:", JSON.stringify(err.text).slice(0, 2000));
+    if (err.cause) console.error("generate cause:", err.cause);
     return Response.json({ error: "Generation failed", message: String(err.message || err) }, { status: 502 });
   }
 }

@@ -37,12 +37,29 @@ function selectProvider() {
   return null;
 }
 
+// Frontmatter values may be scalars or lists (e.g. OpenCode agents take a
+// "tools: [read, write]" array). The renderers' yamlValue() handles both.
+const frontmatterValue = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.array(z.union([z.string(), z.number(), z.boolean()])),
+]);
+
+// Variable label/default may come back as scalars or lists — coerce to string
+// so Handlebars rendering keeps working.
+const varValue = z
+  .union([z.string(), z.number(), z.boolean(), z.array(z.union([z.string(), z.number(), z.boolean()]))])
+  .transform((v) => (Array.isArray(v) ? v.join(", ") : String(v)));
+
 // Schema the model must fill. Kept tight so the response stays short (token-cheap).
+// Agnes is loose with field shapes, so everything it can omit or mistype is
+// optional/loose here and normalized in fillDefaults / transforms.
 const genSchema = z.object({
-  name: z.string().describe("short kebab-case slug for the artifact"),
-  type: z.enum(ARTIFACT_TYPES),
+  name: z.string().describe("short kebab-case slug for the artifact").default(""),
+  type: z.enum(ARTIFACT_TYPES).optional(),
   target: z.string().default("opencode"),
-  frontmatter: z.record(z.string()).default({}),
+  frontmatter: z.record(frontmatterValue).default({}),
   body_template: z
     .string()
     .describe("Handlebars template; put reusable values in {{variableName}} holes"),
@@ -50,8 +67,8 @@ const genSchema = z.object({
     .array(
       z.object({
         name: z.string(),
-        label: z.string().optional().default(""),
-        default: z.string().optional().default(""),
+        label: varValue.optional().default(""),
+        default: varValue.optional().default(""),
         required: z.boolean().optional().default(false),
       }),
     )
@@ -113,6 +130,18 @@ export async function generateArtifact({ prompt, type, target = "opencode" }) {
       model: provider.model,
       schema: genSchema,
       messages: [systemMessage, userMessage, ...extraMessages],
+      // Safety net: the model sometimes wraps the JSON in markdown fences or
+      // prose. Extract the outermost {...} block locally — deterministic and
+      // cheaper than asking the model to repair its own output.
+      experimental_repairText: async ({ text }) => {
+        const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+        const raw = fenced ? fenced[1] : text;
+        const start = raw.indexOf("{");
+        const end = raw.lastIndexOf("}");
+        const extracted = start >= 0 && end > start ? raw.slice(start, end + 1) : text;
+        if (extracted !== text) console.warn("generate: extracted JSON from fenced/prose response");
+        return extracted;
+      },
     });
   }
 
@@ -121,9 +150,33 @@ export async function generateArtifact({ prompt, type, target = "opencode" }) {
     return autoQuality(draft.body_template);
   }
 
+  // Fill in what the model may have omitted: type (pinned > inferred > default)
+  // and a kebab-case name derived from the prompt.
+  function fillDefaults(object) {
+    if (!object.type) {
+      object.type =
+        type ||
+        (/\bspec\b|openspec/i.test(prompt)
+          ? "openspec"
+          : /\bconfig\b|settings\.json/i.test(prompt)
+            ? "config_snippet"
+            : "skill");
+    }
+    if (!object.name.trim()) {
+      object.name =
+        prompt
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .split("-")
+          .slice(0, 4)
+          .join("-") || "generated-artifact";
+    }
+    object.target = target;
+  }
+
   const first = await genOnce();
-  if (type) first.object.type = type;
-  first.object.target = target;
+  fillDefaults(first.object);
 
   let best = first;
   let quality = qualityOf(best.object);
@@ -144,7 +197,7 @@ export async function generateArtifact({ prompt, type, target = "opencode" }) {
         },
       ]);
       if (type) retry.object.type = type;
-      retry.object.target = target;
+      fillDefaults(retry.object);
 
       const retryQuality = qualityOf(retry.object);
       // Keep whichever draft scores better on the auto checks.
