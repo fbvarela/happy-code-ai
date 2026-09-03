@@ -83,7 +83,7 @@ export default function SuggestionGallery() {
             style={{ ...inputStyle, flex: 1 }}
           />
           <button
-            className="btn btn-bark"
+            className="btn btn-primary"
             type="button"
             onClick={generateFromPrompt}
             disabled={aiLoading || !aiPrompt.trim()}
@@ -125,7 +125,7 @@ export default function SuggestionGallery() {
             </div>
             <div style={{ fontWeight: 600, fontSize: "1rem" }}>{pickLang(s, "title", lang)}</div>
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: 0, flex: 1, lineHeight: 1.45 }}>{pickLang(s, "summary", lang)}</p>
-            <button className="btn btn-bark" type="button" onClick={() => use(s)} style={{ minHeight: 40, alignSelf: "start", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <button className="btn btn-primary" type="button" onClick={() => use(s)} style={{ minHeight: 40, alignSelf: "start", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <Wand2 size={16} /> {t("suggestions.use")}
             </button>
           </li>

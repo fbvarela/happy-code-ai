@@ -71,6 +71,7 @@ export function pickLang(obj, field, lang) {
 const MESSAGES = {
   es: {
     "app.tagline": "Agent Artifact Manager",
+    "app.title": "Biblioteca",
     "nav.suggestions": "Sugerencias",
     "nav.library": "Biblioteca",
     "nav.main": "Principal",
@@ -319,6 +320,7 @@ const MESSAGES = {
     "config.guide.step3.title": "Publicar",
     "config.guide.step3.body": "Revisa las diferencias, escribe un mensaje de commit y sube todos los cambios en un único commit atómico vía API de GitHub.",
     "config.guide.filesTitle": "Archivos de configuración por CLI",
+    "app.title": "Library",
   },
   en: {
     "app.tagline": "Agent Artifact Manager",

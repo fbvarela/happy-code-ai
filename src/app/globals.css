@@ -312,6 +312,12 @@ body::before {
     border-color: var(--bark);
   }
   .btn-primary:hover { filter: brightness(1.1); }
+  .dark .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .dark .btn-primary:hover { filter: brightness(1.15); }
   .btn-accent {
     background: var(--accent);
     color: #fff;
@@ -335,6 +341,10 @@ body::before {
   .btn-danger:hover {
     background: color-mix(in srgb, var(--clay) 8%, transparent);
   }
+
+  /* ── Bark-text helper (dark-mode aware) ─────────────────── */
+  .bark-text { color: var(--bark); }
+  .dark .bark-text { color: var(--accent); }
 
   /* ── Inputs ─────────────────────────────────────────────── */
   .input, .select, .textarea {

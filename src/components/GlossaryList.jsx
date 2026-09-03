@@ -168,7 +168,7 @@ export default function GlossaryList() {
             <option key={c.id} value={c.id}>{pickLang(c, "label", lang)}</option>
           ))}
         </select>
-        <button className="btn btn-bark" type="button" onClick={() => (showForm ? closeForm() : openAdd())} style={iconRow}>
+        <button className="btn btn-primary" type="button" onClick={() => (showForm ? closeForm() : openAdd())} style={iconRow}>
           {showForm ? <><X size={16} /> {t("common.cancel")}</> : <><Plus size={16} /> {t("glossary.addTerm")}</>}
         </button>
       </div>
@@ -212,7 +212,7 @@ export default function GlossaryList() {
           </div>
           {formError && <p style={{ color: "var(--clay)", fontSize: "0.85rem", margin: 0 }}>{formError}</p>}
           <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn btn-bark" type="button" onClick={save} disabled={saving}>
+            <button className="btn btn-primary" type="button" onClick={save} disabled={saving}>
               {saving ? t("common.saving") : editingId ? t("glossary.saveChanges") : t("common.save")}
             </button>
             <button className="btn btn-ghost" type="button" onClick={closeForm} disabled={saving}>

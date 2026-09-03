@@ -103,7 +103,7 @@ export default function PromptChecklist({ body }) {
           </ul>
           <Link
             href="/docs/prompt-guide"
-            style={{ display: "inline-block", marginTop: 10, fontSize: "0.8rem", color: "var(--bark)" }}
+            style={{ display: "inline-block", marginTop: 10, fontSize: "0.8rem", color: "var(--bark)" }} className="bark-text"
           >
             {t("guide.checklist.viewFull")}
           </Link>

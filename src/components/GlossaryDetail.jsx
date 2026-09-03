@@ -184,7 +184,7 @@ export default function GlossaryDetail({ id }) {
                 />
                 {error && <p style={{ color: "var(--clay)", margin: 0, fontSize: "0.85rem" }}>{error}</p>}
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <button className="btn btn-bark" type="button" onClick={saveEdit} disabled={saving} style={smallIcon}>
+                  <button className="btn btn-primary" type="button" onClick={saveEdit} disabled={saving} style={smallIcon}>
                     <Save size={14} /> {saving ? t("common.saving") : t("common.save")}
                   </button>
                   <button className="btn btn-ghost" type="button" onClick={cancelEdit} disabled={saving} style={smallIcon}>

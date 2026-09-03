@@ -351,7 +351,7 @@ const stepNum = {
   height: 30,
   borderRadius: "50%",
   background: "var(--bark)",
-  color: "#fff",
+  color: "var(--surface)",
   fontSize: "0.85rem",
   fontWeight: 700,
   display: "inline-flex",

@@ -363,7 +363,7 @@ export default function MemoryGuidePage() {
         <div className="grid2" style={{ gap: 14 }}>
           {[rvn.root, rvn.named].map((col, i) => (
             <div key={i} className="card" style={{ padding: "18px 20px" }}>
-              <p style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 12, color: i === 0 ? "var(--leaf, #2a7a2a)" : "var(--bark)" }}>{col.label}</p>
+              <p style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 12, color: i === 0 ? "var(--leaf)" : "var(--bark)" }}>{col.label}</p>
               <ul style={{ margin: "0 0 12px", paddingLeft: 20, display: "grid", gap: 6 }}>
                 {col.items.map((item, j) => (
                   <li key={j} style={{ fontSize: "0.95rem", lineHeight: 1.55 }}>{item}</li>

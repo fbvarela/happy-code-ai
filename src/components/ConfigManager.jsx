@@ -201,7 +201,7 @@ export default function ConfigManager() {
                 ))}
               </select>
               <button
-                className="btn btn-bark"
+                className="btn btn-primary"
                 onClick={scan}
                 disabled={!selectedRepo || scanning}
                 style={{ minHeight: 44, padding: "0 20px", display: "inline-flex", alignItems: "center", gap: 6 }}
@@ -393,7 +393,7 @@ export default function ConfigManager() {
                 style={{ ...inputStyle, flex: 1, minWidth: 200 }}
               />
               <button
-                className="btn btn-bark"
+                className="btn btn-primary"
                 onClick={publish}
                 disabled={publishing}
                 style={{ minHeight: 44, padding: "0 20px" }}

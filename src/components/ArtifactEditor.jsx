@@ -386,7 +386,7 @@ export default function ArtifactEditor({ id }) {
                 <input style={{ ...input, minHeight: 36, fontSize: "0.8rem" }} value={local.model} onChange={(e) => setLocal((l) => ({ ...l, model: e.target.value }))} placeholder="qwen2.5-coder" />
               </div>
             )}
-            <button className="btn btn-bark" type="button" onClick={generate} disabled={generating} style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <button className="btn btn-primary" type="button" onClick={generate} disabled={generating} style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 6 }}>
               <Sparkles size={16} /> {generating ? t("editor.generating") : t("editor.generateDraft")}
             </button>
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 6 }}>
@@ -504,7 +504,7 @@ export default function ArtifactEditor({ id }) {
         {error && <p style={{ color: "var(--clay)", fontSize: "0.9rem" }}>{error}</p>}
 
         <div style={{ display: "flex", gap: 10 }}>
-          <button className="btn btn-bark" type="button" onClick={save} disabled={saving}>
+          <button className="btn btn-primary" type="button" onClick={save} disabled={saving}>
             {saving ? t("common.saving") : isNew ? t("editor.create") : t("common.save")}
           </button>
           <button className="btn btn-ghost" type="button" onClick={() => router.push("/")} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><ArrowLeft size={16} /> {t("nav.back")}</button>
@@ -570,7 +570,7 @@ export default function ArtifactEditor({ id }) {
                 <input style={input} placeholder={t("editor.branchPlaceholder")} value={pub.branch} onChange={(e) => setPub((p) => ({ ...p, branch: e.target.value }))} />
                 <input style={input} placeholder={t("editor.pathPlaceholder")} value={pub.path} onChange={(e) => setPub((p) => ({ ...p, path: e.target.value }))} />
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button className="btn btn-bark" type="button" onClick={publish} disabled={pub.busy || !pub.repo} style={{ flex: 1 }}>
+                  <button className="btn btn-primary" type="button" onClick={publish} disabled={pub.busy || !pub.repo} style={{ flex: 1 }}>
                     {pub.busy ? "…" : t("editor.publish")}
                   </button>
                   <button className="btn btn-ghost" type="button" onClick={testPublish} disabled={pub.busy || !pub.repo} style={{ flex: 1 }}>
@@ -602,7 +602,7 @@ export default function ArtifactEditor({ id }) {
 function Field({ label, children }) {
   return (
     <label style={{ display: "block" }}>
-      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</div>
       {children}
     </label>
   );

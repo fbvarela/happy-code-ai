@@ -84,7 +84,7 @@ export default function MemoryGuide() {
               <p style={{ fontWeight: 700, fontSize: "0.95rem", margin: 0 }}>
                 {t("memory.guide.filesTitle")}
               </p>
-              <Link href="/docs/memory-guide" style={{ fontSize: "0.85rem", color: "var(--bark)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <Link href="/docs/memory-guide" style={{ fontSize: "0.85rem", color: "var(--bark)", display: "inline-flex", alignItems: "center", gap: 4 }} className="bark-text">
                 <BookOpen size={13} /> {t("nav.memoryGuide")} →
               </Link>
             </div>

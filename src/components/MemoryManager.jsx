@@ -269,7 +269,7 @@ export default function MemoryManager() {
                 ))}
               </select>
               <button
-                className="btn btn-bark"
+                className="btn btn-primary"
                 onClick={scan}
                 disabled={!selectedRepo || scanning}
                 style={{ minHeight: 44, padding: "0 20px", display: "inline-flex", alignItems: "center", gap: 6 }}
@@ -351,7 +351,7 @@ export default function MemoryManager() {
                     </label>
                   ))}
                   <button
-                    className="btn btn-bark"
+                    className="btn btn-primary"
                     style={{ fontSize: "0.8rem", padding: "4px 12px", minHeight: 32 }}
                     disabled={!Object.values(syncSource.targets).some(Boolean)}
                     onClick={() => syncSection(sec.content, sec.heading, fileTarget, fileModule)}
@@ -493,7 +493,7 @@ export default function MemoryManager() {
                         style={{ ...inputStyle, flex: 1, fontSize: "0.82rem", minHeight: 32, padding: "0 8px" }}
                         autoFocus
                       />
-                      <button className="btn btn-bark" onClick={() => createNewFile(target)} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem" }}>
+                      <button className="btn btn-primary" onClick={() => createNewFile(target)} style={{ minHeight: 32, padding: "0 10px", fontSize: "0.8rem" }}>
                         <Plus size={13} />
                       </button>
                       <button className="btn btn-ghost" onClick={() => { setNewFileTarget(null); setNewSlug(""); }} style={{ minHeight: 32, padding: "0 8px", fontSize: "0.8rem" }}>
@@ -571,7 +571,7 @@ export default function MemoryManager() {
                 style={{ ...inputStyle, flex: 1, minWidth: 200 }}
               />
               <button
-                className="btn btn-bark"
+                className="btn btn-primary"
                 onClick={publish}
                 disabled={publishing}
                 style={{ minHeight: 44, padding: "0 20px" }}
