@@ -1,5 +1,7 @@
 import { getSession } from "@/lib/session";
 import ArtifactLibrary from "@/components/ArtifactLibrary";
+import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
 import T from "@/components/T";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +15,10 @@ export default async function HomePage() {
         <div>
           <h1><T k="app.title" /></h1>
           <p className="page-header-meta"><T k="app.tagline" /></p>
+        </div>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <LanguageToggle />
+          <ThemeToggle />
         </div>
       </div>
       <div className="scroll-list">

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import GlossaryList from "@/components/GlossaryList";
+import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
 import T from "@/components/T";
 
 export const dynamic = "force-dynamic";
@@ -9,11 +11,17 @@ export default function GlossaryPage() {
   return (
     <div className="main-content">
       <div className="page-header">
-        <div>
-          <h1><T k="glossary.title" /></h1>
-          <p className="page-header-meta"><T k="glossary.intro" /></p>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div>
+            <h1><T k="glossary.title" /></h1>
+            <p className="page-header-meta"><T k="glossary.intro" /></p>
+          </div>
+          <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}><ArrowLeft size={14} /> <T k="nav.back" /></Link>
         </div>
-        <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}><ArrowLeft size={14} /> <T k="nav.back" /></Link>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <LanguageToggle />
+          <ThemeToggle />
+        </div>
       </div>
       <div className="scroll-list">
         <GlossaryList />
