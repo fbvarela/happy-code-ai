@@ -1,11 +1,11 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { createGroq } from "@ai-sdk/groq";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { ARTIFACT_TYPES, TYPE_LABELS } from "@/lib/artifact-types";
+import { isAgnesConfigured, getAgnesModel } from "@/lib/agnes";
 
 /** Pick the cloud generator provider by available key:
- *  Anthropic (best) first, then Groq (fast + cheap) as fallback. */
+ *  Anthropic (best) first, then Agnes 2.0 (fast + cheap) as fallback. */
 function selectProvider() {
   if (process.env.ANTHROPIC_API_KEY) {
     const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -15,11 +15,10 @@ function selectProvider() {
       cache: true, // prompt-cache the system prefix
     };
   }
-  if (process.env.GROQ_API_KEY) {
-    const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
+  if (isAgnesConfigured()) {
     return {
-      name: "groq",
-      model: groq(process.env.GROQ_MODEL || "llama-3.3-70b-versatile"),
+      name: "agnes",
+      model: getAgnesModel(),
       cache: false,
     };
   }
@@ -49,7 +48,7 @@ const genSchema = z.object({
 });
 
 export function isConfigured() {
-  return !!(process.env.ANTHROPIC_API_KEY || process.env.GROQ_API_KEY);
+  return !!(process.env.ANTHROPIC_API_KEY || isAgnesConfigured());
 }
 
 function systemPrompt(target) {
@@ -76,7 +75,7 @@ export async function generateArtifact({ prompt, type, target = "opencode" }) {
   if (!provider) throw new Error("No generator provider configured");
 
   const systemMessage = { role: "system", content: systemPrompt(target) };
-  // Prompt caching is Anthropic-only; skip it for Groq.
+  // Prompt caching is Anthropic-only; skip it for Agnes.
   if (provider.cache) {
     systemMessage.providerOptions = { anthropic: { cacheControl: { type: "ephemeral" } } };
   }

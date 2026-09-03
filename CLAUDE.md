@@ -74,11 +74,12 @@ No test runner is configured (no `test` script, no test framework in
   `scripts/db-migrate.mjs`), currently: `users`, `artifacts`,
   `artifact_versions`, plus additive migrations for memory/mcp artifact
   types, `files`, `command` type, and the glossary tables.
-- **AI generation**: Vercel AI SDK (`ai`, `@ai-sdk/anthropic`, `@ai-sdk/groq`)
+- **AI generation**: Vercel AI SDK (`ai`, `@ai-sdk/anthropic`, `@ai-sdk/openai`)
   with `zod` schemas via `generateObject`. Provider is chosen by which env
   key is present — Anthropic first (`ANTHROPIC_API_KEY`, default model
-  `claude-opus-4-8`, prompt-cached), Groq as fallback
-  (`GROQ_API_KEY`, default `llama-3.3-70b-versatile`). `src/lib/local-generate.js`
+  `claude-opus-4-8`, prompt-cached), Agnes 2.0 as fallback
+  (`AGNES_API_KEY`, default `agnes-2.0-flash`, OpenAI-compatible gateway at
+  `https://apihub.agnes-ai.com/v1`, see `src/lib/agnes.js`). `src/lib/local-generate.js`
   exists alongside for a non-LLM / template-only generation path.
 - **Templating**: Handlebars (`handlebars`) — artifact bodies are templates
   with `{{variableName}}` holes filled from typed `variables[]`.
@@ -128,8 +129,8 @@ All read from `process.env`, documented in `.env.example`:
 | `GITHUB_OAUTH_REDIRECT` | Optional override for the OAuth callback URL (defaults to `<origin>/api/auth/github/callback`) |
 | `ANTHROPIC_API_KEY` | Enables Anthropic as the generator provider (preferred) |
 | `GENERATOR_MODEL` | Optional Anthropic model override (default `claude-opus-4-8`) |
-| `GROQ_API_KEY` | Enables Groq as the generator fallback when Anthropic key is absent |
-| `GROQ_MODEL` | Optional Groq model override (default `llama-3.3-70b-versatile`) |
+| `AGNES_API_KEY` | Enables Agnes 2.0 as the generator fallback when Anthropic key is absent |
+| `AGNES_MODEL` | Optional Agnes model override (default `agnes-2.0-flash`) |
 
 ## Code Conventions
 

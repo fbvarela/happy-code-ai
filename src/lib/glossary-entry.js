@@ -1,7 +1,7 @@
 // Shared validation + definition-backfill for glossary entry writes (POST/PUT).
 import { z } from "zod";
 import { GLOSSARY_CATEGORY_IDS } from "@/lib/glossary";
-import { defineTerm, isGroqConfigured } from "@/lib/glossary-generator";
+import { defineTerm, isAgnesConfigured } from "@/lib/glossary-generator";
 
 export const entryInput = z.object({
   term: z.string().trim().min(1, "El término es obligatorio").max(120),
@@ -11,13 +11,13 @@ export const entryInput = z.object({
   links: z.array(z.object({ label: z.string().trim(), url: z.string().url() })).max(5).default([]),
 });
 
-/** Ensure the entry has a definition; if blank, generate one with Groq.
+/** Ensure the entry has a definition; if blank, generate one with Agnes.
  *  `lang` ('es' | 'en') controls the generated language.
  *  Throws an Error with a `.status` (400/502) on failure. Mutates + returns e. */
 export async function ensureDefinition(e, lang = "es") {
   if (e.definition.trim()) return e;
-  if (!isGroqConfigured()) {
-    const err = new Error("Falta la definición y Groq no está configurado.");
+  if (!isAgnesConfigured()) {
+    const err = new Error("Falta la definición y Agnes no está configurado.");
     err.status = 400;
     throw err;
   }
