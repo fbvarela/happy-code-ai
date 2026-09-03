@@ -15,7 +15,7 @@ export default function LanguageToggle() {
       style={{
         position: "fixed",
         top: 14,
-        right: 58,
+        left: 58,
         zIndex: 50,
         height: 36,
         padding: "0 10px",
