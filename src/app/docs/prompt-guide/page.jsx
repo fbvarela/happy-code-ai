@@ -523,14 +523,14 @@ export default function PromptGuidePage() {
   const principles = lang === "en" ? PRINCIPLES_EN : PRINCIPLES_ES;
 
   return (
-    <main style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 20px 64px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
-        <h1 style={{ fontSize: "1.75rem", lineHeight: 1.3 }}>{t("guide.title")}</h1>
-        <Link href="/" style={{ fontSize: "0.95rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+    <div className="main-content">
+      <div className="page-header">
+        <h1>{t("guide.title")}</h1>
+        <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}>
           <ArrowLeft size={14} /> {t("nav.back")}
         </Link>
       </div>
-      <p style={{ color: "var(--text-muted)", marginBottom: 32, fontSize: "1.05rem" }}>{t("guide.intro")}</p>
+      <p style={{ color: "var(--text-muted)", marginBottom: 28, fontSize: "0.95rem", lineHeight: 1.6 }}>{t("guide.intro")}</p>
 
       <div style={{ display: "grid", gap: 20 }}>
         {principles.map((p) => (
@@ -648,7 +648,7 @@ export default function PromptGuidePage() {
           ))}
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 

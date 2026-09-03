@@ -2,8 +2,6 @@
 
 import { useI18n } from "@/lib/i18n";
 
-/** Floating ES/EN switch, sitting just left of the theme toggle. Shows the
- *  language you'll switch TO. Persistence + <html lang> handled by the provider. */
 export default function LanguageToggle() {
   const { lang, setLang, t } = useI18n();
   const next = lang === "es" ? "en" : "es";
@@ -17,23 +15,26 @@ export default function LanguageToggle() {
       style={{
         position: "fixed",
         top: 14,
-        right: 62,
+        right: 58,
         zIndex: 50,
-        height: 40,
-        minWidth: 40,
+        height: 36,
         padding: "0 10px",
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        borderRadius: 20,
+        borderRadius: "var(--radius-sm)",
         border: "1px solid var(--line)",
         background: "var(--surface)",
-        color: "var(--text)",
-        boxShadow: "var(--shadow)",
+        color: "var(--text-muted)",
+        boxShadow: "var(--shadow-sm)",
         cursor: "pointer",
-        fontSize: "0.8rem",
+        fontSize: "0.78rem",
         fontWeight: 600,
+        letterSpacing: "0.04em",
+        transition: "background 0.12s ease, color 0.12s ease",
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--cream)"; e.currentTarget.style.color = "var(--text)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = "var(--surface)"; e.currentTarget.style.color = "var(--text-muted)"; }}
     >
       {next.toUpperCase()}
     </button>

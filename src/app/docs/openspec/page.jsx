@@ -179,25 +179,25 @@ export default function OpenSpecGuidePage() {
   const sections = lang === "en" ? SECTIONS_EN : SECTIONS_ES;
 
   return (
-    <main style={{ maxWidth: 860, margin: "0 auto", padding: "32px 20px 64px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
-        <h1 style={{ fontSize: "1.75rem", lineHeight: 1.3 }}>
-          {lang === "en" ? "OpenSpec Guide" : "Guía de OpenSpec"}
-        </h1>
-        <Link href="/" style={{ fontSize: "0.95rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+    <div className="main-content">
+      <div className="page-header">
+        <div>
+          <h1>{lang === "en" ? "OpenSpec Guide" : "Guía de OpenSpec"}</h1>
+          <p className="page-header-meta">
+            {lang === "en"
+              ? "Spec-driven development for coding agents — write intent, let the agent write code."
+              : "Desarrollo orientado a specs para coding agents — escribe intención, deja que el agent escriba el código."}
+          </p>
+        </div>
+        <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
           <ArrowLeft size={14} /> {t("nav.back")}
         </Link>
       </div>
-      <p style={{ color: "var(--text-muted)", marginBottom: 8, fontSize: "1.05rem" }}>
-        {lang === "en"
-          ? "Spec-driven development for coding agents — write intent, let the agent write code."
-          : "Desarrollo orientado a specs para coding agents — escribe intención, deja que el agent escriba el código."}
-      </p>
       <a
         href="https://openspec.dev/"
         target="_blank"
         rel="noopener noreferrer"
-        style={{ fontSize: "0.95rem", color: "var(--bark)", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 32 }}
+        style={{ fontSize: "0.9rem", color: "var(--accent)", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 28, textDecoration: "none" }}
       >
         openspec.dev <ExternalLink size={12} />
       </a>
@@ -291,7 +291,7 @@ export default function OpenSpecGuidePage() {
           openspec.dev <ExternalLink size={12} style={{ display: "inline" }} />
         </a>
       </div>
-    </main>
+    </div>
   );
 }
 

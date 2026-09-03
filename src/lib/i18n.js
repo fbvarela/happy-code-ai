@@ -72,6 +72,9 @@ const MESSAGES = {
   es: {
     "app.tagline": "Agent Artifact Manager",
     "nav.suggestions": "Sugerencias",
+    "nav.library": "Biblioteca",
+    "nav.main": "Principal",
+    "nav.tools": "Herramientas",
     "nav.glossary": "Glosario",
     "nav.new": "Nuevo",
     "nav.back": "Volver",
@@ -139,6 +142,8 @@ const MESSAGES = {
     "detail.errSave": "No se pudo guardar.",
 
     "page.newArtifact": "Nuevo artefacto",
+    "page.editArtifact": "Editar artefacto",
+    "glossary.detailTitle": "Término del glosario",
     "offline.title": "Sin conexión",
     "offline.body": "No hay conexión a internet. Vuelve a intentarlo cuando recuperes la red.",
     "login.continueGithub": "Continuar con GitHub",
@@ -318,6 +323,9 @@ const MESSAGES = {
   en: {
     "app.tagline": "Agent Artifact Manager",
     "nav.suggestions": "Suggestions",
+    "nav.library": "Library",
+    "nav.main": "Main",
+    "nav.tools": "Tools",
     "nav.glossary": "Glossary",
     "nav.new": "New",
     "nav.back": "Back",
@@ -385,6 +393,8 @@ const MESSAGES = {
     "detail.errSave": "Could not save.",
 
     "page.newArtifact": "New artifact",
+    "page.editArtifact": "Edit artifact",
+    "glossary.detailTitle": "Glossary term",
     "offline.title": "Offline",
     "offline.body": "No internet connection. Try again once you're back online.",
     "login.continueGithub": "Continue with GitHub",

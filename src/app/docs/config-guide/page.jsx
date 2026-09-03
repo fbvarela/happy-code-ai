@@ -400,20 +400,19 @@ export default function ConfigGuidePage() {
   const practicesTitle = lang === "en" ? "Best practices" : "Buenas prácticas";
 
   return (
-    <main style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 20px 64px" }}>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
-        <h1 style={{ fontSize: "1.75rem", lineHeight: 1.3 }}>{title}</h1>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexShrink: 0 }}>
-          <Link href="/config" style={{ fontSize: "0.9rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+    <div className="main-content">
+      <div className="page-header">
+        <h1>{title}</h1>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Link href="/config" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}>
             <BookOpen size={14} /> {t("nav.config")}
           </Link>
-          <Link href="/" style={{ fontSize: "0.9rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+          <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}>
             <ArrowLeft size={14} /> {t("nav.back")}
           </Link>
         </div>
       </div>
-      <p style={{ color: "var(--text-muted)", marginBottom: 36, fontSize: "1.05rem", lineHeight: 1.6 }}>{intro}</p>
+      <p style={{ color: "var(--text-muted)", marginBottom: 32, fontSize: "0.95rem", lineHeight: 1.6 }}>{intro}</p>
 
       {/* Root vs target-specific */}
       <section style={{ marginBottom: 40 }}>
@@ -485,7 +484,7 @@ export default function ConfigGuidePage() {
           ))}
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

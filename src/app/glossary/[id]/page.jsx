@@ -1,12 +1,19 @@
 import GlossaryDetail from "@/components/GlossaryDetail";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import T from "@/components/T";
 
 export const dynamic = "force-dynamic";
 
 export default async function GlossaryTermPage({ params }) {
   const { id } = await params;
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: "32px 20px" }}>
+    <div className="main-content">
+      <div className="page-header">
+        <h1><T k="glossary.detailTitle" /></h1>
+        <Link href="/glossary" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}><ArrowLeft size={14} /> <T k="nav.back" /></Link>
+      </div>
       <GlossaryDetail id={id} />
-    </main>
+    </div>
   );
 }
