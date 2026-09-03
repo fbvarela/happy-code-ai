@@ -34,9 +34,11 @@ export default async function RootLayout({ children }) {
         <LanguageProvider>
           <div className="app-layout">
             {isAuth && <Sidebar session={session} />}
-            <ThemeToggle />
-            <LanguageToggle />
             <div style={{ flex: 1, minWidth: 0, position: "relative", zIndex: 1 }}>
+              <div className="topbar-row">
+                <ThemeToggle />
+                <LanguageToggle />
+              </div>
               {children}
             </div>
           </div>
