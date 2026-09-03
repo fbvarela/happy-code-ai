@@ -1,15 +1,15 @@
 import { requireAuth } from "@/utils/auth";
-import { defineTerm, isGroqConfigured } from "@/lib/glossary-generator";
+import { defineTerm, isAgnesConfigured } from "@/lib/glossary-generator";
 
-/** POST /api/glossary/define — generate a definition for a term via Groq.
+/** POST /api/glossary/define — generate a definition for a term via Agnes.
  *  Body: { term }. Returns { definition, category, links }. Not persisted. */
 export async function POST(request) {
   const { error } = await requireAuth();
   if (error) return error;
 
-  if (!isGroqConfigured()) {
+  if (!isAgnesConfigured()) {
     return Response.json(
-      { error: "Generación no configurada (define GROQ_API_KEY)." },
+      { error: "Generación no configurada (define AGNES_API_KEY)." },
       { status: 503 },
     );
   }
