@@ -1,8 +1,8 @@
-import { createGroq } from "@ai-sdk/groq";
 import { generateObject, generateText } from "ai";
 import { z } from "zod";
 
 import { GLOSSARY_CATEGORY_IDS } from "@/lib/glossary";
+import { isAgnesConfigured, getAgnesModel } from "@/lib/agnes";
 
 // Tight schema → short, cheap, structured output validated before use.
 const defSchema = z.object({
@@ -14,15 +14,14 @@ const defSchema = z.object({
     .default([]),
 });
 
-export function isGroqConfigured() {
-  return !!process.env.GROQ_API_KEY;
-}
+export { isAgnesConfigured };
 
-/** Generate a glossary definition for `term` using Groq (fast + cheap).
+/** Generate a glossary definition for `term` using Agnes 2.0 (fast + cheap).
  *  `lang` ('es' | 'en') controls the output language.
  *  Returns { definition, category, links }. Throws if no key / on failure. */
 export async function defineTerm(term, lang = "es") {
-  if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY no configurado");
+  const model = getAgnesModel();
+  if (!model) throw new Error("AGNES_API_KEY no configurado");
 
   const system =
     lang === "en"
@@ -32,9 +31,8 @@ export async function defineTerm(term, lang = "es") {
         "Sé preciso y neutral, en español. Si no estás seguro de que el término exista, dilo en la definición. " +
         "Incluye solo enlaces oficiales o autoritativos (o ninguno).";
 
-  const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
   const { object } = await generateObject({
-    model: groq(process.env.GROQ_MODEL || "llama-3.3-70b-versatile"),
+    model,
     schema: defSchema,
     messages: [
       { role: "system", content: system },
@@ -44,11 +42,12 @@ export async function defineTerm(term, lang = "es") {
   return object;
 }
 
-/** Generate an extended, developer-grade explanation of a term using Groq.
+/** Generate an extended, developer-grade explanation of a term using Agnes 2.0.
  *  `lang` ('es' | 'en') controls the output language. Returns plain text with
  *  paragraphs (and optional "- " bullets). The short `definition` is context. */
 export async function explainTerm(term, definition = "", lang = "es") {
-  if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY no configurado");
+  const model = getAgnesModel();
+  if (!model) throw new Error("AGNES_API_KEY no configurado");
 
   const system =
     lang === "en"
@@ -66,9 +65,8 @@ export async function explainTerm(term, definition = "", lang = "es") {
       ? `Term: ${term}\n${definition ? `Short definition: ${definition}\n` : ""}\nWrite the extended explanation.`
       : `Término: ${term}\n${definition ? `Definición breve: ${definition}\n` : ""}\nEscribe la explicación extendida.`;
 
-  const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
   const { text } = await generateText({
-    model: groq(process.env.GROQ_MODEL || "llama-3.3-70b-versatile"),
+    model,
     messages: [
       { role: "system", content: system },
       { role: "user", content: user },

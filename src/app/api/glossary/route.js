@@ -17,7 +17,7 @@ export async function GET() {
 }
 
 /** POST /api/glossary — add an entry. If `definition` is blank, backfill it
- *  with Groq before inserting so the cached definition is never empty. */
+ *  with Agnes before inserting so the cached definition is never empty. */
 export async function POST(request) {
   const { session, error } = await requireAuth();
   if (error) return error;

@@ -23,7 +23,7 @@ independiente. Spec: [`specs/spec-agent-artifact-manager.md`](specs/spec-agent-a
 
 ## Fase 2 — Generador (LLMProvider) + Publish (HECHO)
 
-- [x] Generador (`src/lib/generator.js`): Vercel AI SDK · `generateObject` + Zod, salida estructurada corta. **Fallback de proveedor**: Anthropic si hay `ANTHROPIC_API_KEY` (con **prompt caching**), si no **Groq** (`GROQ_API_KEY`, rápido y barato, default `llama-3.3-70b-versatile`). Modelos configurables (`GENERATOR_MODEL` / `GROQ_MODEL`).
+- [x] Generador (`src/lib/generator.js`): Vercel AI SDK · `generateObject` + Zod, salida estructurada corta. **Fallback de proveedor**: Anthropic si hay `ANTHROPIC_API_KEY` (con **prompt caching**), si no **Agnes 2.0** (`AGNES_API_KEY`, rápido y barato, default `agnes-2.0-flash`). Modelos configurables (`GENERATOR_MODEL` / `AGNES_MODEL`).
 - [x] `POST /api/generate` — NL → artefacto estructurado (no persiste). 503 si no hay `ANTHROPIC_API_KEY`.
 - [x] `OpenCodeRenderer` (Strategy, `src/lib/renderers/`): `render(artifact, values) → { path, content }`; frontmatter YAML para markdown, JSON crudo para mcp/config; ruta por tipo.
 - [x] `GET /api/repos` (Octokit) + `POST /api/artifacts/:id/publish` (Contents API, 1 archivo, con `sha` para update; manejo 409).

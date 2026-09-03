@@ -9,7 +9,7 @@ export async function POST(request) {
 
   if (!isConfigured()) {
     return Response.json(
-      { error: "Generator not configured (set ANTHROPIC_API_KEY or GROQ_API_KEY)." },
+      { error: "Generator not configured (set ANTHROPIC_API_KEY or AGNES_API_KEY)." },
       { status: 503 },
     );
   }

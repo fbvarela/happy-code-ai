@@ -54,7 +54,7 @@ export default function GlossaryDetail({ id }) {
     [id],
   );
 
-  // Generate a fresh explanation with Groq. In edit mode it fills the draft;
+  // Generate a fresh explanation with Agnes. In edit mode it fills the draft;
   // otherwise it replaces the shown explanation and is saved.
   const generate = useCallback(
     async ({ intoDraft = false } = {}) => {
