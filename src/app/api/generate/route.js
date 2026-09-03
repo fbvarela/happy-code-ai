@@ -22,8 +22,8 @@ export async function POST(request) {
   const target = (body?.target || "opencode").trim();
 
   try {
-    const { draft, usage, provider } = await generateArtifact({ prompt, type, target });
-    return Response.json({ draft, usage, provider });
+    const { draft, usage, provider, quality } = await generateArtifact({ prompt, type, target });
+    return Response.json({ draft, usage, provider, quality });
   } catch (err) {
     console.error("generate failed:", err);
     return Response.json({ error: "Generation failed", message: String(err.message || err) }, { status: 502 });

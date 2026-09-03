@@ -40,6 +40,7 @@ export default function ArtifactEditor({ id }) {
   // Generation (new mode) + publish (edit mode) state.
   const [genPrompt, setGenPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [genQuality, setGenQuality] = useState(null);
   const [local, setLocal] = useState({ enabled: false, baseUrl: LOCAL_DEFAULTS.baseUrl, model: LOCAL_DEFAULTS.model });
   const [pub, setPub] = useState({ repos: null, repo: "", branch: "", path: "", openPr: false, busy: false, result: null, error: null });
 
@@ -140,6 +141,7 @@ export default function ArtifactEditor({ id }) {
     setError(null);
 
     let draft;
+    let quality = null;
     try {
       if (local.enabled) {
         // Browser → user's own model. Zero API tokens.
@@ -157,7 +159,9 @@ export default function ArtifactEditor({ id }) {
           const e = await res.json().catch(() => ({}));
           throw new Error(e.error || t("editor.errGenerate"));
         }
-        draft = (await res.json()).draft;
+        const data = await res.json();
+        draft = data.draft;
+        quality = data.quality || null;
       }
     } catch (e) {
       setGenerating(false);
@@ -165,6 +169,7 @@ export default function ArtifactEditor({ id }) {
       return;
     }
     setGenerating(false);
+    setGenQuality(quality);
     setForm({
       name: draft.name || "",
       type: draft.type || form.type,
@@ -389,6 +394,13 @@ export default function ArtifactEditor({ id }) {
             <button className="btn btn-bark" type="button" onClick={generate} disabled={generating} style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 6 }}>
               <Sparkles size={16} /> {generating ? t("editor.generating") : t("editor.generateDraft")}
             </button>
+            {genQuality && genQuality.applicable && (
+              <p style={{ fontSize: "0.78rem", marginTop: 8, color: genQuality.failed.length ? "var(--clay)" : "var(--leaf)" }}>
+                {t("editor.qualityScore")}{" "}
+                <strong>{genQuality.score}</strong>
+                {genQuality.attempts > 1 && ` (${t("editor.qualityRetry")})`}
+              </p>
+            )}
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 6 }}>
               {t("editor.aiHint")}
               {local.enabled && ` ${t("editor.aiHintLocal")}`}
