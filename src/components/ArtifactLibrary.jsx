@@ -159,7 +159,7 @@ export default function ArtifactLibrary() {
       )}
 
       {items !== null && items.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1, min-height: 0 }}>
           {items.map((a) => (
             <div key={a.id} className="list-item">
               <button
