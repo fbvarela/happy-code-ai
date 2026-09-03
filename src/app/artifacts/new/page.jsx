@@ -12,9 +12,7 @@ export default function NewArtifactPage() {
         <h1><T k="page.newArtifact" /></h1>
         <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}><ArrowLeft size={14} /> <T k="nav.back" /></Link>
       </div>
-      <div className="scroll-list">
-        <ArtifactEditor />
-      </div>
+      <ArtifactEditor />
     </div>
   );
 }
