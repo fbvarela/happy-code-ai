@@ -37,20 +37,21 @@ function selectProvider() {
   return null;
 }
 
-// Frontmatter values may be scalars or lists (e.g. OpenCode agents take a
-// "tools: [read, write]" array). The renderers' yamlValue() handles both.
-const frontmatterValue = z.union([
-  z.string(),
-  z.number(),
-  z.boolean(),
-  z.array(z.union([z.string(), z.number(), z.boolean()])),
-]);
+// Frontmatter is model-authored free YAML metadata — accept anything and let
+// the renderer's yamlValue() serialize it. (Agnes has produced scalar values,
+// scalar arrays and even object arrays here, so no strict shape is safe.)
+//
+// Variable label/default may also come back as scalars, lists or objects —
+// coerce to string so Handlebars rendering keeps working.
+function coerceVarValue(v) {
+  if (v === null || v === undefined) return "";
+  if (Array.isArray(v))
+    return v.map((x) => (typeof x === "object" && x !== null ? JSON.stringify(x) : String(x))).join(", ");
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
 
-// Variable label/default may come back as scalars or lists — coerce to string
-// so Handlebars rendering keeps working.
-const varValue = z
-  .union([z.string(), z.number(), z.boolean(), z.array(z.union([z.string(), z.number(), z.boolean()]))])
-  .transform((v) => (Array.isArray(v) ? v.join(", ") : String(v)));
+const varValue = z.unknown().transform(coerceVarValue);
 
 // Schema the model must fill. Kept tight so the response stays short (token-cheap).
 // Agnes is loose with field shapes, so everything it can omit or mistype is
@@ -59,16 +60,16 @@ const genSchema = z.object({
   name: z.string().describe("short kebab-case slug for the artifact").default(""),
   type: z.enum(ARTIFACT_TYPES).optional(),
   target: z.string().default("opencode"),
-  frontmatter: z.record(frontmatterValue).default({}),
+  frontmatter: z.record(z.unknown()).default({}),
   body_template: z
     .string()
     .describe("Handlebars template; put reusable values in {{variableName}} holes"),
   variables: z
     .array(
       z.object({
-        name: z.string(),
-        label: varValue.optional().default(""),
-        default: varValue.optional().default(""),
+        name: z.union([z.string(), z.number()]).transform(String),
+        label: varValue,
+        default: varValue,
         required: z.boolean().optional().default(false),
       }),
     )
@@ -151,8 +152,22 @@ export async function generateArtifact({ prompt, type, target = "opencode" }) {
   }
 
   // Fill in what the model may have omitted: type (pinned > inferred > default)
-  // and a kebab-case name derived from the prompt.
+  // and a kebab-case name derived from the prompt. Also migrate variables the
+  // model sometimes nests inside frontmatter back to the top level.
   function fillDefaults(object) {
+    const fmVars = object.frontmatter?.variables;
+    if (!object.variables.length && Array.isArray(fmVars)) {
+      const migrated = fmVars
+        .filter((v) => v && typeof v === "object" && (typeof v.name === "string" || typeof v.name === "number"))
+        .map((v) => ({
+          name: String(v.name),
+          label: coerceVarValue(v.label),
+          default: coerceVarValue(v.default),
+          required: !!v.required,
+        }));
+      if (migrated.length) object.variables = migrated;
+      delete object.frontmatter.variables;
+    }
     if (!object.type) {
       object.type =
         type ||
