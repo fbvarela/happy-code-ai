@@ -13,7 +13,9 @@ export default async function EditArtifactPage({ params }) {
         <h1><T k="page.editArtifact" /></h1>
         <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}><ArrowLeft size={14} /> <T k="nav.back" /></Link>
       </div>
-      <ArtifactEditor id={id} />
+      <div className="scroll-list">
+        <ArtifactEditor id={id} />
+      </div>
     </div>
   );
 }
