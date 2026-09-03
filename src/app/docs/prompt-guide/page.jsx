@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
 import { useI18n } from "@/lib/i18n";
 
 // ── Content ────────────────────────────────────────────────────────────────
@@ -525,12 +527,18 @@ export default function PromptGuidePage() {
   return (
     <div className="main-content">
       <div className="page-header">
-        <h1>{t("guide.title")}</h1>
-        <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}>
-          <ArrowLeft size={14} /> {t("nav.back")}
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <h1>{t("guide.title")}</h1>
+          <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <ArrowLeft size={14} /> {t("nav.back")}
+          </Link>
+        </div>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <LanguageToggle />
+          <ThemeToggle />
+        </div>
       </div>
-      <p style={{ color: "var(--text-muted)", marginBottom: 28, fontSize: "0.95rem", lineHeight: 1.6 }}>{t("guide.intro")}</p>
+      <p style={{ color: "var(--text-muted)", marginBottom: 24, fontSize: "0.95rem", lineHeight: 1.6 }}>{t("guide.intro")}</p>
 
       <div style={{ display: "grid", gap: 20 }}>
         {principles.map((p) => (

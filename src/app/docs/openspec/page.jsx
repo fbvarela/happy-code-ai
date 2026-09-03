@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
 import { useI18n } from "@/lib/i18n";
 
 // ── Content ────────────────────────────────────────────────────────────────
@@ -181,17 +183,23 @@ export default function OpenSpecGuidePage() {
   return (
     <div className="main-content">
       <div className="page-header">
-        <div>
-          <h1>{lang === "en" ? "OpenSpec Guide" : "Guía de OpenSpec"}</h1>
-          <p className="page-header-meta">
-            {lang === "en"
-              ? "Spec-driven development for coding agents — write intent, let the agent write code."
-              : "Desarrollo orientado a specs para coding agents — escribe intención, deja que el agent escriba el código."}
-          </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div>
+            <h1>{lang === "en" ? "OpenSpec Guide" : "Guía de OpenSpec"}</h1>
+            <p className="page-header-meta">
+              {lang === "en"
+                ? "Spec-driven development for coding agents — write intent, let the agent write code."
+                : "Desarrollo orientado a specs para coding agents — escribe intención, deja que el agent escriba el código."}
+            </p>
+          </div>
+          <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+            <ArrowLeft size={14} /> {t("nav.back")}
+          </Link>
         </div>
-        <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
-          <ArrowLeft size={14} /> {t("nav.back")}
-        </Link>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <LanguageToggle />
+          <ThemeToggle />
+        </div>
       </div>
       <a
         href="https://openspec.dev/"
