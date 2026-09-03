@@ -15,7 +15,9 @@ export default async function HomePage() {
           <p className="page-header-meta"><T k="app.tagline" /></p>
         </div>
       </div>
-      <ArtifactLibrary />
+      <div className="scroll-list">
+        <ArtifactLibrary />
+      </div>
     </div>
   );
 }

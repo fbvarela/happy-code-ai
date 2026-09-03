@@ -13,8 +13,10 @@ export default function ConfigPage() {
         <h1><T k="config.title" /></h1>
         <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}><ArrowLeft size={14} /> <T k="nav.back" /></Link>
       </div>
-      <ConfigGuide />
-      <ConfigManager />
+      <div className="scroll-list">
+        <ConfigGuide />
+        <ConfigManager />
+      </div>
     </div>
   );
 }

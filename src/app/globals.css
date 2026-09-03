@@ -135,7 +135,8 @@ body::before {
   .app-layout {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr;
-    min-height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
   @media (max-width: 768px) {
     .app-layout { grid-template-columns: 1fr; }
@@ -252,13 +253,14 @@ body::before {
   .main-content {
     position: relative;
     z-index: 1;
-    padding: 32px 32px 64px;
-    max-width: 1100px;
-    width: 100%;
-    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100dvh;
+    padding: 20px 24px 20px;
   }
   @media (max-width: 768px) {
-    .main-content { padding: 20px 16px 48px; }
+    .main-content { padding: 16px; height: auto; overflow-y: auto; }
   }
 
   /* ── Cards ──────────────────────────────────────────────── */
@@ -417,9 +419,10 @@ body::before {
     justify-content: space-between;
     align-items: baseline;
     gap: 16px;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
   }
   .page-header h1 {
     font-size: 1.35rem;
@@ -435,21 +438,29 @@ body::before {
   /* ── Toolbar ────────────────────────────────────────────── */
   .toolbar {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
     align-items: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Scrollable list area ───────────────────────────────── */
+  .scroll-list {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
   }
 
   /* ── Section ────────────────────────────────────────────── */
-  .section { margin-bottom: 32px; }
+  .section { margin-bottom: 24px; }
   .section-title {
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text-faint);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
   /* ── List items (artifact rows) ─────────────────────────── */
@@ -457,12 +468,12 @@ body::before {
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 14px 16px;
+    padding: 10px 14px;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     transition: box-shadow 0.12s ease, border-color 0.12s ease;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .list-item:hover {
     box-shadow: var(--shadow-card-hover);

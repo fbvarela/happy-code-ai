@@ -13,8 +13,10 @@ export default function MemoryPage() {
         <h1><T k="memory.title" /></h1>
         <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}><ArrowLeft size={14} /> <T k="nav.back" /></Link>
       </div>
-      <MemoryGuide />
-      <MemoryManager />
+      <div className="scroll-list">
+        <MemoryGuide />
+        <MemoryManager />
+      </div>
     </div>
   );
 }

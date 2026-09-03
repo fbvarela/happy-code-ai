@@ -15,7 +15,9 @@ export default function GlossaryPage() {
         </div>
         <Link href="/" style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}><ArrowLeft size={14} /> <T k="nav.back" /></Link>
       </div>
-      <GlossaryList />
+      <div className="scroll-list">
+        <GlossaryList />
+      </div>
     </div>
   );
 }
