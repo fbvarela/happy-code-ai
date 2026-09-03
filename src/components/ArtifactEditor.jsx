@@ -563,7 +563,7 @@ export default function ArtifactEditor({ id }) {
           </span>
         </div>
 
-        <PromptChecklist body={form.body_template} />
+        <PromptChecklist body={form.body_template} type={form.type} />
 
         {!isNew && (
           <div style={{ marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 14 }}>

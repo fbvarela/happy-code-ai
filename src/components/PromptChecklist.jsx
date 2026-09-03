@@ -1,16 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { lintBody, QUALITY_KEYS } from "@/lib/quality";
+import { lintBody, QUALITY_KEYS, PROMPT_LIKE_TYPES } from "@/lib/quality";
 
-export default function PromptChecklist({ body }) {
+export default function PromptChecklist({ body, type }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [manual, setManual] = useState({});
-  const results = useMemo(() => lintBody(body), [body]);
+
+  // The 10-point prompt checklist only applies to instruction-style bodies.
+  // Spec documents, MCP JSON and config snippets have their own formats.
+  if (!PROMPT_LIKE_TYPES.includes(type)) return null;
+
+  const results = lintBody(body);
 
   const passed = QUALITY_KEYS.filter((k) => {
     const auto = results[k];

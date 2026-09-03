@@ -3,11 +3,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import { ARTIFACT_TYPES, TYPE_LABELS } from "@/lib/artifact-types";
 import { isAgnesConfigured, getAgnesModel } from "@/lib/agnes";
-import { autoQuality } from "@/lib/quality";
-
-// Types whose body is prompt-like markdown instructions — the only ones the
-// 10-point quality checklist (and the generation gate below) applies to.
-const PROMPT_LIKE_TYPES = ["agent", "subagent", "skill", "command"];
+import { autoQuality, PROMPT_LIKE_TYPES } from "@/lib/quality";
 
 // How to fix each failed auto check, phrased for the model in the retry turn.
 const CHECK_FIXES = {

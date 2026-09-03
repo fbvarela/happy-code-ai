@@ -17,6 +17,11 @@ export const QUALITY_KEYS = [
 
 export const AUTO_KEYS = ["role", "xml", "negative", "example", "fallback", "variables"];
 
+// Types whose body is prompt-like markdown instructions — the only ones the
+// 10-point checklist applies to. Spec documents (openspec), MCP JSON entries
+// and config snippets have their own formats and are not prompt-quality-checked.
+export const PROMPT_LIKE_TYPES = ["agent", "subagent", "skill", "command"];
+
 export function lintBody(body) {
   const b = body || "";
   return {
