@@ -1,6 +1,7 @@
 import "./globals.css";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
+import SideMenu from "@/components/SideMenu";
 import { LanguageProvider, langScript } from "@/lib/i18n";
 
 // Runs before paint to set the theme class, avoiding a flash of the wrong
@@ -29,9 +30,10 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <LanguageProvider>
+          <SideMenu />
           <LanguageToggle />
           <ThemeToggle />
-          {children}
+          <main className="app-shell">{children}</main>
         </LanguageProvider>
       </body>
     </html>
