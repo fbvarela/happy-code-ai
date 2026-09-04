@@ -205,9 +205,22 @@ const MESSAGES = {
     "guide.checklist.title": "Checklist de calidad",
     "guide.checklist.hint": "Revísalo antes de guardar. Los ítems con ✓/✗ se comprueban automáticamente.",
     "guide.checklist.viewFull": "Ver guía completa →",
-    "guide.checklist.autoNote": "auto",
-    "guide.links.title": "Documentación oficial",
+"guide.checklist.autoNote": "auto",
 
+    "spec.checklist.title": "Checklist de especificación",
+    "spec.checklist.hint": "Revísalo antes de guardar. Los ítems con ✓/✗ se comprueban automáticamente.",
+    "spec.checklist.viewFull": "Ver guía OpenSpec →",
+    "spec.check.vagueFound": "cualificadores vagos detectados",
+
+    "spec.check.purpose": "Sección Purpose presente",
+    "spec.check.requirements": "Sección Requirements presente",
+    "spec.check.shall_count": "Al menos 3 afirmaciones SHALL/MUST/DEBE",
+    "spec.check.scenarios": "Sección Scenarios presente",
+    "spec.check.gherkin": "Escenarios en Gherkin (GIVEN/WHEN/THEN)",
+    "spec.check.specificity": "Sin calificadores vagos (manual)",
+    "spec.check.testable": "Cada requisito es comprobable (manual)",
+
+    "guide.links.title": "Documentación oficial",
     "guide.models.title": "Comparativa de agentes",
     "guide.models.context": "Contexto",
     "guide.models.bestFor": "Ideal para",
@@ -469,6 +482,20 @@ const MESSAGES = {
     "guide.checklist.hint": "Review before saving. Items with ✓/✗ are checked automatically.",
     "guide.checklist.viewFull": "View full guide →",
     "guide.checklist.autoNote": "auto",
+
+    "spec.checklist.title": "Specification checklist",
+    "spec.checklist.hint": "Review before saving. Items with ✓/✗ are checked automatically.",
+    "spec.checklist.viewFull": "View OpenSpec guide →",
+    "spec.check.vagueFound": "vague qualifiers found",
+
+    "spec.check.purpose": "Purpose section present",
+    "spec.check.requirements": "Requirements section present",
+    "spec.check.shall_count": "At least 3 SHALL/MUST/DEBE assertions",
+    "spec.check.scenarios": "Scenarios section present",
+    "spec.check.gherkin": "Scenarios in Gherkin (GIVEN/WHEN/THEN)",
+    "spec.check.specificity": "No vague qualifiers (manual)",
+    "spec.check.testable": "Each requirement is testable (manual)",
+
     "guide.links.title": "Official documentation",
 
     "guide.models.title": "Agent comparison",

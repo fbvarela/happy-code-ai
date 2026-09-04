@@ -47,3 +47,57 @@ export function autoQuality(body) {
   const failed = AUTO_KEYS.filter((k) => !results[k]);
   return { results, passed: AUTO_KEYS.length - failed.length, total: AUTO_KEYS.length, failed };
 }
+
+// ──────────────────────────────────────────────────────────────
+// Spec (OpenSpec) quality checklist
+// OpenSpec format: Purpose, Requirements (SHALL), Scenarios (GIVEN/WHEN/THEN)
+// ──────────────────────────────────────────────────────────────
+
+export const SPEC_QUALITY_KEYS = [
+  "purpose",
+  "requirements",
+  "shall_count",
+  "scenarios",
+  "gherkin",
+  "specificity",
+  "testable",
+];
+
+export const SPEC_AUTO_KEYS = ["purpose", "requirements", "shall_count", "scenarios", "gherkin"];
+
+export function lintSpec(body) {
+  const b = body || "";
+  const hasPurpose = /^#\s+Purpose\b|^##\s+Purpose\b|^###\s+Purpose\b/im.test(b);
+  const hasRequirements = /^#\s+Requirements\b|^##\s+Requirements\b|^###\s+Requirements\b/im.test(b);
+  const shallMatches = b.match(/\b(SHALL|MUST|DEBE)\b/gim);
+  const shallCount = shallMatches ? shallMatches.length : 0;
+  const hasScenarios = /^#\s+Scenarios\b|^##\s+Scenarios\b|^###\s+Scenarios\b/im.test(b);
+  const hasGherkin = /\b(GIVEN|WHEN|THEN|DADO|CUANDO|ENTONCES)\b/gim.test(b);
+
+  // Vague qualifiers that weaken requirements
+  const vague = /\b(should|could|might|maybe|probably|eventually|soon|fast|easy|simple|user-friendly|robust|scalable)\b/gim;
+  const vagueMatches = b.match(vague);
+  const vagueCount = vagueMatches ? vagueMatches.length : 0;
+
+  return {
+    purpose: hasPurpose,
+    requirements: hasRequirements,
+    shall_count: shallCount >= 3,
+    scenarios: hasScenarios,
+    gherkin: hasGherkin,
+    specificity: null, // manual: no vague qualifiers
+    testable: null, // manual: each requirement is testable
+    _meta: {
+      shallCount,
+      vagueCount,
+    },
+  };
+}
+
+export function autoSpecQuality(body) {
+  const results = lintSpec(body);
+  const failed = SPEC_AUTO_KEYS.filter((k) => !results[k]);
+  return { results, passed: SPEC_AUTO_KEYS.length - failed.length, total: SPEC_AUTO_KEYS.length, failed, meta: results._meta };
+}
+
+export const SPEC_LIKE_TYPES = ["openspec"];

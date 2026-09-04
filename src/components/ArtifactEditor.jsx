@@ -11,6 +11,7 @@ import { makeZip } from "@/lib/zip";
 import { generateArtifactLocal, LOCAL_DEFAULTS } from "@/lib/local-generate";
 import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
 import PromptChecklist from "@/components/PromptChecklist";
+import SpecChecklist from "@/components/SpecChecklist";
 import TokenMeter from "@/components/TokenMeter";
 
 const EMPTY = {
@@ -563,7 +564,11 @@ export default function ArtifactEditor({ id }) {
           </span>
         </div>
 
-        <PromptChecklist body={form.body_template} type={form.type} />
+        {form.type === "openspec" ? (
+          <SpecChecklist body={form.body_template} />
+        ) : (
+          <PromptChecklist body={form.body_template} type={form.type} />
+        )}
 
         {!isNew && (
           <div style={{ marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
