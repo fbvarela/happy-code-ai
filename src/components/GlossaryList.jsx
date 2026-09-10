@@ -85,11 +85,31 @@ export default function GlossaryList() {
     }
     setGenerating(true);
     setFormError(null);
+
+    // Load custom prompts from localStorage
+    const getPromptSettings = () => {
+      try {
+        const stored = localStorage.getItem("happyCodePromptSettings");
+        if (stored) {
+          return JSON.parse(stored);
+        }
+      } catch (err) {
+        console.warn("Failed to load prompt settings from localStorage:", err);
+      }
+      return null;
+    };
+    const promptSettings = getPromptSettings();
+
     try {
       const res = await fetch("/api/glossary/define", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ term: form.term.trim(), lang }),
+        body: JSON.stringify({
+          term: form.term.trim(),
+          lang,
+          glossaryDefinePromptEs: promptSettings?.glossaryDefinePromptEs || null,
+          glossaryDefinePromptEn: promptSettings?.glossaryDefinePromptEn || null,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("glossary.errGenerate"));

@@ -61,11 +61,32 @@ export default function GlossaryDetail({ id }) {
       if (!entry) return;
       setGenerating(true);
       setError(null);
+
+      // Load custom prompts from localStorage
+      const getPromptSettings = () => {
+        try {
+          const stored = localStorage.getItem("happyCodePromptSettings");
+          if (stored) {
+            return JSON.parse(stored);
+          }
+        } catch (err) {
+          console.warn("Failed to load prompt settings from localStorage:", err);
+        }
+        return null;
+      };
+      const promptSettings = getPromptSettings();
+
       try {
         const res = await fetch("/api/glossary/explain", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ term: pickLang(entry, "term", lang), definition: pickLang(entry, "definition", lang), lang }),
+          body: JSON.stringify({
+            term: pickLang(entry, "term", lang),
+            definition: pickLang(entry, "definition", lang),
+            lang,
+            glossaryExplainPromptEs: promptSettings?.glossaryExplainPromptEs || null,
+            glossaryExplainPromptEn: promptSettings?.glossaryExplainPromptEn || null,
+          }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || t("detail.errGenerate"));

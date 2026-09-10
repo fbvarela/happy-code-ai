@@ -34,6 +34,7 @@ const groups = [
       { href: "/config", label: "config", icon: Settings2 },
       { href: "/memory", label: "memory", icon: BrainCircuit },
       { href: "/glossary", label: "glossary", icon: BookOpen },
+      { href: "/prompt-settings", label: "promptSettings", icon: Sparkles },
     ],
   },
   {

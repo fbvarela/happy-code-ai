@@ -14,6 +14,22 @@ export const LOCAL_DEFAULTS = {
 };
 
 function instructions(target) {
+  // Check for custom prompts in localStorage
+  let customPrompt = null;
+  try {
+    const stored = localStorage.getItem("happyCodePromptSettings");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      customPrompt = parsed.artifactSystemPrompt || null;
+    }
+  } catch (err) {
+    console.warn("Failed to load prompt settings from localStorage:", err);
+  }
+
+  if (customPrompt) {
+    return customPrompt;
+  }
+
   return [
     `You generate configuration artifacts for the "${target}" AI coding CLI.`,
     `Types: ${ARTIFACT_TYPES.map((t) => `${t} (${TYPE_LABELS[t]})`).join(", ")}.`,
