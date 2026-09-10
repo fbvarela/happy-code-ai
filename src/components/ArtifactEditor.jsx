@@ -141,6 +141,20 @@ export default function ArtifactEditor({ id }) {
     setGenerating(true);
     setError(null);
 
+    // Load custom prompts from localStorage
+    const getPromptSettings = () => {
+      try {
+        const stored = localStorage.getItem("happyCodePromptSettings");
+        if (stored) {
+          return JSON.parse(stored);
+        }
+      } catch (err) {
+        console.warn("Failed to load prompt settings from localStorage:", err);
+      }
+      return null;
+    };
+    const promptSettings = getPromptSettings();
+
     let draft;
     let quality = null;
     try {
@@ -154,7 +168,16 @@ export default function ArtifactEditor({ id }) {
         const res = await fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: genPrompt, type: form.type, target: form.target }),
+          body: JSON.stringify({
+            prompt: genPrompt,
+            type: form.type,
+            target: form.target,
+            artifactSystemPrompt: promptSettings?.artifactSystemPrompt || null,
+            glossaryDefinePromptEs: promptSettings?.glossaryDefinePromptEs || null,
+            glossaryDefinePromptEn: promptSettings?.glossaryDefinePromptEn || null,
+            glossaryExplainPromptEs: promptSettings?.glossaryExplainPromptEs || null,
+            glossaryExplainPromptEn: promptSettings?.glossaryExplainPromptEn || null,
+          }),
         });
         if (!res.ok) {
           const e = await res.json().catch(() => ({}));

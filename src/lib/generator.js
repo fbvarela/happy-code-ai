@@ -110,11 +110,14 @@ function systemPrompt(target) {
  *  Prompt-like bodies must pass the auto quality checks; if the first draft
  *  fails, one corrective retry is attempted and the better draft is kept.
  *  Returns the draft object (NOT persisted) plus a quality report. */
-export async function generateArtifact({ prompt, type, target = "opencode" }) {
+export async function generateArtifact({ prompt, type, target = "opencode", systemPromptOverride }) {
   const provider = selectProvider();
   if (!provider) throw new Error("No generator provider configured");
 
-  const systemMessage = { role: "system", content: systemPrompt(target) };
+  const systemMessage = {
+    role: "system",
+    content: systemPromptOverride || systemPrompt(target)
+  };
   // Prompt caching is Anthropic-only; skip it for Agnes.
   if (provider.cache) {
     systemMessage.providerOptions = { anthropic: { cacheControl: { type: "ephemeral" } } };
