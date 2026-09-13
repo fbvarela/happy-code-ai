@@ -171,6 +171,7 @@ export default function ArtifactLibrary() {
                   <span style={{ marginLeft: 8 }}>· {a.tags.join(", ")}</span>
                 )}
                 <span style={{ marginLeft: 8 }}>· v{a.version}</span>
+                <span style={{ marginLeft: 8 }}>· {new Date(a.updated_at).toLocaleDateString('en-GB')}</span>
               </div>
             </button>
             {confirmId === a.id ? (
