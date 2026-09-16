@@ -27,11 +27,13 @@ export async function POST(request) {
   const glossaryExplainPromptEn = body?.glossaryExplainPromptEn || null;
 
   try {
+    const githubRepo = body?.github_repo || null;
     const { draft, usage, provider, quality } = await generateArtifact({
       prompt,
       type,
       target,
-      systemPromptOverride: artifactSystemPrompt
+      systemPromptOverride: artifactSystemPrompt,
+      githubRepo
     });
     return Response.json({ draft, usage, provider, quality });
   } catch (err) {
