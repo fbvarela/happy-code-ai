@@ -28,6 +28,7 @@ export const artifactInput = z.object({
   variables: z.array(variableSchema).default([]),
   files: z.array(fileSchema).default([]),
   tags: z.array(z.string().min(1).max(40)).default([]),
+  github_repo: z.string().optional().default(null),
 });
 
 /** Append a snapshot of the current state to artifact_versions. */

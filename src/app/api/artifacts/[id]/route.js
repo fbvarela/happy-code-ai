@@ -35,6 +35,7 @@ export async function PUT(request, { params }) {
       variables     = ${JSON.stringify(a.variables)}::jsonb,
       files         = ${JSON.stringify(a.files)}::jsonb,
       tags          = ${a.tags},
+      github_repo   = ${a.github_repo || null},
       version       = version + 1,
       updated_at    = now()
     WHERE id = ${id} AND user_id = ${session.userId}

@@ -492,6 +492,17 @@ export default function ArtifactEditor({ id }) {
           />
         </Field>
 
+        <Field label={t("editor.githubRepo")}>
+          <input
+            style={input}
+            value={form.github_repo || ""}
+            onChange={(e) => set("github_repo", e.target.value)}
+            placeholder={t("editor.githubRepoPlaceholder")}
+            pattern="[^/]*/[^/]*"
+            title="Formato: owner/name (ejemplo: myorg/my-repo)"
+          />
+        </Field>
+
         <Field label={t("editor.frontmatter")}>
           <textarea style={{ ...input, minHeight: 90, fontFamily: "monospace" }} value={form.frontmatterText} onChange={(e) => set("frontmatterText", e.target.value)} />
         </Field>
