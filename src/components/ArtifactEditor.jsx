@@ -31,6 +31,7 @@ export default function ArtifactEditor({ id }) {
   const TYPE_LABELS = TYPE_LABELS_I18N[lang] || TYPE_LABELS_I18N.es;
   const TYPES = ARTIFACT_TYPES.map((v) => [v, TYPE_LABELS[v]]);
   const isNew = !id;
+  const repoInputRef = useRef(null);
   const [form, setForm] = useState(EMPTY);
   const [values, setValues] = useState({});
   const [loading, setLoading] = useState(!isNew);
@@ -224,6 +225,25 @@ export default function ArtifactEditor({ id }) {
     const res = await fetch("/api/repos");
     const repos = res.ok ? await res.json() : [];
     setPub((p) => ({ ...p, repos, repo: repos[0]?.full_name || "" }));
+  }
+
+  async function selectRepo() {
+    if (pub.repos) return;
+    const res = await fetch("/api/repos");
+    const repos = res.ok ? await res.json() : [];
+    if (!repos.length) {
+      setError(t("editor.errNoRepos"));
+      return;
+    }
+    setPub((p) => {
+      const first = repos[0];
+      return {
+        ...p,
+        repos,
+        repo: first?.full_name || "",
+        branch: first?.default_branch || "",
+      };
+    });
   }
   async function publish() {
     setPub((p) => ({ ...p, busy: true, error: null, result: null }));
@@ -493,14 +513,26 @@ export default function ArtifactEditor({ id }) {
         </Field>
 
         <Field label={t("editor.githubRepo")}>
-          <input
-            style={input}
-            value={form.github_repo || ""}
-            onChange={(e) => set("github_repo", e.target.value)}
-            placeholder={t("editor.githubRepoPlaceholder")}
-            pattern="[^/]*/[^/]*"
-            title="Formato: owner/name (ejemplo: myorg/my-repo)"
-          />
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <input
+              ref={(r) => repoInputRef.current = r}
+              style={input}
+              value={form.github_repo || ""}
+              onChange={(e) => set("github_repo", e.target.value)}
+              placeholder={t("editor.githubRepoPlaceholder")}
+              pattern="[^/]*/[^/]*"
+              title="Formato: owner/name (ejemplo: myorg/my-repo)"
+              style={{ flex: 1, minHeight: 36 }}
+            />
+            <button
+              type="button"
+              className="btn btn-ghost"
+              style={{ minHeight: 36, padding: "0 8px", fontSize: "0.8rem" }}
+              onClick={selectRepo}
+            >
+              {pub.repo ? pub.repo : t("editor.loadRepos")}
+            </button>
+          </div>
         </Field>
 
         <Field label={t("editor.frontmatter")}>
