@@ -31,7 +31,6 @@ export default function ArtifactEditor({ id }) {
   const TYPE_LABELS = TYPE_LABELS_I18N[lang] || TYPE_LABELS_I18N.es;
   const TYPES = ARTIFACT_TYPES.map((v) => [v, TYPE_LABELS[v]]);
   const isNew = !id;
-  const repoInputRef = useRef(null);
   const [form, setForm] = useState(EMPTY);
   const [values, setValues] = useState({});
   const [loading, setLoading] = useState(!isNew);
@@ -378,6 +377,7 @@ export default function ArtifactEditor({ id }) {
       variables: form.variables.filter((v) => v.name.trim()),
       files: form.files.filter((f) => f.path.trim()),
       tags: form.tags,
+      github_repo: form.github_repo || null,
     };
   }
 
@@ -515,14 +515,12 @@ export default function ArtifactEditor({ id }) {
         <Field label={t("editor.githubRepo")}>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <input
-              ref={(r) => repoInputRef.current = r}
-              style={input}
+              style={{ ...input, flex: 1, minHeight: 36 }}
               value={form.github_repo || ""}
               onChange={(e) => set("github_repo", e.target.value)}
               placeholder={t("editor.githubRepoPlaceholder")}
               pattern="[^/]*/[^/]*"
               title="Formato: owner/name (ejemplo: myorg/my-repo)"
-              style={{ flex: 1, minHeight: 36 }}
             />
             <button
               type="button"
