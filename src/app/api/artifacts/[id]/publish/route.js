@@ -2,6 +2,7 @@ import { requireAuth } from "@/utils/auth";
 import sql from "@/utils/db";
 import { octokitForUser, commitFiles } from "@/lib/github";
 import { getRenderer } from "@/lib/renderers";
+import { safeRepoPath } from "@/lib/safe-path";
 
 /** POST /api/artifacts/:id/publish
  *  body: { repo: "owner/name", path?, message?, branch?, values? }
@@ -24,10 +25,17 @@ export async function POST(request, { params }) {
 
   const renderer = getRenderer(artifact.target);
   const { files: rendered } = renderer.render(artifact, body?.values || {});
-  // Optional override applies to the primary file path only.
-  const files = body?.path
-    ? [{ ...rendered[0], path: body.path.replace(/^\/+/, "") }, ...rendered.slice(1)]
-    : rendered;
+  // Optional override applies to the primary file path only. Validate it —
+  // it's raw client input (traversal here would write outside the intended
+  // artifact directory).
+  let files = rendered;
+  if (body?.path) {
+    const overridden = safeRepoPath(body.path);
+    if (!overridden) {
+      return Response.json({ error: "Unsafe file path", path: body.path }, { status: 400 });
+    }
+    files = [{ ...rendered[0], path: overridden }, ...rendered.slice(1)];
+  }
   const branch = body?.branch || undefined;
   const message = body?.message || `Add ${artifact.name} (${artifact.type}) via Happy Code`;
 

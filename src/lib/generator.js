@@ -4,6 +4,7 @@ import { z } from "zod";
 import { ARTIFACT_TYPES, TYPE_LABELS } from "@/lib/artifact-types";
 import { isAgnesConfigured, getAgnesModel } from "@/lib/agnes";
 import { autoQuality, PROMPT_LIKE_TYPES } from "@/lib/quality";
+import { mergeSystemPrompt } from "@/lib/prompt-merge";
 
 // How to fix each failed auto check, phrased for the model in the retry turn.
 const CHECK_FIXES = {
@@ -114,8 +115,10 @@ export async function generateArtifact({ prompt, type, target = "opencode", syst
   const provider = selectProvider();
   if (!provider) throw new Error("No generator provider configured");
 
-  // Build the system prompt, optionally including repo memory context note.
-  let systemContent = systemPromptOverride || systemPrompt(target);
+  // Build the system prompt. Client-supplied overrides are APPENDED after the
+  // base rules (never replace them), so the quality gate and structured-output
+  // requirement can't be disabled by localStorage state or an accidental paste.
+  let systemContent = mergeSystemPrompt(systemPrompt(target), systemPromptOverride);
   if (githubRepo) {
     systemContent += `\n--- Repo context ---` +
       ` The artifact is for the GitHub repository \`${githubRepo}\`.` +

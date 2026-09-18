@@ -1,4 +1,5 @@
 import { renderTemplate } from "@/lib/render";
+import { safeRepoPath } from "@/lib/safe-path";
 
 // Types that are emitted as Markdown (YAML frontmatter + body). mcp/config are
 // raw JSON; a target may override (e.g. Gemini commands are raw TOML).
@@ -52,7 +53,10 @@ export function createRenderer({ target, pathFor, markdownTypes = DEFAULT_MARKDO
       const baseDir = dirOf(primaryPath);
       for (const f of artifact.files || []) {
         if (!f || !f.path) continue;
-        const rel = String(f.path).replace(/^\/+/, "");
+        // Paths come from the artifact record (user-authored) — sanitize so a
+        // stored traversal can never escape the artifact directory.
+        const rel = safeRepoPath(f.path);
+        if (!rel) continue;
         const full = baseDir ? `${baseDir}/${rel}` : rel;
         files.push({ path: full, content: renderTemplate(f.body_template, artifact.variables, values) });
       }

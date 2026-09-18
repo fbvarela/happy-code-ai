@@ -4,6 +4,12 @@ import { entryInput, ensureDefinition } from "@/lib/glossary-entry";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** Custom glossary-define system prompt from Prompt Settings, for `lang`. */
+function glossaryPromptOverride(raw, lang) {
+  const p = lang === "en" ? raw?.glossaryDefinePromptEn : raw?.glossaryDefinePromptEs;
+  return typeof p === "string" && p.trim() ? p : undefined;
+}
+
 /** GET /api/glossary/:id — fetch one of the caller's own entries (for the
  *  detail page on direct load / refresh; seed entries are resolved client-side). */
 export async function GET(_request, { params }) {
@@ -39,7 +45,7 @@ export async function PUT(request, { params }) {
   const lang = raw?.lang === "en" ? "en" : "es";
 
   try {
-    await ensureDefinition(e, lang);
+    await ensureDefinition(e, lang, glossaryPromptOverride(raw, lang));
   } catch (err) {
     return Response.json({ error: err.message }, { status: err.status || 502 });
   }

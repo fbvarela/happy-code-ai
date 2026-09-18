@@ -101,27 +101,14 @@ export default function PromptManager() {
   }
 
   // Helper functions to get default prompts
+  // The built-in generation rules are ALWAYS applied server-side; this field
+  // only adds extra preferences appended after them.
   function getDefaultArtifactSystemPrompt(target) {
     return [
-      `You generate configuration artifacts for the "${target}" AI coding CLI.`,
-      `Artifact types: agent, subagent, skill, config_snippet, memory, mcp, openspec.`,
-      `Rules:`,
-      `- Produce the SMALLEST useful artifact. Do not pad.`,
-      `- The body MUST be a Handlebars template. Anything the user will tweak per-use`,
-      `  (descriptions, tool lists, keys, paths, framework names) goes in a {{variable}}`,
-      `  hole, and every hole MUST be declared in "variables" with a sensible default.`,
-      `- For "mcp" type, body is JSON for a server entry. For "memory" type, body is`,
-      `  markdown. For "agent"/"subagent"/"skill", body is markdown instructions and`,
-      `  "frontmatter" carries metadata (model, tools, description).`,
-      `Quality gate — every generated body is machine-checked against a checklist.`,
-      `For markdown-instruction bodies ("agent", "subagent", "skill", "command") it MUST:`,
-      `- open with a role definition in the first sentence ("You are …"),`,
-      `- use XML tags to separate sections (e.g. <instructions>, <output_format>),`,
-      `- include at least one explicit negative instruction ("do not …"),`,
-      `- include a concrete fenced example for any non-trivial output format,`,
-      `- explicitly handle the insufficient-context case ("do not guess; say you don't know"),`,
-      `- put variable content in {{variable}} holes, never hardcoded.`,
-      `- Respond ONLY with the structured object.`,
+      `These notes are appended after the built-in generation rules, which always apply.`,
+      `Extra preferences for artifacts targeting the "${target}" CLI:`,
+      `- Follow the conventions found in the repo memory files (AGENTS.md, CLAUDE.md).`,
+      `- Keep the tone direct and technical; no marketing language.`,
     ].join("\n");
   }
 

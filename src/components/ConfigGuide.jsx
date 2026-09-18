@@ -48,7 +48,7 @@ export default function ConfigGuide() {
       {open && (
         <div style={{ display: "grid", gap: 12 }}>
           <div className="card-grid" style={{ gap: 10 }}>
-            {steps.map(({ key }) => (
+            {steps.map(({ key }, i) => (
               <div key={key} className="card" style={{ padding: "14px 16px", display: "flex", gap: 12, alignItems: "flex-start" }}>
                 <span style={{
                   flexShrink: 0,
@@ -64,7 +64,7 @@ export default function ConfigGuide() {
                   fontSize: "0.85rem",
                   color: "var(--text-muted)",
                 }}>
-                  {steps.indexOf({ key }) + 1}
+                  {i + 1}
                 </span>
                 <div>
                   <p style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 4 }}>

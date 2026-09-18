@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Download, Plus, X, ArrowLeft } from "lucide-react";
+import { Sparkles, Download, Plus, X } from "lucide-react";
 import { ARTIFACT_TYPES, TYPE_SCAFFOLDS } from "@/lib/artifact-types";
 import { TARGETS, TARGET_LABELS } from "@/lib/targets";
 import { TYPE_HELP, FORMAT_BY_EXT } from "@/lib/artifact-help";
@@ -10,6 +10,7 @@ import { getRenderer } from "@/lib/renderers";
 import { makeZip } from "@/lib/zip";
 import { generateArtifactLocal, LOCAL_DEFAULTS } from "@/lib/local-generate";
 import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
+import BackLink from "@/components/BackLink";
 import PromptChecklist from "@/components/PromptChecklist";
 import SpecChecklist from "@/components/SpecChecklist";
 import TokenMeter from "@/components/TokenMeter";
@@ -37,6 +38,11 @@ export default function ArtifactEditor({ id }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
+
+  // Last-saved form snapshot (edit mode). Powers the unsaved-changes guard:
+  // the publish/test routes commit the SAVED artifact, not the live edits.
+  const [savedSnapshot, setSavedSnapshot] = useState(null);
+  const savedRef = useRef(null);
 
   // Generation (new mode) + publish (edit mode) state.
   const [genPrompt, setGenPrompt] = useState("");
@@ -82,7 +88,7 @@ export default function ArtifactEditor({ id }) {
         return;
       }
       const a = await res.json();
-      setForm({
+      const loaded = {
         name: a.name,
         type: a.type,
         target: a.target,
@@ -91,10 +97,21 @@ export default function ArtifactEditor({ id }) {
         variables: a.variables ?? [],
         files: a.files ?? [],
         tags: a.tags ?? [],
-      });
+        github_repo: a.github_repo || null,
+      };
+      setForm(loaded);
+      savedRef.current = loaded;
+      setSavedSnapshot(loaded);
       setLoading(false);
     })();
   }, [id, isNew]);
+
+  // True when the form differs from the last saved snapshot (edit mode only;
+  // in new mode there is nothing saved yet and the publish panel is hidden).
+  const isDirty = useMemo(
+    () => !isNew && savedSnapshot !== null && JSON.stringify(form) !== JSON.stringify(savedSnapshot),
+    [form, savedSnapshot, isNew],
+  );
 
   function set(field, val) {
     setForm((f) => ({ ...f, [field]: val }));
@@ -173,10 +190,8 @@ export default function ArtifactEditor({ id }) {
             type: form.type,
             target: form.target,
             artifactSystemPrompt: promptSettings?.artifactSystemPrompt || null,
-            glossaryDefinePromptEs: promptSettings?.glossaryDefinePromptEs || null,
-            glossaryDefinePromptEn: promptSettings?.glossaryDefinePromptEn || null,
-            glossaryExplainPromptEs: promptSettings?.glossaryExplainPromptEs || null,
-            glossaryExplainPromptEn: promptSettings?.glossaryExplainPromptEn || null,
+            // (Glossary prompts don't apply here — they're sent by the
+            // glossary flows to /api/glossary/define|explain instead.)
           }),
         });
         if (!res.ok) {
@@ -245,6 +260,7 @@ export default function ArtifactEditor({ id }) {
     });
   }
   async function publish() {
+    if (!(await ensureSavedBeforePublish())) return;
     setPub((p) => ({ ...p, busy: true, error: null, result: null }));
     const res = await fetch(`/api/artifacts/${id}/publish`, {
       method: "POST",
@@ -264,6 +280,7 @@ export default function ArtifactEditor({ id }) {
     setPub((p) => ({ ...p, busy: false, result: data }));
   }
   async function testPublish() {
+    if (!(await ensureSavedBeforePublish())) return;
     setPub((p) => ({ ...p, busy: true, error: null, result: null }));
     const res = await fetch(`/api/artifacts/${id}/test`, {
       method: "POST",
@@ -381,18 +398,20 @@ export default function ArtifactEditor({ id }) {
     };
   }
 
-  async function save() {
+  /** Shared by manual save and the pre-publish save. Returns the saved record,
+   *  or null on validation/request failure (error state already set). */
+  async function persist() {
     setError(null);
     let payload;
     try {
       payload = buildPayload();
     } catch (e) {
       setError(e.message);
-      return;
+      return null;
     }
     if (!payload.name) {
       setError(t("editor.errName"));
-      return;
+      return null;
     }
     setSaving(true);
     const res = await fetch(isNew ? "/api/artifacts" : `/api/artifacts/${id}`, {
@@ -403,11 +422,33 @@ export default function ArtifactEditor({ id }) {
     setSaving(false);
     if (!res.ok) {
       setError(t("editor.errSave"));
-      return;
+      return null;
     }
-    const saved = await res.json();
+    return res.json();
+  }
+
+  async function save() {
+    const saved = await persist();
+    if (!saved) return;
+    const snapshot = { ...form };
+    savedRef.current = snapshot;
+    setSavedSnapshot(snapshot);
     if (isNew) router.replace(`/artifacts/${saved.id}`);
     else router.refresh();
+  }
+
+  /** Edit mode: publish/test render the SAVED artifact, so if the form has
+   *  unsaved edits, confirm and save first — otherwise GitHub would receive
+   *  stale content that doesn't match the preview. */
+  async function ensureSavedBeforePublish() {
+    if (!isDirty) return true;
+    if (!window.confirm(t("editor.unsavedDirty"))) return false;
+    const saved = await persist();
+    if (!saved) return false;
+    const snapshot = { ...form };
+    savedRef.current = snapshot;
+    setSavedSnapshot(snapshot);
+    return true;
   }
 
   if (loading) return <p style={{ color: "var(--text-muted)" }}>Cargando…</p>;
@@ -416,6 +457,9 @@ export default function ArtifactEditor({ id }) {
     <div className="grid2" style={{ gap: 20, alignItems: "start" }}>
       {/* ── Form column ── */}
       <div style={{ display: "grid", gap: 14 }}>
+        <div>
+          <BackLink />
+        </div>
         {isNew && (
           <div className="card" style={{ padding: 14, background: "var(--cream)" }}>
             <div style={{ fontSize: "0.85rem", fontWeight: 600, marginBottom: 6 }}>{t("editor.aiGenerate")}</div>
@@ -584,7 +628,6 @@ export default function ArtifactEditor({ id }) {
           <button className="btn btn-bark" type="button" onClick={save} disabled={saving}>
             {saving ? t("common.saving") : isNew ? t("editor.create") : t("common.save")}
           </button>
-          <button className="btn btn-ghost" type="button" onClick={() => router.push("/")} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><ArrowLeft size={16} /> {t("nav.back")}</button>
         </div>
       </div>
 
@@ -636,7 +679,14 @@ export default function ArtifactEditor({ id }) {
 
         {!isNew && (
           <div style={{ marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
-            <strong style={{ fontSize: "0.9rem" }}>{t("editor.publishGithub")}</strong>
+            <strong style={{ fontSize: "0.9rem" }}>
+              {t("editor.publishGithub")}
+              {isDirty && (
+                <span style={{ marginLeft: 8, fontSize: "0.72rem", fontWeight: 400, color: "var(--sun)" }}>
+                  ● {t("editor.unsavedBadge")}
+                </span>
+              )}
+            </strong>
             {pub.repos === null ? (
               <div style={{ marginTop: 8 }}>
                 <button className="btn btn-ghost" type="button" onClick={loadRepos} style={{ minHeight: 36, padding: "0 12px", fontSize: "0.85rem" }}>
@@ -651,10 +701,10 @@ export default function ArtifactEditor({ id }) {
                 <input style={input} placeholder={t("editor.branchPlaceholder")} value={pub.branch} onChange={(e) => setPub((p) => ({ ...p, branch: e.target.value }))} />
                 <input style={input} placeholder={t("editor.pathPlaceholder")} value={pub.path} onChange={(e) => setPub((p) => ({ ...p, path: e.target.value }))} />
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button className="btn btn-bark" type="button" onClick={publish} disabled={pub.busy || !pub.repo} style={{ flex: 1 }}>
+                  <button className="btn btn-bark" type="button" onClick={publish} disabled={pub.busy || saving || !pub.repo} style={{ flex: 1 }}>
                     {pub.busy ? "…" : t("editor.publish")}
                   </button>
-                  <button className="btn btn-ghost" type="button" onClick={testPublish} disabled={pub.busy || !pub.repo} style={{ flex: 1 }}>
+                  <button className="btn btn-ghost" type="button" onClick={testPublish} disabled={pub.busy || saving || !pub.repo} style={{ flex: 1 }}>
                     {pub.busy ? "…" : t("editor.testBranch")}
                   </button>
                 </div>

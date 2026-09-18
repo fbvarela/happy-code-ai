@@ -21,10 +21,6 @@ export async function POST(request) {
   const type = ARTIFACT_TYPES.includes(body?.type) ? body.type : undefined;
   const target = (body?.target || "opencode").trim();
   const artifactSystemPrompt = body?.artifactSystemPrompt || null;
-  const glossaryDefinePromptEs = body?.glossaryDefinePromptEs || null;
-  const glossaryDefinePromptEn = body?.glossaryDefinePromptEn || null;
-  const glossaryExplainPromptEs = body?.glossaryExplainPromptEs || null;
-  const glossaryExplainPromptEn = body?.glossaryExplainPromptEn || null;
 
   try {
     const githubRepo = body?.github_repo || null;

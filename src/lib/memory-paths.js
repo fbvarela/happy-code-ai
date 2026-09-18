@@ -52,6 +52,15 @@ export function resolveMemoryPath(path, targets, memoryPaths) {
   return null;
 }
 
+/** Server-side allowlist for /api/memory/publish: a path is publishable only
+ *  if it matches this app's own memory conventions — the same rule the scan
+ *  route uses. Derived from resolveMemoryPath so the two can never drift.
+ *  (Run AFTER safeRepoPath; this restricts to convention paths, traversal is
+ *  already excluded there.) */
+export function isPublishableMemoryPath(path) {
+  return resolveMemoryPath(path, Object.keys(MEMORY_PATHS), MEMORY_PATHS) !== null;
+}
+
 export function parseMemorySections(markdown) {
   const lines = (markdown || "").split("\n");
   const sections = [];

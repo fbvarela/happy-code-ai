@@ -16,6 +16,12 @@ export async function GET() {
   return Response.json(rows);
 }
 
+/** Custom glossary-define system prompt from Prompt Settings, for `lang`. */
+function glossaryPromptOverride(raw, lang) {
+  const p = lang === "en" ? raw?.glossaryDefinePromptEn : raw?.glossaryDefinePromptEs;
+  return typeof p === "string" && p.trim() ? p : undefined;
+}
+
 /** POST /api/glossary — add an entry. If `definition` is blank, backfill it
  *  with Agnes before inserting so the cached definition is never empty. */
 export async function POST(request) {
@@ -31,7 +37,7 @@ export async function POST(request) {
   const lang = raw?.lang === "en" ? "en" : "es";
 
   try {
-    await ensureDefinition(e, lang);
+    await ensureDefinition(e, lang, glossaryPromptOverride(raw, lang));
   } catch (err) {
     return Response.json({ error: err.message }, { status: err.status || 502 });
   }

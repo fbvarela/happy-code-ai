@@ -15,8 +15,13 @@ export const metadata = {
   manifest: "/manifest.json",
 };
 
+// themeColor follows the app tokens (--bark): dark-mode blue on dark systems,
+// light-mode blue otherwise — the app renders dark before paint via themeScript.
 export const viewport = {
-  themeColor: "#3d2b1f",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#60a5fa" },
+    { media: "(prefers-color-scheme: light)", color: "#2563eb" },
+  ],
   width: "device-width",
   initialScale: 1,
 };

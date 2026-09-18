@@ -13,8 +13,9 @@ export const entryInput = z.object({
 
 /** Ensure the entry has a definition; if blank, generate one with Agnes.
  *  `lang` ('es' | 'en') controls the generated language.
+ *  `systemPromptOverride` lets the user's Prompt Settings customize generation.
  *  Throws an Error with a `.status` (400/502) on failure. Mutates + returns e. */
-export async function ensureDefinition(e, lang = "es") {
+export async function ensureDefinition(e, lang = "es", systemPromptOverride) {
   if (e.definition.trim()) return e;
   if (!isAgnesConfigured()) {
     const err = new Error("Falta la definición y Agnes no está configurado.");
@@ -22,7 +23,7 @@ export async function ensureDefinition(e, lang = "es") {
     throw err;
   }
   try {
-    const gen = await defineTerm(e.term, lang);
+    const gen = await defineTerm(e.term, lang, systemPromptOverride);
     e.definition = gen.definition;
     if (!e.links.length) e.links = gen.links || [];
     if (e.category === "concept" && gen.category) e.category = gen.category;
