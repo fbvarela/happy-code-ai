@@ -2,7 +2,8 @@ import { requireAuth } from "@/utils/auth";
 import { explainTerm, isAgnesConfigured } from "@/lib/glossary-generator";
 
 /** POST /api/glossary/explain — extended Agnes explanation for a term.
- *  Body: { term, definition? }. Returns { explanation }. Not persisted. */
+ *  Body: { term, definition?, lang?, glossaryExplainPromptEs?, glossaryExplainPromptEn? }.
+ *  Returns { explanation }. Not persisted. */
 export async function POST(request) {
   const { error } = await requireAuth();
   if (error) return error;
@@ -17,8 +18,15 @@ export async function POST(request) {
   const lang = body?.lang === "en" ? "en" : "es";
   if (!term) return Response.json({ error: "term es obligatorio" }, { status: 400 });
 
+  // Custom system prompt from Prompt Settings, for the requested language.
+  const customPrompt =
+    (lang === "en" ? body?.glossaryExplainPromptEn : body?.glossaryExplainPromptEs) || null;
+
   try {
-    const explanation = await explainTerm(term, definition, lang);
+    const explanation = await explainTerm(
+      term, definition, lang,
+      typeof customPrompt === "string" && customPrompt.trim() ? customPrompt : undefined,
+    );
     return Response.json({ explanation });
   } catch (err) {
     console.error("glossary explain failed:", err);

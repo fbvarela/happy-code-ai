@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, BookOpen, FileText, FileCode, Brain, Plus, Copy, Trash2, ChevronDown, Settings } from "lucide-react";
+import { Plus, Copy, Trash2 } from "lucide-react";
 import { ARTIFACT_TYPES } from "@/lib/artifact-types";
 import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
 
@@ -11,38 +11,48 @@ export default function ArtifactLibrary() {
   const { t, lang } = useI18n();
   const TYPE_LABELS = TYPE_LABELS_I18N[lang] || TYPE_LABELS_I18N.es;
   const [items, setItems] = useState(null);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [q, setQ] = useState("");
   const [type, setType] = useState("");
   const [confirmId, setConfirmId] = useState(null);
-  const [guidesOpen, setGuidesOpen] = useState(false);
-  const guidesRef = useRef(null);
 
-  useEffect(() => {
-    function onClickOutside(e) {
-      if (guidesRef.current && !guidesRef.current.contains(e.target)) setGuidesOpen(false);
-    }
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, []);
-
-  async function load() {
+  async function load(requestedPage = 1, replace = true) {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (type) params.set("type", type);
+    params.set("page", String(requestedPage));
     const res = await fetch(`/api/artifacts?${params}`);
-    setItems(res.ok ? await res.json() : []);
+    if (!res.ok) {
+      if (replace) setItems([]);
+      return;
+    }
+    const data = await res.json();
+    setTotal(data.total ?? 0);
+    setHasMore(!!data.hasMore);
+    setPage(data.page ?? requestedPage);
+    setItems((prev) => (replace ? data.items : [...(prev || []), ...data.items]));
   }
 
+  // First page / filter changes replace the list; debounce keeps typing cheap.
   useEffect(() => {
-    const t = setTimeout(load, 150);
+    const t = setTimeout(() => load(1, true), 150);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, type]);
 
+  function loadMore() {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    load(page + 1, false).finally(() => setLoadingMore(false));
+  }
+
   async function remove(id) {
     await fetch(`/api/artifacts/${id}`, { method: "DELETE" });
     setConfirmId(null);
-    load();
+    load(1, true);
   }
 
   async function clone(id) {
@@ -83,66 +93,6 @@ export default function ArtifactLibrary() {
             <option key={v} value={v}>{TYPE_LABELS[v]}</option>
           ))}
         </select>
-        <button className="btn btn-ghost" type="button" onClick={() => router.push("/suggestions")} style={iconBtn}>
-          <Sparkles size={16} /> {t("nav.suggestions")}
-        </button>
-        <button className="btn btn-ghost" type="button" onClick={() => router.push("/glossary")} style={iconBtn}>
-          <BookOpen size={16} /> {t("nav.glossary")}
-        </button>
-        <button className="btn btn-ghost" type="button" onClick={() => router.push("/docs/openspec")} style={iconBtn}>
-          <FileCode size={16} /> OpenSpec
-        </button>
-        <button className="btn btn-ghost" type="button" onClick={() => router.push("/memory")} style={iconBtn}>
-          <Brain size={16} /> {t("nav.memory")}
-        </button>
-        <button className="btn btn-ghost" type="button" onClick={() => router.push("/config")} style={iconBtn}>
-          <Settings size={16} /> {t("nav.config")}
-        </button>
-        <div ref={guidesRef} style={{ position: "relative" }}>
-          <button
-            className="btn btn-ghost"
-            type="button"
-            onClick={() => setGuidesOpen((o) => !o)}
-            style={iconBtn}
-            aria-expanded={guidesOpen}
-          >
-            <BookOpen size={16} /> {t("nav.guides")} <ChevronDown size={14} />
-          </button>
-          {guidesOpen && (
-            <div
-              style={{
-                position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 10,
-                background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 8,
-                minWidth: 180, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", overflow: "hidden",
-              }}
-            >
-              <button
-                className="btn btn-ghost"
-                type="button"
-                onClick={() => { setGuidesOpen(false); router.push("/docs/prompt-guide"); }}
-                style={{ ...iconBtn, width: "100%", justifyContent: "flex-start", borderRadius: 0 }}
-              >
-                <FileText size={16} /> {t("nav.guide")}
-              </button>
-              <button
-                className="btn btn-ghost"
-                type="button"
-                onClick={() => { setGuidesOpen(false); router.push("/docs/memory-guide"); }}
-                style={{ ...iconBtn, width: "100%", justifyContent: "flex-start", borderRadius: 0 }}
-              >
-                <BookOpen size={16} /> {t("nav.memoryGuide")}
-              </button>
-              <button
-                className="btn btn-ghost"
-                type="button"
-                onClick={() => { setGuidesOpen(false); router.push("/docs/config-guide"); }}
-                style={{ ...iconBtn, width: "100%", justifyContent: "flex-start", borderRadius: 0 }}
-              >
-                <BookOpen size={16} /> {t("nav.configGuide")}
-              </button>
-            </div>
-          )}
-        </div>
         <button className="btn btn-bark" type="button" onClick={() => router.push("/artifacts/new")} style={iconBtn}>
           <Plus size={16} /> {t("nav.new")}
         </button>
@@ -152,7 +102,17 @@ export default function ArtifactLibrary() {
       {items !== null && items.length === 0 && (
         <div className="card" style={{ padding: 24, textAlign: "center", color: "var(--text-muted)" }}>
           {t("library.empty")}
+          <div style={{ marginTop: 14 }}>
+            <button className="btn btn-bark" type="button" onClick={() => router.push("/artifacts/new")}>
+              <Plus size={16} /> {t("library.newArtifact")}
+            </button>
+          </div>
         </div>
+      )}
+      {items !== null && items.length > 0 && (
+        <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0 0 8px" }}>
+          {t("library.showing", { count: items.length, total })}
+        </p>
       )}
 
       <ul style={{ listStyle: "none", display: "grid", gap: 10 }}>
@@ -189,6 +149,13 @@ export default function ArtifactLibrary() {
           </li>
         ))}
       </ul>
+      {hasMore && (
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 14 }}>
+          <button className="btn btn-ghost" type="button" onClick={loadMore} disabled={loadingMore}>
+            {loadingMore ? t("common.loading") : t("library.loadMore")}
+          </button>
+        </div>
+      )}
     </section>
   );
 }
@@ -201,6 +168,8 @@ const inputStyle = {
   background: "var(--surface)",
   color: "var(--text)",
   fontSize: "0.95rem",
+  flex: 1,
+  minWidth: 180,
 };
 const badgeStyle = {
   background: "var(--cream)",

@@ -14,12 +14,14 @@ const outDir = join(root, "public", "icons");
 
 // 512x512 source. The glyph (32-space, centered at 16,16) is scaled up and
 // centered, leaving ~25% margin on each side for the maskable safe zone.
+// Colors follow the app tokens: --bark (#2563eb) square, white + --sun (#fbbf24)
+// glyph — same mark as the browser-tab favicon (src/app/icon.svg).
 const svg = `<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="96" fill="#3d2b1f"/>
+  <rect width="512" height="512" rx="96" fill="#2563eb"/>
   <g transform="translate(256 256) scale(12) translate(-16 -16)" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 10.5 7 16l5 5.5" stroke="#7db892" stroke-width="2.4"/>
-    <path d="M20 10.5 25 16l-5 5.5" stroke="#7db892" stroke-width="2.4"/>
-    <path d="M18.5 10.5 13.5 21.5" stroke="#f4c145" stroke-width="2.4"/>
+    <path d="M12 10.5 7 16l5 5.5" stroke="#fff" stroke-width="2.4"/>
+    <path d="M20 10.5 25 16l-5 5.5" stroke="#fff" stroke-width="2.4"/>
+    <path d="M18.5 10.5 13.5 21.5" stroke="#fbbf24" stroke-width="2.4"/>
   </g>
 </svg>`;
 

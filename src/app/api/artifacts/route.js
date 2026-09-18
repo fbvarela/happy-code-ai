@@ -2,33 +2,52 @@ import { requireAuth } from "@/utils/auth";
 import sql from "@/utils/db";
 import { artifactInput, snapshotVersion } from "@/lib/artifacts";
 
-/** GET /api/artifacts — list (optionally filtered) for the current user. */
+const MAX_LIMIT = 100;
+
+/** GET /api/artifacts — filtered + paginated list for the current user.
+ *  Filtering happens in SQL (the whole table is no longer shipped to the client).
+ *  Query params: q (substring of name/tags), type, target, page (1-based), limit (<= 100).
+ *  Returns { items, total, page, limit, hasMore }. */
 export async function GET(request) {
   const { session, error } = await requireAuth();
   if (error) return error;
 
   const { searchParams } = new URL(request.url);
-  const q = (searchParams.get("q") || "").trim().toLowerCase();
-  const type = searchParams.get("type");
-  const target = searchParams.get("target");
+  const q = (searchParams.get("q") || "").trim();
+  const type = searchParams.get("type") || null;
+  const target = searchParams.get("target") || null;
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
+  const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(searchParams.get("limit") || "50", 10) || 50));
+  const offset = (page - 1) * limit;
 
-  const rows = await sql`
-    SELECT id, name, type, target, tags, version, updated_at
-    FROM artifacts
-    WHERE user_id = ${session.userId}
-    ORDER BY updated_at DESC`;
+  // Escape LIKE wildcards so a user query like "50%" matches literally.
+  const like = q ? `%${q.replace(/[\\%_]/g, "\\$&")}%` : null;
 
-  const filtered = rows.filter((a) => {
-    if (type && a.type !== type) return false;
-    if (target && a.target !== target) return false;
-    if (q) {
-      const hay = `${a.name} ${(a.tags || []).join(" ")}`.toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
-  });
+  try {
+    // count(*) OVER () returns the total across all pages in the same
+    // roundtrip; null only when the page is empty.
+    const rows = await sql`
+      SELECT id, name, type, target, tags, version, updated_at,
+             (count(*) OVER ())::int AS total_count
+      FROM artifacts
+      WHERE user_id = ${session.userId}
+        AND (${type}::text IS NULL OR type = ${type})
+        AND (${target}::text IS NULL OR target = ${target})
+        AND (
+          ${like}::text IS NULL
+          OR name ILIKE ${like}
+          OR EXISTS (SELECT 1 FROM unnest(tags) tg WHERE tg ILIKE ${like})
+        )
+      ORDER BY updated_at DESC
+      LIMIT ${limit}::int OFFSET ${offset}::int`;
 
-  return Response.json(filtered);
+    const total = rows.length ? rows[0].total_count : 0;
+    const items = rows.map(({ total_count, ...a }) => a);
+    return Response.json({ items, total, page, limit, hasMore: offset + items.length < total });
+  } catch (err) {
+    console.error("GET /api/artifacts failed:", err);
+    return Response.json({ error: "Could not load artifacts" }, { status: 502 });
+  }
 }
 
 /** POST /api/artifacts — create. */

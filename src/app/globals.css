@@ -2,31 +2,15 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  --color-bark: #2563eb;
-  --color-bark-light: #60a5fa;
-  --color-leaf: #16a34a;
-  --color-leaf-light: #4ade80;
-  --color-sun: #d97706;
-  --color-sun-light: #fbbf24;
-  --color-clay: #dc2626;
-  --color-clay-light: #f87171;
-  --color-bg: #f4f7fb;
-  --color-surface: #ffffff;
-  --color-cream: #eef4fb;
-  --color-line: #d7e0ec;
-  --color-text: #172033;
-  --color-muted: #64748b;
-  --font-sans: "IBM Plex Sans", sans-serif;
-  --font-mono: "IBM Plex Mono", monospace;
-  --font-display: "Space Grotesk", sans-serif;
-  --radius-card: 10px;
-  --radius-sm: 6px;
-  --shadow-card: 0 1px 3px rgba(15, 23, 42, .06), 0 8px 24px rgba(15, 23, 42, .04);
-  --shadow-lg: 0 18px 42px rgba(15, 23, 42, .12);
-}
-
+/* ── Design tokens — SINGLE source of truth ─────────────────────────────
+   Every token lives here in :root with its dark-mode override in .dark.
+   (Colors need the .dark override, so the whole set is kept together in
+   one place instead of a parallel Tailwind @theme palette that can drift.
+   The previous @theme color block and its .dark re-declarations were
+   removed — nothing consumed them: the app styles exclusively via these
+   short vars, in components and below.) */
 :root {
+  /* palette */
   --bg: #f4f7fb;
   --surface: #fff;
   --bark: #2563eb;
@@ -37,8 +21,15 @@
   --line: #d7e0ec;
   --text: #172033;
   --text-muted: #64748b;
-  --shadow: 0 1px 3px rgba(15, 23, 42, .06), 0 8px 24px rgba(15, 23, 42, .04);
+  /* typography */
+  --font-sans: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --font-display: "Space Grotesk", sans-serif;
+  /* shape & elevation */
   --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 3px rgba(15, 23, 42, .06), 0 8px 24px rgba(15, 23, 42, .04);
+  --shadow-lg: 0 18px 42px rgba(15, 23, 42, .12);
   --focus: 0 0 0 3px rgba(37, 99, 235, .2);
 }
 
@@ -55,12 +46,6 @@
   --text-muted: #9aabc1;
   --shadow: 0 1px 3px rgba(0, 0, 0, .22), 0 12px 30px rgba(0, 0, 0, .16);
   --focus: 0 0 0 3px rgba(96, 165, 250, .24);
-  --color-bg: #0d1422;
-  --color-surface: #131d2e;
-  --color-cream: #18263a;
-  --color-line: #2a3b53;
-  --color-text: #e5edf8;
-  --color-muted: #9aabc1;
 }
 
 @layer base {
@@ -109,10 +94,23 @@
   .side-menu-link:hover { color: var(--text); background: var(--cream); transform: translateX(2px); }
   .side-menu-link.is-active { border-color: color-mix(in srgb, var(--bark) 22%, var(--line)); background: color-mix(in srgb, var(--bark) 9%, var(--surface)); color: var(--bark); font-weight: 600; }
   .side-menu-current { margin-left: auto; }
-  .side-menu-footer { display: flex; align-items: center; gap: 7px; margin-top: auto; padding: 12px 10px 0; border-top: 1px solid var(--line); color: var(--text-muted); font-family: var(--font-mono); font-size: .68rem; }
-  .side-menu-status { width: 7px; height: 7px; border-radius: 50%; background: var(--leaf); box-shadow: 0 0 0 3px color-mix(in srgb, var(--leaf) 16%, transparent); }
+  .side-menu-footer { display: flex; align-items: center; gap: 7px; margin-top: auto; padding: 10px 10px 0; border-top: 1px solid var(--line); color: var(--text-muted); font-family: var(--font-mono); font-size: .68rem; }
+  .side-menu-avatar { width: 26px; height: 26px; border-radius: 50%; flex: none; }
+  .side-menu-login { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .side-menu-logout { display: grid; place-items: center; margin-left: auto; width: 28px; height: 28px; flex: none; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--text-muted); cursor: pointer; transition: color .18s ease, border-color .18s ease; }
+  .side-menu-logout:hover { color: var(--clay); border-color: var(--clay); }
   .side-menu-version { margin-left: auto; opacity: .7; }
   .side-menu-mobile-toggle, .side-menu-close, .side-menu-backdrop { display: none; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--bark);
+    font-size: 0.85rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .back-link:hover { text-decoration: underline; }
   .card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -180,4 +178,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* Spinner used on busy icons (RefreshCw className="spin") — scanning/saving states. */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin { animation: spin 1s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation: none; }
 }

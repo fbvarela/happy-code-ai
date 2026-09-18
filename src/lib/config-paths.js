@@ -27,3 +27,19 @@ export function getConfigPathsForTarget(target) {
 export function getGlobalConfigPaths() {
   return Object.values(GLOBAL_CONFIG_PATHS);
 }
+
+/** Server-side allowlist for /api/config/publish: a path is publishable only
+ *  if it is one of the exact known config paths (any target or global), or a
+ *  file inside a target's MCP dir — the same rules the scan route uses.
+ *  Derived from the same pure-data maps so the two can never drift.
+ *  (Run AFTER safeRepoPath; this restricts to convention paths, traversal is
+ *  already excluded there.) */
+export function isPublishableConfigPath(path) {
+  for (const target of Object.keys(CONFIG_PATHS)) {
+    if (getConfigPathsForTarget(target).includes(path)) return true;
+  }
+  if (getGlobalConfigPaths().includes(path)) return true;
+  return Object.values(CONFIG_PATHS).some(
+    (c) => c.mcpDir && path.startsWith(c.mcpDir + "/"),
+  );
+}

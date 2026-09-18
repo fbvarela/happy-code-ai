@@ -7,6 +7,7 @@
 // (see the spec's "Modo local desde el cliente" note).
 
 import { ARTIFACT_TYPES, TYPE_LABELS } from "@/lib/artifact-types";
+import { mergeSystemPrompt } from "@/lib/prompt-merge";
 
 export const LOCAL_DEFAULTS = {
   baseUrl: "http://localhost:11434/v1", // Ollama; LM Studio: http://localhost:1234/v1
@@ -14,7 +15,8 @@ export const LOCAL_DEFAULTS = {
 };
 
 function instructions(target) {
-  // Check for custom prompts in localStorage
+  // Pull any custom prompt from localStorage. It is APPENDED after the base
+  // rules below (never replaces them) — same policy as /api/generate.
   let customPrompt = null;
   try {
     const stored = localStorage.getItem("happyCodePromptSettings");
@@ -26,11 +28,7 @@ function instructions(target) {
     console.warn("Failed to load prompt settings from localStorage:", err);
   }
 
-  if (customPrompt) {
-    return customPrompt;
-  }
-
-  return [
+  return mergeSystemPrompt([
     `You generate configuration artifacts for the "${target}" AI coding CLI.`,
     `Types: ${ARTIFACT_TYPES.map((t) => `${t} (${TYPE_LABELS[t]})`).join(", ")}.`,
     `Reply with ONLY a JSON object, no prose, matching exactly:`,
@@ -41,7 +39,7 @@ function instructions(target) {
     ` "tags": array of string}.`,
     `Produce the smallest useful artifact. Every {{var}} used in body_template`,
     `MUST be declared in variables with a sensible default.`,
-  ].join("\n");
+  ].join("\n"), customPrompt);
 }
 
 function coerceDraft(obj, { type, target }) {

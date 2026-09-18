@@ -1,6 +1,7 @@
 import { z } from "zod";
 import sql from "@/utils/db";
 import { ARTIFACT_TYPES } from "@/lib/artifact-types";
+import { safeRepoPath } from "@/lib/safe-path";
 
 export { ARTIFACT_TYPES };
 
@@ -13,8 +14,16 @@ export const variableSchema = z.object({
 
 // Extra files committed alongside the primary (e.g. a skill's helper scripts).
 // `path` is relative to the artifact's directory; `body_template` is Handlebars.
+// The path must sanitize cleanly — rejects traversal (../), absolute paths and
+// control chars at validation time, so unsafe paths never reach the DB.
 export const fileSchema = z.object({
-  path: z.string().min(1).max(200),
+  path: z
+    .string()
+    .min(1)
+    .max(200)
+    .refine((p) => safeRepoPath(p) !== null, {
+      message: "path must be a safe relative path (no '..', absolute paths or control chars)",
+    }),
   body_template: z.string().default(""),
 });
 
