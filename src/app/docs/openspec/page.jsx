@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import BackLink from "@/components/BackLink";
+import { ExternalLink } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 // ── Content ────────────────────────────────────────────────────────────────
@@ -180,13 +181,11 @@ export default function OpenSpecGuidePage() {
 
   return (
     <main style={{ maxWidth: 860, margin: "0 auto", padding: "32px 20px 64px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
-        <h1 style={{ fontSize: "1.75rem", lineHeight: 1.3 }}>
+      <div style={{ marginBottom: 8 }}>
+        <BackLink />
+        <h1 style={{ fontSize: "1.75rem", lineHeight: 1.3, margin: "6px 0 0" }}>
           {lang === "en" ? "OpenSpec Guide" : "Guía de OpenSpec"}
         </h1>
-        <Link href="/" style={{ fontSize: "0.95rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
-          <ArrowLeft size={14} /> {t("nav.back")}
-        </Link>
       </div>
       <p style={{ color: "var(--text-muted)", marginBottom: 8, fontSize: "1.05rem" }}>
         {lang === "en"

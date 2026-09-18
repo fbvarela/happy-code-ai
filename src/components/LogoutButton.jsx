@@ -3,11 +3,24 @@
 import { LogOut } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-export default function LogoutButton() {
+export default function LogoutButton({ compact = false }) {
   const { t } = useI18n();
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "/login";
+  }
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={logout}
+        aria-label={t("common.logout")}
+        title={t("common.logout")}
+        className="side-menu-logout"
+      >
+        <LogOut size={14} />
+      </button>
+    );
   }
   return (
     <button className="btn btn-ghost" type="button" onClick={logout} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>

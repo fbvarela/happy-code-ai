@@ -94,7 +94,8 @@ const MESSAGES = {
 
     "library.searchPlaceholder": "Buscar por nombre o tag…",
     "library.allTypes": "Todos los tipos",
-    "library.empty": "No hay artefactos todavía. Crea el primero con + Nuevo.",
+    "library.empty": "No hay artefactos todavía.",
+    "library.newArtifact": "+ Nuevo artefacto",
     "library.confirmDelete": "Sí, borrar",
 
     "suggestions.title": "Sugerencias para programadores",
@@ -199,6 +200,10 @@ const MESSAGES = {
     "editor.publish": "Publicar",
     "editor.testBranch": "Probar en rama",
     "editor.openPr": "Abrir PR al probar",
+    "editor.unsavedDirty": "Hay cambios sin guardar. Publicar guarda primero el artefacto con tus ediciones actuales. ¿Continuar?",
+    "editor.unsavedBadge": "cambios sin guardar",
+    "library.showing": "Mostrando {count} de {total}",
+    "library.loadMore": "Cargar más",
 
     "nav.guide": "Guía de prompts",
     "nav.guides": "Guías",
@@ -241,7 +246,7 @@ const MESSAGES = {
     "guide.models.claudeGemini": "Claude · Gemini",
     "guide.models.thinkingAgents": "No en Haiku · Codex · Copilot",
 
-    "prompt.check.role": "Rol definido en la primera frase",
+    "prompt.check.role": "Rol definido al inicio (en las primeras líneas)",
     "prompt.check.instructions": "Instrucciones antes del contenido (manual)",
     "prompt.check.xml": "Tags XML para separar secciones",
     "prompt.check.negative": "Al menos una instrucción negativa («no hagas…»)",
@@ -323,7 +328,7 @@ const MESSAGES = {
     "promptSettings.title": "Gestor de prompts de IA",
     "promptSettings.intro": "Personaliza los prompts que envía Happy Code a los modelos de IA para generar artefactos y entradas de glosario.",
     "promptSettings.artifactGeneration": "Prompt para generación de artefactos",
-    "promptSettings.artifactGenerationDesc": "Este prompt se usa como instrucción del sistema cuando el usuario genera artefactos mediante IA.",
+    "promptSettings.artifactGenerationDesc": "Reglas fijas de calidad y formato se aplican siempre; este prompt añade instrucciones extra al final.",
     "promptSettings.glossaryDefine": "Prompt para definición de términos del glosario",
     "promptSettings.glossaryDefineDesc": "Este prompt se usa cuando se genera una definición para un término en el glosario.",
     "promptSettings.glossaryExplain": "Prompt para explicación de términos del glosario",
@@ -387,7 +392,8 @@ const MESSAGES = {
 
     "library.searchPlaceholder": "Search by name or tag…",
     "library.allTypes": "All types",
-    "library.empty": "No artifacts yet. Create the first one with + New.",
+    "library.empty": "No artifacts yet.",
+    "library.newArtifact": "+ New artifact",
     "library.confirmDelete": "Yes, delete",
 
     "suggestions.title": "Suggestions for developers",
@@ -492,6 +498,10 @@ const MESSAGES = {
     "editor.publish": "Publish",
     "editor.testBranch": "Test on a branch",
     "editor.openPr": "Open PR when testing",
+    "editor.unsavedDirty": "You have unsaved changes. Publishing will first save the artifact with your current edits. Continue?",
+    "editor.unsavedBadge": "unsaved changes",
+    "library.showing": "Showing {count} of {total}",
+    "library.loadMore": "Load more",
 
     "nav.guide": "Prompt guide",
     "nav.guides": "Guides",
@@ -535,7 +545,7 @@ const MESSAGES = {
     "guide.models.claudeGemini": "Claude · Gemini",
     "guide.models.thinkingAgents": "Not on Haiku · Codex · Copilot",
 
-    "prompt.check.role": "Role defined in the first sentence",
+    "prompt.check.role": "Role defined near the start (first lines)",
     "prompt.check.instructions": "Instructions before content (manual)",
     "prompt.check.xml": "XML tags to separate sections",
     "prompt.check.negative": 'At least one negative instruction ("do not…")',
@@ -617,7 +627,7 @@ const MESSAGES = {
     "promptSettings.title": "AI Prompt Manager",
     "promptSettings.intro": "Customize the prompts that Happy Code sends to AI models for generating artifacts and glossary entries.",
     "promptSettings.artifactGeneration": "Artifact generation prompt",
-    "promptSettings.artifactGenerationDesc": "This prompt is used as the system instruction when the user generates artifacts via AI.",
+    "promptSettings.artifactGenerationDesc": "Fixed quality/format rules always apply; this prompt adds extra instructions appended at the end.",
     "promptSettings.glossaryDefine": "Glossary term definition prompt",
     "promptSettings.glossaryDefineDesc": "This prompt is used when generating a definition for a term in the glossary.",
     "promptSettings.glossaryExplain": "Glossary term explanation prompt",

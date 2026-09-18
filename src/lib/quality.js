@@ -22,10 +22,29 @@ export const AUTO_KEYS = ["role", "xml", "negative", "example", "fallback", "var
 // and config snippets have their own formats and are not prompt-quality-checked.
 export const PROMPT_LIKE_TYPES = ["agent", "subagent", "skill", "command"];
 
+// A role definition usually opens the body, but not always at byte 0: the body
+// may start with YAML frontmatter, a `#` heading, or an XML section tag before
+// the "You are …" sentence. Accept any common role opener (ES + EN) within the
+// first 200 chars (≈ the first sentence or two) instead of anchoring to
+// position 0. Accents are optional via character classes so "actua" matches
+// "actúa" and vice versa.
+const ROLE_OPENERS =
+  /\b(you are|you're|you will (?:act|be)|acting as|act as|acts as|your role|your task|your job|your mission|your goal|your purpose|your function|your responsibility|assume the role(?: of)?|take (?:on )?the role(?: of)?|serves? as|works? as|eres|serás|act[uú]a|sos|tu rol|tu misi[oó]n|tu tarea|tu trabajo|tu funci[oó]n|tu objetivo|tu prop[oó]sito|tu responsabilidad|asume el (?:rol|papel)|toma el rol)\b/i;
+
+function hasRoleOpener(body) {
+  let s = String(body || "").trimStart();
+  // Skip a leading YAML frontmatter block (--- … ---)
+  const fm = s.match(/^---\s*\n[\s\S]*?\n---\s*\n?/);
+  if (fm) s = s.slice(fm[0].length);
+  // Drop markdown heading markers so "# Eres un…" matches
+  s = s.replace(/^ {0,3}#{1,6}\s+/gm, "");
+  return ROLE_OPENERS.test(s.slice(0, 200));
+}
+
 export function lintBody(body) {
   const b = body || "";
   return {
-    role: /^(eres|you are|you're|sos)\b/i.test(b.trimStart()),
+    role: hasRoleOpener(b),
     instructions: null,
     xml: /<[a-z_]+>/.test(b),
     negative:

@@ -1,6 +1,7 @@
 import { Octokit } from "@octokit/rest";
 import sql from "@/utils/db";
 import { decrypt } from "@/lib/crypto";
+import { safeRepoPath } from "@/lib/safe-path";
 
 const GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize";
 const GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token";
@@ -49,8 +50,22 @@ export async function octokitForUser(userId) {
 
 /** Commit multiple files atomically via the Git Data API (no clone).
  *  files: [{ path, content }]. Branch is created/assumed to exist; if omitted,
- *  the repo's default branch is used. Returns { commit, branch }. */
+ *  the repo's default branch is used. Returns { commit, branch }.
+ *  Defense in depth: every path is re-validated here, even when callers
+ *  sanitize first — nothing reaches the Git Data API unsanitized. */
 export async function commitFiles(octokit, { owner, repo, branch, message, files }) {
+  const safeFiles = [];
+  for (const f of files || []) {
+    const path = safeRepoPath(f?.path);
+    if (!path) {
+      const err = new Error(`Unsafe file path: ${JSON.stringify(f?.path ?? null)}`);
+      err.status = 400;
+      throw err;
+    }
+    safeFiles.push({ ...f, path });
+  }
+  files = safeFiles;
+
   let targetBranch = branch;
   if (!targetBranch) {
     const { data } = await octokit.repos.get({ owner, repo });
@@ -68,7 +83,7 @@ export async function commitFiles(octokit, { owner, repo, branch, message, files
       content: Buffer.from(f.content, "utf8").toString("base64"),
       encoding: "base64",
     });
-    blobs.push({ path: f.path.replace(/^\/+/, ""), mode: "100644", type: "blob", sha: blob.sha });
+    blobs.push({ path: f.path, mode: "100644", type: "blob", sha: blob.sha });
   }
 
   const { data: tree } = await octokit.git.createTree({

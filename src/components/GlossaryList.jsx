@@ -50,6 +50,17 @@ export default function GlossaryList() {
     setFormError(null);
   }
 
+  // Load custom prompts from localStorage (shared with the generate flow).
+  function getPromptSettings() {
+    try {
+      const stored = localStorage.getItem("happyCodePromptSettings");
+      if (stored) return JSON.parse(stored);
+    } catch (err) {
+      console.warn("Failed to load prompt settings from localStorage:", err);
+    }
+    return null;
+  }
+
   async function load() {
     const res = await fetch("/api/glossary");
     setUserEntries(res.ok ? await res.json() : []);
@@ -134,6 +145,9 @@ export default function GlossaryList() {
     setSaving(true);
     setFormError(null);
     try {
+      // Custom prompt from Prompt Settings (used if the definition is blank
+      // and gets backfilled by Agnes at save time).
+      const promptSettings = getPromptSettings();
       const res = await fetch(editingId ? `/api/glossary/${editingId}` : "/api/glossary", {
         method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -144,6 +158,8 @@ export default function GlossaryList() {
           links: form.links.filter((l) => l.url.trim()),
           aliases: form.aliases,
           lang,
+          glossaryDefinePromptEs: promptSettings?.glossaryDefinePromptEs || null,
+          glossaryDefinePromptEn: promptSettings?.glossaryDefinePromptEn || null,
         }),
       });
       const data = await res.json().catch(() => ({}));

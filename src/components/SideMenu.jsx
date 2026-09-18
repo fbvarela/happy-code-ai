@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BookOpen,
   Boxes,
@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import LogoutButton from "@/components/LogoutButton";
 
 const groups = [
   {
@@ -84,6 +85,24 @@ export default function SideMenu() {
   const pathname = usePathname();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  // Session identity for the footer (avatar/@login + logout). The middleware
+  // only renders the app behind auth, so /api/auth/me answers here; on 401 we
+  // just keep the neutral footer.
+  const [me, setMe] = useState(null);
+
+  useEffect(() => {
+    if (pathname === "/login") return;
+    let alive = true;
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (alive) setMe(d);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [pathname]);
 
   if (pathname === "/login") return null;
 
@@ -106,9 +125,24 @@ export default function SideMenu() {
         <div className="side-menu-rule" />
         <Navigation pathname={pathname} t={t} onNavigate={() => setOpen(false)} />
         <div className="side-menu-footer">
-          <span className="side-menu-status" />
-          <span>{t("menu.ready")}</span>
-          <span className="side-menu-version">v1</span>
+          {me ? (
+            <>
+              {me.avatarUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  className="side-menu-avatar"
+                  src={me.avatarUrl.includes("?") ? `${me.avatarUrl}&s=64` : `${me.avatarUrl}?s=64`}
+                  alt=""
+                  width={26}
+                  height={26}
+                />
+              )}
+              <span className="side-menu-login">@{me.githubLogin}</span>
+              <LogoutButton compact />
+            </>
+          ) : (
+            <span className="side-menu-version">v1</span>
+          )}
         </div>
       </aside>
     </>

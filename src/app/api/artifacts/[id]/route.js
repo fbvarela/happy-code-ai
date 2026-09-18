@@ -8,9 +8,14 @@ export async function GET(_request, { params }) {
   if (error) return error;
   const { id } = await params;
 
-  const rows = await sql`SELECT * FROM artifacts WHERE id = ${id} AND user_id = ${session.userId}`;
-  if (!rows.length) return Response.json({ error: "Not found" }, { status: 404 });
-  return Response.json(rows[0]);
+  try {
+    const rows = await sql`SELECT * FROM artifacts WHERE id = ${id} AND user_id = ${session.userId}`;
+    if (!rows.length) return Response.json({ error: "Not found" }, { status: 404 });
+    return Response.json(rows[0]);
+  } catch (err) {
+    console.error("GET /api/artifacts/:id failed:", err);
+    return Response.json({ error: "Could not load artifact" }, { status: 502 });
+  }
 }
 
 /** PUT /api/artifacts/:id — update, bump version, snapshot. */
@@ -52,8 +57,13 @@ export async function DELETE(_request, { params }) {
   if (error) return error;
   const { id } = await params;
 
-  const rows = await sql`
-    DELETE FROM artifacts WHERE id = ${id} AND user_id = ${session.userId} RETURNING id`;
-  if (!rows.length) return Response.json({ error: "Not found" }, { status: 404 });
-  return Response.json({ deleted: rows[0].id });
+  try {
+    const rows = await sql`
+      DELETE FROM artifacts WHERE id = ${id} AND user_id = ${session.userId} RETURNING id`;
+    if (!rows.length) return Response.json({ error: "Not found" }, { status: 404 });
+    return Response.json({ deleted: rows[0].id });
+  } catch (err) {
+    console.error("DELETE /api/artifacts/:id failed:", err);
+    return Response.json({ error: "Could not delete artifact" }, { status: 502 });
+  }
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, BookOpen } from "lucide-react";
+import { BookOpen } from "lucide-react";
+import BackLink from "@/components/BackLink";
 import { useI18n } from "@/lib/i18n";
 import { TARGET_LABELS } from "@/lib/targets";
 
@@ -402,16 +403,14 @@ export default function ConfigGuidePage() {
   return (
     <main style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 20px 64px" }}>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
-        <h1 style={{ fontSize: "1.75rem", lineHeight: 1.3 }}>{title}</h1>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexShrink: 0 }}>
-          <Link href="/config" style={{ fontSize: "0.9rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+          <BackLink />
+          <Link href="/config" style={{ fontSize: "0.85rem", color: "var(--bark)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
             <BookOpen size={14} /> {t("nav.config")}
           </Link>
-          <Link href="/" style={{ fontSize: "0.9rem", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
-            <ArrowLeft size={14} /> {t("nav.back")}
-          </Link>
         </div>
+        <h1 style={{ fontSize: "1.75rem", lineHeight: 1.3, margin: "6px 0 0" }}>{title}</h1>
       </div>
       <p style={{ color: "var(--text-muted)", marginBottom: 36, fontSize: "1.05rem", lineHeight: 1.6 }}>{intro}</p>
 

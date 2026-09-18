@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Sparkles, Pencil, RotateCw, Save, X } from "lucide-react";
+import BackLink from "@/components/BackLink";
+import { ExternalLink, Sparkles, Pencil, RotateCw, Save, X } from "lucide-react";
 import { GLOSSARY_SEED, GLOSSARY_CATEGORIES } from "@/lib/glossary";
 import { useI18n, pickLang } from "@/lib/i18n";
 
@@ -147,9 +148,7 @@ export default function GlossaryDetail({ id }) {
 
   return (
     <div>
-      <Link href="/glossary" style={backLink}>
-        <ArrowLeft size={15} /> {t("detail.back")}
-      </Link>
+      <BackLink href="/glossary" label={t("detail.back")} />
 
       {status === "loading" && <p style={{ color: "var(--text-muted)", marginTop: 20 }}>{t("common.loading")}</p>}
 
@@ -258,14 +257,6 @@ function RichText({ text }) {
   );
 }
 
-const backLink = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 5,
-  fontSize: "0.85rem",
-  color: "var(--text-muted)",
-  textDecoration: "none",
-};
 const badgeStyle = {
   background: "var(--cream)",
   border: "1px solid var(--line)",
