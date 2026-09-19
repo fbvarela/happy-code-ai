@@ -5,6 +5,7 @@ import { Brain, RefreshCw, Upload, ChevronLeft, Plus, Copy, Check } from "lucide
 import { TARGETS, TARGET_LABELS } from "@/lib/targets";
 import { MEMORY_PATHS, SHARED_ROOTS, parseMemorySections, renderSections, resolveMemoryPath } from "@/lib/memory-paths";
 import { useI18n } from "@/lib/i18n";
+import { setLastRepo } from "@/lib/last-repo";
 import DiffPreview from "@/components/DiffPreview";
 
 export default function MemoryManager() {
@@ -50,6 +51,12 @@ export default function MemoryManager() {
       .then((r) => (r.ok ? r.json() : []))
       .then(setRepos);
   }, []);
+
+  // Load branches when repo changes (and remember it as the app-wide
+  // "last repo", so artifact generation can link to it)
+  useEffect(() => {
+    if (selectedRepo) setLastRepo(selectedRepo);
+  }, [selectedRepo]);
 
   // Load branches when repo changes
   useEffect(() => {

@@ -1,6 +1,6 @@
 # Spec — GitHub Repo–Associated Artifact Creation
 
-> Status: Draft · Author: fbvarela · Created: 2026-09-16
+> Status: **Implemented** (repo context + branch picker, 2026-09-19) · Author: fbvarela · Created: 2026-09-16
 
 ## Context
 
@@ -39,13 +39,17 @@ The existing migration `004_add_command_type.sql` pattern is followed: a new mig
 
 ### Generator prompt enhancement
 
+> **Implemented** — see `src/lib/repo-context.js`, `src/lib/generator.js`, `src/app/api/generate/route.js`.
+
 When `generateArtifact` is called and the artifact has a `github_repo` value, the system will:
 
-1. Call `GET /api/memory/scan` (or a new lightweight endpoint) to fetch the repo's memory files.
-2. Append the repo's memory section content to the system prompt as "Repo memory context".
-3. The generator can then reference `{{repo_memory}}` or inline the scanned content in the prompt, allowing the model to create artifacts tailored to that repo.
+1. `generateArtifact` accepts `octokit` (the artifact owner's client, resolved in `/api/generate`) and `repoContextBranch` (branch to read docs from; empty = default branch).
+2. `getRepoMemoryContext(githubRepo, octokit, branch)` fetches the repo's memory files using the same path conventions as `/api/memory/scan` (via `src/lib/memory-paths.js`), formats them as a compact digest (per-file and total char budgets to stay token-cheap), and returns `{ digest, branch, status }` where status is `"loaded"` / `"empty"` / `"unavailable"` (never throws).
+3. The digest is appended to the system prompt inside a `--- Repo context ---` block with grounding instructions; when unavailable, the prompt explicitly tells the model NOT to hallucinate repo-specific paths.
+4. `/api/generate` returns `repoContext: { status, branch }` so the UI can show a status line (loaded / empty / unavailable) after generation.
+5. Opt-out: the client can send `withRepoContext: false` (no GitHub calls); the editor exposes this as a checkbox when a repo is linked.
 
-A new helper function `getRepoMemoryContext(githubRepo)` will fetch and format the memory files similarly to `src/app/api/memory/scan/route.js` but returning just the parsed sections (headings + content) as a string.
+Branch selection: the UI offers a branch picker next to the repo-context checkbox (branches loaded lazily from `GET /api/repos/branches`), and the chosen branch is sent as `repo_context_branch` and used to resolve the git tree the docs are read from.
 
 ### API surface (new/changed routes)
 
@@ -70,10 +74,11 @@ Alternatively, the `github_repo` field can be passed directly in the `POST /api/
    - A button opens a small modal listing the user's repos via `GET /api/repos`.
    - User selects a repo → the `github_repo` field is auto-filled with `owner/name`.
 
-3. **Generate with repo context** (when artifact has `github_repo`):
-   - After artifact is created (or during generation), if `github_repo` is set, the UI can call `GET /api/memory/scan` to fetch memory files.
-   - The generator prompt includes the repo's memory sections (headings + content) as context.
-   - The user can choose "Generate with repo context" or the system does it automatically based on a toggle.
+3. **Generate with repo context** (when artifact has `github_repo`) — **Implemented**:
+   - The editor pre-fills the repo field from the user's last-used repo (`hc:lastRepo` in localStorage, set by MemoryManager/ConfigManager and the editor itself), and sends `github_repo` + `withRepoContext` + optional `repo_context_branch` to `/api/generate`.
+   - The generator prompt includes the repo's memory docs as a digest, with a status line shown after generation (loaded from branch X / no memory files / couldn't read).
+   - The user can uncheck "Use {repo}'s memory as context" to skip the fetch entirely.
+   - The SuggestionGallery AI prompt also sends the last-used repo so drafts generated there are grounded too.
 
 4. **View artifact details**:
    - Artifact page shows a badge "Linked repo: `owner/name`" if a repo is associated; otherwise no badge.
@@ -85,7 +90,8 @@ Alternatively, the `github_repo` field can be passed directly in the `POST /api/
 ### Failure modes
 
 - **Repo not found / inaccessible** — if the user types an invalid `owner/name` or the repo is not accessible with the stored token, the association is silently ignored (no error shown at create time; error may surface later when generation tries to scan the repo).
-- **Memory scan fails** — if the scan API fails during generation, the generator proceeds without repo context, and the UI shows a non-blocking warning.
+- **Memory scan fails** — `getRepoMemoryContext` never throws; it returns status `"unavailable"` (or `"empty"` when the repo is reachable but has no memory files) and generation proceeds without repo context. The editor shows a non-blocking status line (`editor.repoCtxLoaded` / `editor.repoCtxEmpty` / `editor.repoCtxUnavailable`).
+- **Unknown branch requested** — the `getRef` call fails and the context falls back to status `"unavailable"` with the default-branch behavior; the branch selector drops vanished branches on next load.
 - **Token scope issues** — the GitHub token must have `repo` scope; if missing, the scan will 401 and the user will be prompted to re-auth.
 
 ## Rollout plan
@@ -106,5 +112,5 @@ Alternatively, the `github_repo` field can be passed directly in the `POST /api/
 ## Open questions
 
 - Should the repo association be **visibly editable** after artifact creation (a dedicated "Associate repo" action), or only via the edit form? — **Decision**: expose it in the edit form + optional "Associate repo" button for quick access.
-- Should the generator **automatically** include repo memory when `github_repo` is set, or require user opt-in ("Generate with repo context")? — **Decision**: require user opt-in initially; auto-inclusion can be added later once the pattern is validated.
+- Should the generator **automatically** include repo memory when `github_repo` is set, or require user opt-in ("Generate with repo context")? — **Decision**: opt-out checkbox in the editor (checked by default) when a repo is linked; unchecking sends `withRepoContext: false` and makes zero GitHub calls.
 - What happens if the linked repo is deleted or the token loses `repo` scope? — **Decision**: the `github_repo` field is just stored text; no cascading delete. If generation fails due to auth/scan errors, the UI Surface shows a warning but the artifact is unaffected.
