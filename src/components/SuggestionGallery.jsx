@@ -6,6 +6,7 @@ import { Wand2, Sparkles } from "lucide-react";
 import { SUGGESTIONS, SUGGESTION_CATEGORIES } from "@/lib/suggestions";
 import { ARTIFACT_TYPES } from "@/lib/artifact-types";
 import { useI18n, pickLang, TYPE_LABELS_I18N } from "@/lib/i18n";
+import { getLastRepo } from "@/lib/last-repo";
 
 // sessionStorage key the editor reads on mount (new mode) to pre-fill itself.
 export const PREFILL_KEY = "hc:suggestion";
@@ -52,10 +53,16 @@ export default function SuggestionGallery() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: aiPrompt.trim() }),
+        body: JSON.stringify({
+          prompt: aiPrompt.trim(),
+          github_repo: getLastRepo(),
+        }),
       });
       if (!res.ok) throw new Error();
       const { draft } = await res.json();
+      // Keep the repo link on the artifact so the editor can regenerate with
+      // the same context and publish to the right repo.
+      if (draft && getLastRepo() && !draft.github_repo) draft.github_repo = getLastRepo();
       try {
         sessionStorage.setItem(PREFILL_KEY, JSON.stringify(draft));
       } catch {}

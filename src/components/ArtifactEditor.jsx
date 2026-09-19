@@ -9,6 +9,7 @@ import { TYPE_HELP, FORMAT_BY_EXT } from "@/lib/artifact-help";
 import { getRenderer } from "@/lib/renderers";
 import { makeZip } from "@/lib/zip";
 import { generateArtifactLocal, LOCAL_DEFAULTS } from "@/lib/local-generate";
+import { getLastRepo, setLastRepo } from "@/lib/last-repo";
 import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
 import BackLink from "@/components/BackLink";
 import PromptChecklist from "@/components/PromptChecklist";
@@ -49,6 +50,14 @@ export default function ArtifactEditor({ id }) {
   const [generating, setGenerating] = useState(false);
   const [genQuality, setGenQuality] = useState(null);
   const [local, setLocal] = useState({ enabled: false, baseUrl: LOCAL_DEFAULTS.baseUrl, model: LOCAL_DEFAULTS.model });
+  // Ground generation in the linked repo's memory docs (opt-out).
+  const [useRepoContext, setUseRepoContext] = useState(true);
+  // Branch to read those memory docs from ("" = repo default branch).
+  const [repoBranch, setRepoBranch] = useState("");
+  const [repoBranches, setRepoBranches] = useState(null); // null = not loaded
+  // Outcome of the last generation's repo-context fetch, shown as a status line.
+  const [repoCtxStatus, setRepoCtxStatus] = useState(null); // "loaded"|"empty"|"unavailable"|"skipped"
+  const [repoCtxBranch, setRepoCtxBranch] = useState(null); // branch actually read
   const [pub, setPub] = useState({ repos: null, repo: "", branch: "", path: "", openPr: false, busy: false, result: null, error: null });
 
   // New mode: if a suggestion was picked in the gallery, pre-fill from it once.
@@ -61,7 +70,14 @@ export default function ArtifactEditor({ id }) {
     } catch {
       return;
     }
-    if (!raw) return;
+    if (!raw) {
+      // No suggestion picked: link the repo the user last worked with
+      // (memory/config manager or a previous artifact), so generation is
+      // grounded in that repo's memory docs without re-picking it.
+      const last = getLastRepo();
+      if (last) setForm((f) => (f.github_repo ? f : { ...f, github_repo: last }));
+      return;
+    }
     try {
       const a = JSON.parse(raw);
       setForm({
@@ -73,6 +89,7 @@ export default function ArtifactEditor({ id }) {
         variables: a.variables ?? [],
         files: a.files ?? [],
         tags: a.tags ?? [],
+        github_repo: a.github_repo || getLastRepo() || null,
       });
       setValues({});
     } catch {}
@@ -117,6 +134,13 @@ export default function ArtifactEditor({ id }) {
     setForm((f) => ({ ...f, [field]: val }));
   }
 
+  /** Repo field change: keep it + remember it as the user's last repo so the
+   *  next artifact (and memory/config managers) preselects it. */
+  function setRepoField(repo) {
+    set("github_repo", repo);
+    setLastRepo(repo);
+  }
+
   function applyScaffold(type) {
     const s = TYPE_SCAFFOLDS[type];
     if (!s) return;
@@ -157,6 +181,8 @@ export default function ArtifactEditor({ id }) {
     if (!genPrompt.trim()) return;
     setGenerating(true);
     setError(null);
+    setRepoCtxStatus(null);
+    setRepoCtxBranch(null);
 
     // Load custom prompts from localStorage
     const getPromptSettings = () => {
@@ -180,6 +206,7 @@ export default function ArtifactEditor({ id }) {
         draft = await generateArtifactLocal({
           prompt: genPrompt, type: form.type, target: form.target,
           baseUrl: local.baseUrl, model: local.model,
+          githubRepo: form.github_repo || null,
         });
       } else {
         const res = await fetch("/api/generate", {
@@ -190,6 +217,8 @@ export default function ArtifactEditor({ id }) {
             type: form.type,
             target: form.target,
             artifactSystemPrompt: promptSettings?.artifactSystemPrompt || null,
+            github_repo: form.github_repo || null,
+            withRepoContext: useRepoContext,
             // (Glossary prompts don't apply here — they're sent by the
             // glossary flows to /api/glossary/define|explain instead.)
           }),
@@ -201,6 +230,8 @@ export default function ArtifactEditor({ id }) {
         const data = await res.json();
         draft = data.draft;
         quality = data.quality || null;
+        setRepoCtxStatus(data.repoContext?.status || null);
+        setRepoCtxBranch(data.repoContext?.branch || null);
       }
     } catch (e) {
       setGenerating(false);
@@ -233,31 +264,62 @@ export default function ArtifactEditor({ id }) {
     set("files", form.files.filter((_, j) => j !== i));
   }
 
+  // Branches of the linked repo, for choosing where memory docs are read
+  // from. Loaded lazily the first time the branch control is expanded.
+  async function loadRepoBranches() {
+    const repo = (form.github_repo || "").trim();
+    if (!repo.includes("/")) return;
+    setRepoBranches(null);
+    try {
+      const res = await fetch(`/api/repos/branches?repo=${encodeURIComponent(repo)}`);
+      const list = res.ok ? await res.json() : [];
+      setRepoBranches(Array.isArray(list) ? list : []);
+      // A previously chosen branch that no longer exists falls back to default.
+      setRepoBranch((b) => (b && list.includes(b) ? b : ""));
+    } catch {
+      setRepoBranches([]);
+    }
+  }
+
   // ── Publish to GitHub (edit mode) ──
   async function loadRepos() {
     if (pub.repos) return;
     const res = await fetch("/api/repos");
     const repos = res.ok ? await res.json() : [];
-    setPub((p) => ({ ...p, repos, repo: repos[0]?.full_name || "" }));
+    // Prefer the repo linked to this artifact, then the user's last-used repo.
+    const last = getLastRepo();
+    const chosen =
+      repos.find((r) => r.full_name === form.github_repo) ||
+      repos.find((r) => r.full_name === last) ||
+      repos[0];
+    setPub((p) => ({ ...p, repos, repo: chosen?.full_name || "" }));
   }
 
   async function selectRepo() {
-    if (pub.repos) return;
+    if (pub.repos) {
+      // Already loaded: re-apply the last-used repo if it's still accessible.
+      const last = getLastRepo();
+      const match = last && pub.repos.find((r) => r.full_name === last);
+      if (match) setRepoField(match.full_name);
+      return;
+    }
     const res = await fetch("/api/repos");
     const repos = res.ok ? await res.json() : [];
     if (!repos.length) {
       setError(t("editor.errNoRepos"));
       return;
     }
-    setPub((p) => {
-      const first = repos[0];
-      return {
-        ...p,
-        repos,
-        repo: first?.full_name || "",
-        branch: first?.default_branch || "",
-      };
-    });
+    // Prefer the repo the user last selected anywhere in the app; fall back
+    // to the most recently updated one. Fills the artifact's repo field.
+    const last = getLastRepo();
+    const chosen = repos.find((r) => r.full_name === last) || repos[0];
+    setPub((p) => ({
+      ...p,
+      repos,
+      repo: chosen?.full_name || "",
+      branch: chosen?.default_branch || "",
+    }));
+    if (chosen) setRepoField(chosen.full_name);
   }
   async function publish() {
     if (!(await ensureSavedBeforePublish())) return;
@@ -473,6 +535,47 @@ export default function ArtifactEditor({ id }) {
               <input type="checkbox" checked={local.enabled} onChange={(e) => setLocal((l) => ({ ...l, enabled: e.target.checked }))} />
               {t("editor.useLocalModel")}
             </label>
+            {form.github_repo && (
+              <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                <input type="checkbox" checked={useRepoContext} onChange={(e) => setUseRepoContext(e.target.checked)} />
+                {t("editor.useRepoContext", { repo: form.github_repo })}
+              </label>
+            )}
+            {form.github_repo && useRepoContext && (
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
+                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{t("editor.memoryBranch")}</span>
+                <select
+                  style={{ ...input, minHeight: 32, width: "auto", maxWidth: 220, fontSize: "0.8rem", padding: "0 8px" }}
+                  value={repoBranch}
+                  onFocus={loadRepoBranches}
+                  onChange={(e) => setRepoBranch(e.target.value)}
+                  aria-label={t("editor.memoryBranch")}
+                >
+                  <option value="">{t("editor.memoryBranchDefault")}</option>
+                  {(repoBranches || []).map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+                {repoBranches === null && <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>…</span>}
+              </div>
+            )}
+            {generating && form.github_repo && useRepoContext && (
+              <p style={{ fontSize: "0.78rem", marginTop: 8, color: "var(--text-muted)" }}>
+                {t("editor.repoCtxReading", { repo: form.github_repo })}
+              </p>
+            )}
+            {!generating && repoCtxStatus && repoCtxStatus !== "skipped" && (
+              <p style={{
+                fontSize: "0.78rem", marginTop: 8,
+                color:
+                  repoCtxStatus === "loaded" ? "var(--leaf)" :
+                  repoCtxStatus === "empty" ? "var(--sun)" : "var(--clay)",
+              }}>
+                {repoCtxStatus === "loaded" && t("editor.repoCtxLoaded", { repo: form.github_repo, branch: repoCtxBranch || "—" })}
+                {repoCtxStatus === "empty" && t("editor.repoCtxEmpty", { repo: form.github_repo })}
+                {repoCtxStatus === "unavailable" && t("editor.repoCtxUnavailable", { repo: form.github_repo })}
+              </p>
+            )}
             {local.enabled && (
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                 <input style={{ ...input, minHeight: 36, fontSize: "0.8rem" }} value={local.baseUrl} onChange={(e) => setLocal((l) => ({ ...l, baseUrl: e.target.value }))} placeholder="http://localhost:11434/v1" />
@@ -488,8 +591,7 @@ export default function ArtifactEditor({ id }) {
                 <strong>{genQuality.score}</strong>
                 {genQuality.attempts > 1 && ` (${t("editor.qualityRetry")})`}
               </p>
-            )}
-            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 6 }}>
+            )}            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 6 }}>
               {t("editor.aiHint")}
               {local.enabled && ` ${t("editor.aiHintLocal")}`}
             </p>
@@ -561,7 +663,7 @@ export default function ArtifactEditor({ id }) {
             <input
               style={{ ...input, flex: 1, minHeight: 36 }}
               value={form.github_repo || ""}
-              onChange={(e) => set("github_repo", e.target.value)}
+              onChange={(e) => setRepoField(e.target.value)}
               placeholder={t("editor.githubRepoPlaceholder")}
               pattern="[^/]*/[^/]*"
               title="Formato: owner/name (ejemplo: myorg/my-repo)"

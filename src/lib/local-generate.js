@@ -59,7 +59,7 @@ function coerceDraft(obj, { type, target }) {
 
 /** Generate an artifact draft from a local model. Throws on connection/parse
  *  errors (the caller surfaces a CORS/setup hint). */
-export async function generateArtifactLocal({ prompt, type, target = "opencode", baseUrl, model }) {
+export async function generateArtifactLocal({ prompt, type, target = "opencode", baseUrl, model, githubRepo }) {
   const url = `${(baseUrl || LOCAL_DEFAULTS.baseUrl).replace(/\/$/, "")}/chat/completions`;
   const res = await fetch(url, {
     method: "POST",
@@ -68,7 +68,16 @@ export async function generateArtifactLocal({ prompt, type, target = "opencode",
       model: model || LOCAL_DEFAULTS.model,
       messages: [
         { role: "system", content: instructions(target) },
-        { role: "user", content: (type ? `Create a ${type} artifact.\n` : "") + `Description: ${prompt}` },
+        {
+          role: "user",
+          content:
+            (type ? `Create a ${type} artifact.\n` : "") +
+            (githubRepo
+              ? `The artifact is for the GitHub repository \`${githubRepo}\`; ` +
+                `keep it consistent with that project (do not invent its file paths).\n`
+              : "") +
+            `Description: ${prompt}`,
+        },
       ],
       response_format: { type: "json_object" },
       stream: false,
