@@ -5,6 +5,7 @@ import { ARTIFACT_TYPES, TYPE_LABELS } from "@/lib/artifact-types";
 import { isAgnesConfigured, getAgnesModel } from "@/lib/agnes";
 import { autoQuality, PROMPT_LIKE_TYPES } from "@/lib/quality";
 import { mergeSystemPrompt } from "@/lib/prompt-merge";
+import { getRepoMemoryContext } from "@/lib/repo-context";
 
 // How to fix each failed auto check, phrased for the model in the retry turn.
 const CHECK_FIXES = {
@@ -111,7 +112,7 @@ function systemPrompt(target) {
  *  Prompt-like bodies must pass the auto quality checks; if the first draft
  *  fails, one corrective retry is attempted and the better draft is kept.
  *  Returns the draft object (NOT persisted) plus a quality report. */
-export async function generateArtifact({ prompt, type, target = "opencode", systemPromptOverride, githubRepo }) {
+export async function generateArtifact({ prompt, type, target = "opencode", systemPromptOverride, githubRepo, octokit, withRepoContext = true, repoContextBranch = "" }) {
   const provider = selectProvider();
   if (!provider) throw new Error("No generator provider configured");
 
@@ -119,14 +120,35 @@ export async function generateArtifact({ prompt, type, target = "opencode", syst
   // base rules (never replace them), so the quality gate and structured-output
   // requirement can't be disabled by localStorage state or an accidental paste.
   let systemContent = mergeSystemPrompt(systemPrompt(target), systemPromptOverride);
+  // Status of the repo-context fetch, surfaced to the UI in the API response.
+  let repoContext = { status: "skipped", branch: null };
   if (githubRepo) {
+    // Fetch the repo's memory docs (AGENTS.md, CLAUDE.md, …) so the draft is
+    // grounded in real project context, not just the repo name. Best-effort:
+    // if the fetch fails we still name the repo, but tell the model it has
+    // no docs so it doesn't invent them.
+    let repoDigest = null;
+    if (octokit && withRepoContext) {
+      const ctx = await getRepoMemoryContext(githubRepo, octokit, repoContextBranch);
+      repoDigest = ctx.digest;
+      repoContext = { status: ctx.status, branch: ctx.branch };
+    }
     systemContent += `\n--- Repo context ---` +
-      ` The artifact is for the GitHub repository \`${githubRepo}\`.` +
-      ` Consider the repo's structure, memory files (e.g. AGENTS.md, CLAUDE.md),` +
-      ` and project context when generating. Do not hallucinate file paths or` +
-      ` repo-specific details. Keep the artifact focused and reuseable via` +
-      ` Handlebars variables. ` +
-      `--- End repo context ---`;
+      ` The artifact is for the GitHub repository \`${githubRepo}\`.`;
+    if (repoDigest) {
+      systemContent +=
+        ` Below are the repo's own memory/convention files. Ground the artifact` +
+        ` in them: mirror the project's language, frameworks, paths and` +
+        ` conventions, and put repo-specific values in {{variable}} holes so` +
+        ` the artifact stays reusable. Do not invent files or rules that are` +
+        ` not in this context.\n\n${repoDigest}\n`;
+    } else {
+      systemContent +=
+        ` Its memory/convention files are NOT available right now — do not` +
+        ` hallucinate repo-specific file paths or rules. Keep the artifact` +
+        ` focused and reusable via Handlebars variables.`;
+    }
+    systemContent += `\n--- End repo context ---`;
   }
 
   const systemMessage = {
@@ -257,5 +279,5 @@ export async function generateArtifact({ prompt, type, target = "opencode", syst
     : { applicable: false, score: null, failed: [], attempts };
 
   const { object: draft, usage } = best;
-  return { draft, usage, provider: provider.name, quality: report };
+  return { draft, usage, provider: provider.name, quality: report, repoContext };
 }
