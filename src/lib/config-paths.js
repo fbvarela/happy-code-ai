@@ -12,6 +12,11 @@ export const CONFIG_PATHS = {
 // Root-level config files that apply across targets.
 export const GLOBAL_CONFIG_PATHS = {
   mcp: ".mcp.json",
+  // Root memory files shared across CLIs — the Config manager shows these in
+  // the "Global" column so the dashboard reflects the repo's agent context.
+  agents: "AGENTS.md",
+  claude: "CLAUDE.md",
+  gemini: "GEMINI.md",
 };
 
 /** Known config file paths to look for, grouped by target. */

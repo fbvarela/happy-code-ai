@@ -5,7 +5,7 @@ import { Brain, RefreshCw, Upload, ChevronLeft, Plus, Copy, Check } from "lucide
 import { TARGETS, TARGET_LABELS } from "@/lib/targets";
 import { MEMORY_PATHS, SHARED_ROOTS, parseMemorySections, renderSections, resolveMemoryPath } from "@/lib/memory-paths";
 import { useI18n } from "@/lib/i18n";
-import { setLastRepo } from "@/lib/last-repo";
+import { getLastRepo, setLastRepo } from "@/lib/last-repo";
 import DiffPreview from "@/components/DiffPreview";
 
 export default function MemoryManager() {
@@ -49,7 +49,14 @@ export default function MemoryManager() {
   useEffect(() => {
     fetch("/api/repos")
       .then((r) => (r.ok ? r.json() : []))
-      .then(setRepos);
+      .then((list) => {
+        setRepos(list);
+        // Restore the last-selected repo across page refreshes/sessions.
+        const last = getLastRepo();
+        if (last && list.some((r) => r.full_name === last)) {
+          setSelectedRepo(last);
+        }
+      });
   }, []);
 
   // Load branches when repo changes (and remember it as the app-wide
