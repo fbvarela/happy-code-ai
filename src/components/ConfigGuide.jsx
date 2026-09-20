@@ -12,7 +12,7 @@ const CLI_CONFIG_FILES = Object.entries(CONFIG_PATHS).map(([target, paths]) => (
   label: TARGET_LABELS[target] || target,
   files: [paths.settings, paths.mcp, paths.mcpDir].filter(Boolean),
 }));
-const GLOBAL_FILE = GLOBAL_CONFIG_PATHS.mcp;
+const GLOBAL_FILES = Object.values(GLOBAL_CONFIG_PATHS);
 const USER_CONFIG = "~/.config/opencode/opencode.json";
 
 export default function ConfigGuide() {
@@ -100,9 +100,11 @@ export default function ConfigGuide() {
               ))}
               <div style={{ background: "var(--cream)", borderRadius: 8, padding: "10px 12px" }}>
                 <p style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: 4 }}>{t("config.global")}</p>
-                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 2px", fontFamily: "monospace" }}>
-                  {GLOBAL_FILE}
-                </p>
+                {GLOBAL_FILES.map((f) => (
+                  <p key={f} style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 2px", fontFamily: "monospace" }}>
+                    {f}
+                  </p>
+                ))}
               </div>
               <div style={{ background: "var(--cream)", borderRadius: 8, padding: "10px 12px", gridColumn: "1 / -1" }}>
                 <p style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: 4 }}>OpenCode global</p>

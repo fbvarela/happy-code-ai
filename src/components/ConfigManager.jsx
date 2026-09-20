@@ -5,7 +5,7 @@ import { Settings, RefreshCw, Upload, ChevronLeft } from "lucide-react";
 import { TARGETS, TARGET_LABELS } from "@/lib/targets";
 import { CONFIG_PATHS, getConfigPathsForTarget } from "@/lib/config-paths";
 import { useI18n } from "@/lib/i18n";
-import { setLastRepo } from "@/lib/last-repo";
+import { getLastRepo, setLastRepo } from "@/lib/last-repo";
 import DiffPreview from "@/components/DiffPreview";
 
 export default function ConfigManager() {
@@ -38,7 +38,14 @@ export default function ConfigManager() {
   useEffect(() => {
     fetch("/api/repos")
       .then((r) => (r.ok ? r.json() : []))
-      .then(setRepos);
+      .then((list) => {
+        setRepos(list);
+        // Restore the last-selected repo across page refreshes/sessions.
+        const last = getLastRepo();
+        if (last && list.some((r) => r.full_name === last)) {
+          setSelectedRepo(last);
+        }
+      });
   }, []);
 
   // Remember the selected repo as the app-wide "last repo", so artifact
