@@ -483,7 +483,21 @@ export default function ArtifactEditor({ id }) {
     });
     setSaving(false);
     if (!res.ok) {
-      setError(t("editor.errSave"));
+      // Surface the server's real validation details (zod fieldErrors) so the
+      // user knows WHICH field is rejected, not just "check the fields".
+      let detail = "";
+      try {
+        const data = await res.json();
+        const flat = data?.details;
+        if (flat?.formErrors?.length) detail = flat.formErrors.join(" · ");
+        else if (flat?.fieldErrors)
+          detail = Object.values(flat.fieldErrors)
+            .flat()
+            .filter(Boolean)
+            .join(" · ");
+        else if (data?.error) detail = data.error;
+      } catch {}
+      setError(detail ? `${t("editor.errSave")} ${detail}` : t("editor.errSave"));
       return null;
     }
     return res.json();
