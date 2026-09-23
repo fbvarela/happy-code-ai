@@ -90,7 +90,9 @@ export function lintSpec(body) {
   const hasRequirements = /^#\s+Requirements\b|^##\s+Requirements\b|^###\s+Requirements\b/im.test(b);
   const shallMatches = b.match(/\b(SHALL|MUST|DEBE)\b/gim);
   const shallCount = shallMatches ? shallMatches.length : 0;
-  const hasScenarios = /^#\s+Scenarios\b|^##\s+Scenarios\b|^###\s+Scenarios\b/im.test(b);
+  // OpenSpec scenarios are `#### Scenario: …` blocks nested under a Requirement
+  // (ES templates use `#### Escenario: …`); also accept a `## Scenarios` heading.
+  const hasScenarios = /^#{1,4}\s+(?:Scenarios?|Escenarios?)\b/im.test(b);
   const hasGherkin = /\b(GIVEN|WHEN|THEN|DADO|CUANDO|ENTONCES)\b/gim.test(b);
 
   // Vague qualifiers that weaken requirements

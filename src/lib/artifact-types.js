@@ -52,24 +52,48 @@ export const TYPE_SCAFFOLDS = {
       "## Purpose\n\n" +
       "{{purpose}}\n\n" +
       "## Requirements\n\n" +
-      "### Requirement: {{req1_name}}\n\n" +
-      "The system SHALL {{req1}}.\n\n" +
-      "#### Scenario: {{scenario1_name}}\n\n" +
-      "- GIVEN {{given1}}\n" +
-      "- WHEN {{when1}}\n" +
-      "- THEN {{then1}}\n",
+      "### Requirement: {{requirement_1_name}}\n\n" +
+      "The system SHALL {{requirement_1_statement}}.\n\n" +
+      "#### Scenario: {{scenario_1_name}}\n\n" +
+      "- GIVEN {{given_1}}\n" +
+      "- WHEN {{when_1}}\n" +
+      "- THEN {{then_1}}\n\n" +
+      "### Requirement: {{requirement_2_name}}\n\n" +
+      "The system SHALL {{requirement_2_statement}}.\n\n" +
+      "#### Scenario: {{scenario_2_name}}\n\n" +
+      "- GIVEN {{given_2}}\n" +
+      "- WHEN {{when_2}}\n" +
+      "- THEN {{then_2}}\n\n" +
+      "### Requirement: {{requirement_3_name}}\n\n" +
+      "The system SHALL {{requirement_3_statement}}.\n\n" +
+      "#### Scenario: {{scenario_3_name}}\n\n" +
+      "- GIVEN {{given_3}}\n" +
+      "- WHEN {{when_3}}\n" +
+      "- THEN {{then_3}}\n",
     variables: [
       { name: "feature", label: "Feature name", default: "User Authentication", required: true },
       { name: "version", label: "Version", default: "1.0", required: false },
       { name: "status", label: "Status", default: "draft", required: false },
       { name: "agents", label: "Target agents", default: "claude-code, opencode", required: false },
-      { name: "purpose", label: "Purpose (one paragraph)", default: "Describe what this feature manages and why it exists.", required: true },
-      { name: "req1_name", label: "Requirement name", default: "Core Behavior", required: true },
-      { name: "req1", label: "Requirement (after SHALL)", default: "accept valid credentials and return a session token", required: true },
-      { name: "scenario1_name", label: "Scenario name", default: "Successful login", required: true },
-      { name: "given1", label: "GIVEN", default: "a registered user with valid credentials", required: true },
-      { name: "when1", label: "WHEN", default: "the user submits the login form", required: true },
-      { name: "then1", label: "THEN", default: "the system returns a 200 response with a session token", required: true },
+      { name: "purpose", label: "Purpose (one paragraph)", default: "Manages user authentication via magic-link. Issues a session upon token verification.", required: true },
+      { name: "requirement_1_name", label: "Requirement 1 name", default: "Core Behavior", required: true },
+      { name: "requirement_1_statement", label: "Requirement 1 (after SHALL)", default: "issue a session token after validating valid credentials", required: true },
+      { name: "scenario_1_name", label: "Scenario 1 name", default: "Successful login", required: true },
+      { name: "given_1", label: "GIVEN 1", default: "a registered user with valid credentials", required: true },
+      { name: "when_1", label: "WHEN 1", default: "the user submits the login form", required: true },
+      { name: "then_1", label: "THEN 1", default: "the system returns a 200 response with a session token", required: true },
+      { name: "requirement_2_name", label: "Requirement 2 name", default: "Error Handling", required: true },
+      { name: "requirement_2_statement", label: "Requirement 2 (after SHALL)", default: "reject malformed credentials with a 401 response", required: true },
+      { name: "scenario_2_name", label: "Scenario 2 name", default: "Invalid credentials", required: true },
+      { name: "given_2", label: "GIVEN 2", default: "a registered user with malformed credentials", required: true },
+      { name: "when_2", label: "WHEN 2", default: "the user submits the login form", required: true },
+      { name: "then_2", label: "THEN 2", default: "the system returns a 401 response with a descriptive error", required: true },
+      { name: "requirement_3_name", label: "Requirement 3 name", default: "Performance", required: true },
+      { name: "requirement_3_statement", label: "Requirement 3 (after SHALL)", default: "respond to login requests within 300 ms at the p95", required: true },
+      { name: "scenario_3_name", label: "Scenario 3 name", default: "Expected load", required: true },
+      { name: "given_3", label: "GIVEN 3", default: "100 concurrent login requests", required: true },
+      { name: "when_3", label: "WHEN 3", default: "the requests reach the login endpoint", required: true },
+      { name: "then_3", label: "THEN 3", default: "the p95 latency stays below 300 ms", required: true },
     ],
   },
   mcp: {
