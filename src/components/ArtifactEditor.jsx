@@ -225,7 +225,11 @@ export default function ArtifactEditor({ id }) {
         });
         if (!res.ok) {
           const e = await res.json().catch(() => ({}));
-          throw new Error(e.error || t("editor.errGenerate"));
+          // The API returns { error, message } — message carries the real
+          // cause (provider/schema failure) from the server-side catch.
+          throw new Error(
+            e.message ? `${e.error}: ${e.message}` : e.error || t("editor.errGenerate"),
+          );
         }
         const data = await res.json();
         draft = data.draft;
