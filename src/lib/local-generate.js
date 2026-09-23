@@ -39,6 +39,11 @@ function instructions(target) {
     ` "tags": array of string}.`,
     `Produce the smallest useful artifact. Every {{var}} used in body_template`,
     `MUST be declared in variables with a sensible default.`,
+    `For "openspec" type the body MUST be an OpenSpec document: a`,
+    `"# {{feature}} Specification" title, a "## Purpose" paragraph, a`,
+    `"## Requirements" section with 3+ "### Requirement:" blocks, each stating`,
+    `one "The system SHALL …" obligation, each followed by a "#### Scenario:"`,
+    `block with - GIVEN / - WHEN / - THEN bullet lines.`,
   ].join("\n"), customPrompt);
 }
 
