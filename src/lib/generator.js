@@ -3,7 +3,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import { ARTIFACT_TYPES, TYPE_LABELS } from "@/lib/artifact-types";
 import { isAgnesConfigured, getAgnesModel } from "@/lib/agnes";
-import { autoQuality, PROMPT_LIKE_TYPES } from "@/lib/quality";
+import { autoQuality, autoSpecQuality, PROMPT_LIKE_TYPES, SPEC_LIKE_TYPES } from "@/lib/quality";
 import { mergeSystemPrompt } from "@/lib/prompt-merge";
 import { getRepoMemoryContext } from "@/lib/repo-context";
 
@@ -16,6 +16,17 @@ const CHECK_FIXES = {
   fallback:
     "the unknown case is unhandled — add an explicit instruction for insufficient context ('do not guess; say you don't know')",
   variables: "no {{variable}} holes — move user-tweakable values into {{variable}} holes declared in \"variables\"",
+};
+
+// How to fix each failed OpenSpec auto check, phrased for the model in the retry turn.
+const SPEC_CHECK_FIXES = {
+  purpose: "no Purpose section — add a '## Purpose' heading with one paragraph: what the feature manages and why it exists",
+  requirements: "no Requirements section — add a '## Requirements' heading with '### Requirement: <name>' blocks",
+  shall_count:
+    "too few SHALL assertions — every requirement must state ONE obligation as 'The system SHALL …' / 'DEBE' (at least 3 in total)",
+  scenarios:
+    "no scenarios — add a '#### Scenario: <name>' block under each requirement with '- GIVEN …' / '- WHEN …' / '- THEN …' lines",
+  gherkin: "scenarios are not Gherkin — each scenario must use GIVEN / WHEN / THEN (or DADO / CUANDO / ENTONCES) bullet lines",
 };
 
 /** Pick the cloud generator provider by available key:
@@ -104,6 +115,16 @@ function systemPrompt(target) {
     `- include a concrete fenced example for any non-trivial output format,`,
     `- explicitly handle the insufficient-context case ("do not guess; say you don't know"),`,
     `- put variable content in {{variable}} holes, never hardcoded.`,
+    `- For "openspec" type the body MUST be an OpenSpec document:
+  a "# {{feature}} Specification" title line, then "## Purpose" with ONE paragraph
+  (what the feature manages and why it exists, no implementation details),
+  then "## Requirements" with at least 3 "### Requirement: <name>" blocks.
+  Each requirement states exactly ONE measurable obligation as
+  "The system SHALL …" (or MUST / DEBE). No vague qualifiers
+  (should, could, fast, simple, robust…), no technology names.
+  Each requirement is followed by a "#### Scenario: <name>" block with
+  exactly three bullet lines: "- GIVEN <initial state>", "- WHEN <one action>",
+  "- THEN <one observable result>".`,
     `- Respond ONLY with the structured object.`,
   ].join("\n");
 }
@@ -187,6 +208,7 @@ export async function generateArtifact({ prompt, type, target = "opencode", syst
   }
 
   function qualityOf(draft) {
+    if (SPEC_LIKE_TYPES.includes(draft.type)) return autoSpecQuality(draft.body_template);
     if (!PROMPT_LIKE_TYPES.includes(draft.type)) return null;
     return autoQuality(draft.body_template);
   }
@@ -246,7 +268,7 @@ export async function generateArtifact({ prompt, type, target = "opencode", syst
           role: "user",
           content:
             `Your draft failed these machine-checked quality rules:\n` +
-            quality.failed.map((k) => `- ${CHECK_FIXES[k]}`).join("\n") +
+            quality.failed.map((k) => `- ${CHECK_FIXES[k] || SPEC_CHECK_FIXES[k]}`).join("\n") +
             `\nRegenerate the FULL artifact fixing every point above. Keep everything` +
             ` else (type, variables, overall structure) intact.`,
         },

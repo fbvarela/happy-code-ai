@@ -61,14 +61,22 @@ export async function POST(request) {
   }
   const a = parsed.data;
 
-  const rows = await sql`
-    INSERT INTO artifacts (user_id, name, type, target, frontmatter, body_template, variables, files, tags, github_repo)
-    VALUES (${session.userId}, ${a.name}, ${a.type}, ${a.target},
-            ${JSON.stringify(a.frontmatter)}::jsonb, ${a.body_template},
-            ${JSON.stringify(a.variables)}::jsonb, ${JSON.stringify(a.files)}::jsonb, ${a.tags},
-            ${a.github_repo || null})
-    RETURNING *`;
+  try {
+    const rows = await sql`
+      INSERT INTO artifacts (user_id, name, type, target, frontmatter, body_template, variables, files, tags, github_repo)
+      VALUES (${session.userId}, ${a.name}, ${a.type}, ${a.target},
+              ${JSON.stringify(a.frontmatter)}::jsonb, ${a.body_template},
+              ${JSON.stringify(a.variables)}::jsonb, ${JSON.stringify(a.files)}::jsonb, ${a.tags},
+              ${a.github_repo || null})
+      RETURNING *`;
 
-  await snapshotVersion(rows[0]);
-  return Response.json(rows[0], { status: 201 });
+    await snapshotVersion(rows[0]);
+    return Response.json(rows[0], { status: 201 });
+  } catch (err) {
+    console.error("POST /api/artifacts failed:", err);
+    return Response.json(
+      { error: "Could not save artifact", message: String(err.message || err) },
+      { status: 502 },
+    );
+  }
 }

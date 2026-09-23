@@ -30,25 +30,33 @@ export async function PUT(request, { params }) {
   }
   const a = parsed.data;
 
-  const rows = await sql`
-    UPDATE artifacts SET
-      name          = ${a.name},
-      type          = ${a.type},
-      target        = ${a.target},
-      frontmatter   = ${JSON.stringify(a.frontmatter)}::jsonb,
-      body_template = ${a.body_template},
-      variables     = ${JSON.stringify(a.variables)}::jsonb,
-      files         = ${JSON.stringify(a.files)}::jsonb,
-      tags          = ${a.tags},
-      github_repo   = ${a.github_repo || null},
-      version       = version + 1,
-      updated_at    = now()
-    WHERE id = ${id} AND user_id = ${session.userId}
-    RETURNING *`;
+  try {
+    const rows = await sql`
+      UPDATE artifacts SET
+        name          = ${a.name},
+        type          = ${a.type},
+        target        = ${a.target},
+        frontmatter   = ${JSON.stringify(a.frontmatter)}::jsonb,
+        body_template = ${a.body_template},
+        variables     = ${JSON.stringify(a.variables)}::jsonb,
+        files         = ${JSON.stringify(a.files)}::jsonb,
+        tags          = ${a.tags},
+        github_repo   = ${a.github_repo || null},
+        version       = version + 1,
+        updated_at    = now()
+      WHERE id = ${id} AND user_id = ${session.userId}
+      RETURNING *`;
 
-  if (!rows.length) return Response.json({ error: "Not found" }, { status: 404 });
-  await snapshotVersion(rows[0]);
-  return Response.json(rows[0]);
+    if (!rows.length) return Response.json({ error: "Not found" }, { status: 404 });
+    await snapshotVersion(rows[0]);
+    return Response.json(rows[0]);
+  } catch (err) {
+    console.error("PUT /api/artifacts/:id failed:", err);
+    return Response.json(
+      { error: "Could not save artifact", message: String(err.message || err) },
+      { status: 502 },
+    );
+  }
 }
 
 /** DELETE /api/artifacts/:id — remove (cascades versions). */
