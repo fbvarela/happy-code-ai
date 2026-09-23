@@ -5,11 +5,25 @@ import { safeRepoPath } from "@/lib/safe-path";
 
 export { ARTIFACT_TYPES };
 
+// Model-drafted drafts (especially local models and Agnes) send variable
+// label/default as numbers, booleans or nested objects, and required as
+// "true"/"false" strings. Coerce to the stored shape instead of rejecting the
+// whole save — same policy as the cloud generator's coerceVarValue.
+const coerceStr = (v) => {
+  if (v === null || v === undefined) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+};
+
 export const variableSchema = z.object({
-  name: z.string().min(1).max(60),
-  label: z.string().max(120).optional().default(""),
-  default: z.string().optional().default(""),
-  required: z.boolean().optional().default(false),
+  name: z.preprocess(coerceStr, z.string().min(1).max(60)),
+  label: z.preprocess(coerceStr, z.string().max(120)).optional().default(""),
+  default: z.preprocess(coerceStr, z.string()).optional().default(""),
+  required: z
+    .preprocess((v) => (typeof v === "string" ? v === "true" : !!v), z.boolean())
+    .optional()
+    .default(false),
 });
 
 // Extra files committed alongside the primary (e.g. a skill's helper scripts).
@@ -36,8 +50,15 @@ export const artifactInput = z.object({
   body_template: z.string().default(""),
   variables: z.array(variableSchema).default([]),
   files: z.array(fileSchema).default([]),
-  tags: z.array(z.string().min(1).max(40)).default([]),
-  github_repo: z.string().optional().default(null),
+  tags: z
+    .preprocess(
+      (t) => (Array.isArray(t) ? t : typeof t === "string" ? t.split(",").map((s) => s.trim()).filter(Boolean) : []),
+      z.array(z.preprocess(coerceStr, z.string().min(1).max(40))),
+    )
+    .default([]),
+  // z.string().optional().default(null) rejects BOTH null and missing in zod 3.x
+  // (the default itself is validated) — accept null/undefined explicitly.
+  github_repo: z.string().nullable().optional().default(null),
 });
 
 /** Append a snapshot of the current state to artifact_versions. */
