@@ -20,6 +20,7 @@ export const TYPE_LABELS = {
   config_snippet: "Config",
   memory: "Memoria",
   mcp: "MCP",
+  openspec: "OpenSpec",
 };
 
 // Starter scaffolds applied when creating a new artifact of a given type

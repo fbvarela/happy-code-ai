@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Copy, Trash2 } from "lucide-react";
 import { ARTIFACT_TYPES } from "@/lib/artifact-types";
 import { useI18n, TYPE_LABELS_I18N } from "@/lib/i18n";
+import { PREFILL_KEY } from "@/components/SuggestionGallery";
 
 export default function ArtifactLibrary() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function ArtifactLibrary() {
   const [q, setQ] = useState("");
   const [type, setType] = useState("");
   const [confirmId, setConfirmId] = useState(null);
+  const [cloneError, setCloneError] = useState(null);
 
   async function load(requestedPage = 1, replace = true) {
     const params = new URLSearchParams();
@@ -55,27 +57,34 @@ export default function ArtifactLibrary() {
     load(1, true);
   }
 
+  // Clone opens the NEW artifact editor pre-filled with the source artifact's
+  // content, instead of creating a copy immediately. That way the user can
+  // regenerate it against a different repo (and tweak anything) before saving.
   async function clone(id) {
+    setCloneError(null);
     const res = await fetch(`/api/artifacts/${id}`);
-    if (!res.ok) return;
-    const a = await res.json();
-    const created = await fetch("/api/artifacts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: `${a.name} (copia)`,
-        type: a.type,
-        target: a.target,
-        frontmatter: a.frontmatter,
-        body_template: a.body_template,
-        variables: a.variables,
-        tags: a.tags,
-      }),
-    });
-    if (created.ok) {
-      const nu = await created.json();
-      router.push(`/artifacts/${nu.id}`);
+    if (!res.ok) {
+      setCloneError(t("library.errClone"));
+      return;
     }
+    const a = await res.json();
+    try {
+      sessionStorage.setItem(
+        PREFILL_KEY,
+        JSON.stringify({
+          name: a.name,
+          type: a.type,
+          target: a.target,
+          frontmatter: a.frontmatter,
+          body_template: a.body_template,
+          variables: a.variables,
+          files: a.files,
+          tags: a.tags,
+          github_repo: a.github_repo,
+        }),
+      );
+    } catch {}
+    router.push("/artifacts/new");
   }
 
   return (
@@ -98,6 +107,9 @@ export default function ArtifactLibrary() {
         </button>
       </div>
 
+      {cloneError && (
+        <p style={{ color: "var(--clay)", fontSize: "0.85rem", margin: "0 0 10px" }}>{cloneError}</p>
+      )}
       {items === null && <p style={{ color: "var(--text-muted)" }}>{t("common.loading")}</p>}
       {items !== null && items.length === 0 && (
         <div className="card" style={{ padding: 24, textAlign: "center", color: "var(--text-muted)" }}>
