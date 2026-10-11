@@ -97,6 +97,7 @@ const MESSAGES = {
     "library.empty": "No hay artefactos todavía.",
     "library.newArtifact": "+ Nuevo artefacto",
     "library.confirmDelete": "Sí, borrar",
+    "library.errClone": "No se pudo clonar el artefacto.",
 
     "suggestions.title": "Sugerencias para programadores",
     "suggestions.intro": "Artefactos listos para usar en tareas de programación. Elige uno, ajústalo y guárdalo.",
@@ -402,6 +403,7 @@ const MESSAGES = {
     "library.empty": "No artifacts yet.",
     "library.newArtifact": "+ New artifact",
     "library.confirmDelete": "Yes, delete",
+    "library.errClone": "Could not clone the artifact.",
 
     "suggestions.title": "Suggestions for developers",
     "suggestions.intro": "Ready-to-use artifacts for coding tasks. Pick one, tweak it, and save.",
