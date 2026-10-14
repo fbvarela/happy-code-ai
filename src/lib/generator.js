@@ -42,6 +42,7 @@ function providerChain() {
       name: "anthropic",
       model: anthropic(process.env.GENERATOR_MODEL || "claude-opus-4-8"),
       cache: true, // prompt-cache the system prefix
+      strict: false, // accepts the loose schema
     });
   }
   if (isAgnesConfigured()) {
@@ -49,6 +50,7 @@ function providerChain() {
       name: "agnes",
       model: getAgnesModel(),
       cache: false,
+      strict: false, // gateway ignores strict JSON-schema validation
     });
   }
   if (isCohereConfigured()) {
@@ -56,6 +58,7 @@ function providerChain() {
       name: "cohere",
       model: getCohereModel(),
       cache: false,
+      strict: true, // response_format json_schema rejects free-form objects
     });
   }
   return chain;
@@ -94,6 +97,41 @@ const genSchema = z.object({
         name: z.union([z.string(), z.number()]).transform(String),
         label: varValue,
         default: varValue,
+        required: z.boolean().optional().default(false),
+      }),
+    )
+    .default([]),
+  tags: z.array(z.string()).default([]),
+});
+
+// Strict structured-output validators (Cohere so far) reject the loose schema:
+// a `z.record` produces a bare {"type": "object"} with no properties, which
+// Cohere's response_format validation forbids — "object type must specify
+// properties". This variant keeps the same field names but declares every
+// object's shape; free-form frontmatter becomes name/value pairs, normalized
+// back to an object in fillDefaults so renderers never see the difference.
+const genSchemaStrict = z.object({
+  name: z.string().describe("short kebab-case slug for the artifact").default(""),
+  type: z.enum(ARTIFACT_TYPES).optional(),
+  target: z.string().default("opencode"),
+  frontmatter: z
+    .array(
+      z.object({
+        name: z.string().describe("frontmatter metadata key, e.g. description, model, tools"),
+        value: z.string().describe("frontmatter metadata value for that key"),
+      }),
+    )
+    .describe("YAML frontmatter metadata as name/value pairs")
+    .default([]),
+  body_template: z
+    .string()
+    .describe("Handlebars template; put reusable values in {{variableName}} holes"),
+  variables: z
+    .array(
+      z.object({
+        name: z.string().describe("{{variable}} hole used in body_template"),
+        label: z.string().optional().describe("human label shown in the editor").default(""),
+        default: z.string().optional().describe("default value of the hole").default(""),
         required: z.boolean().optional().default(false),
       }),
     )
@@ -208,7 +246,7 @@ export async function generateArtifact({ prompt, type, target = "opencode", syst
       : systemMessage;
     return generateObject({
       model: provider.model,
-      schema: genSchema,
+      schema: provider.strict ? genSchemaStrict : genSchema,
       messages: [systemMessageWithCache, userMessage, ...extraMessages],
       // Safety net: the model sometimes wraps the JSON in markdown fences or
       // prose. Extract the outermost {...} block locally — deterministic and
@@ -235,6 +273,23 @@ export async function generateArtifact({ prompt, type, target = "opencode", syst
   // and a kebab-case name derived from the prompt. Also migrate variables the
   // model sometimes nests inside frontmatter back to the top level.
   function fillDefaults(object) {
+    // Strict providers return frontmatter as name/value pairs (see
+    // genSchemaStrict) — fold them back into the plain object the renderer
+    // expects. "name"/"key" both accepted; anything else is one-of entries.
+    if (Array.isArray(object.frontmatter)) {
+      const fm = {};
+      for (const entry of object.frontmatter) {
+        if (!entry || typeof entry !== "object") continue;
+        const key = entry.name ?? entry.key;
+        if (key !== undefined && key !== null) {
+          fm[String(key)] = coerceVarValue(entry.value);
+        } else {
+          // Odd entry without a name: stringify it under a synthetic key.
+          fm[`extra_${Object.keys(fm).length + 1}`] = JSON.stringify(entry);
+        }
+      }
+      object.frontmatter = fm;
+    }
     const fmVars = object.frontmatter?.variables;
     if (!object.variables.length && Array.isArray(fmVars)) {
       const migrated = fmVars
