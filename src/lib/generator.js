@@ -3,6 +3,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import { ARTIFACT_TYPES, TYPE_LABELS } from "@/lib/artifact-types";
 import { isAgnesConfigured, getAgnesModel } from "@/lib/agnes";
+import { isCohereConfigured, getCohereModel } from "@/lib/cohere";
 import { autoQuality, autoSpecQuality, PROMPT_LIKE_TYPES, SPEC_LIKE_TYPES } from "@/lib/quality";
 import { mergeSystemPrompt } from "@/lib/prompt-merge";
 import { getRepoMemoryContext } from "@/lib/repo-context";
@@ -29,25 +30,35 @@ const SPEC_CHECK_FIXES = {
   gherkin: "scenarios are not Gherkin — each scenario must use GIVEN / WHEN / THEN (or DADO / CUANDO / ENTONCES) bullet lines",
 };
 
-/** Pick the cloud generator provider by available key:
- *  Anthropic (best) first, then Agnes 2.0 (fast + cheap) as fallback. */
-function selectProvider() {
+/** Build the cloud-generator provider chain by available keys, in priority
+ *  order: Anthropic (best) first, then Agnes 2.0 (fast + cheap), then Cohere
+ *  (free trial tier). generateArtifact walks the chain: if the active provider
+ *  errors (rate limit, outage, unusable response), it falls back to the next. */
+function providerChain() {
+  const chain = [];
   if (process.env.ANTHROPIC_API_KEY) {
     const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    return {
+    chain.push({
       name: "anthropic",
       model: anthropic(process.env.GENERATOR_MODEL || "claude-opus-4-8"),
       cache: true, // prompt-cache the system prefix
-    };
+    });
   }
   if (isAgnesConfigured()) {
-    return {
+    chain.push({
       name: "agnes",
       model: getAgnesModel(),
       cache: false,
-    };
+    });
   }
-  return null;
+  if (isCohereConfigured()) {
+    chain.push({
+      name: "cohere",
+      model: getCohereModel(),
+      cache: false,
+    });
+  }
+  return chain;
 }
 
 // Frontmatter is model-authored free YAML metadata — accept anything and let
@@ -91,7 +102,11 @@ const genSchema = z.object({
 });
 
 export function isConfigured() {
-  return !!(process.env.ANTHROPIC_API_KEY || isAgnesConfigured());
+  return !!(
+    process.env.ANTHROPIC_API_KEY ||
+    isAgnesConfigured() ||
+    isCohereConfigured()
+  );
 }
 
 function systemPrompt(target) {
@@ -134,8 +149,10 @@ function systemPrompt(target) {
  *  fails, one corrective retry is attempted and the better draft is kept.
  *  Returns the draft object (NOT persisted) plus a quality report. */
 export async function generateArtifact({ prompt, type, target = "opencode", systemPromptOverride, githubRepo, octokit, withRepoContext = true, repoContextBranch = "" }) {
-  const provider = selectProvider();
-  if (!provider) throw new Error("No generator provider configured");
+  const providers = providerChain();
+  if (providers.length === 0) throw new Error("No generator provider configured");
+  let providerIndex = 0;
+  let provider = providers[0];
 
   // Build the system prompt. Client-supplied overrides are APPENDED after the
   // base rules (never replace them), so the quality gate and structured-output
@@ -176,10 +193,6 @@ export async function generateArtifact({ prompt, type, target = "opencode", syst
     role: "system",
     content: systemContent
   };
-  // Prompt caching is Anthropic-only; skip it for Agnes.
-  if (provider.cache) {
-    systemMessage.providerOptions = { anthropic: { cacheControl: { type: "ephemeral" } } };
-  }
 
   const userMessage = {
     role: "user",
@@ -188,10 +201,15 @@ export async function generateArtifact({ prompt, type, target = "opencode", syst
   };
 
   async function genOnce(extraMessages = []) {
+    // Prompt caching is Anthropic-only; decide per call so a fallback to
+    // another provider drops the cache option automatically.
+    const systemMessageWithCache = provider.cache
+      ? { ...systemMessage, providerOptions: { anthropic: { cacheControl: { type: "ephemeral" } } } }
+      : systemMessage;
     return generateObject({
       model: provider.model,
       schema: genSchema,
-      messages: [systemMessage, userMessage, ...extraMessages],
+      messages: [systemMessageWithCache, userMessage, ...extraMessages],
       // Safety net: the model sometimes wraps the JSON in markdown fences or
       // prose. Extract the outermost {...} block locally — deterministic and
       // cheaper than asking the model to repair its own output.
@@ -252,7 +270,26 @@ export async function generateArtifact({ prompt, type, target = "opencode", syst
     object.target = target;
   }
 
-  const first = await genOnce();
+  // A provider error (rate limit, outage, unusable output) should not kill the
+  // request when another key is configured — advance down the chain and retry.
+  async function genWithFallback(extraMessages = []) {
+    for (;;) {
+      try {
+        return await genOnce(extraMessages);
+      } catch (err) {
+        if (providerIndex + 1 >= providers.length) throw err;
+        const failedName = providers[providerIndex].name;
+        providerIndex += 1;
+        provider = providers[providerIndex];
+        console.warn(
+          `generate: ${failedName} failed${err?.message ? ` (${String(err.message).slice(0, 140)})` : ""},` +
+            ` falling back to ${provider.name}`,
+        );
+      }
+    }
+  }
+
+  const first = await genWithFallback();
   fillDefaults(first.object);
 
   let best = first;
@@ -262,7 +299,7 @@ export async function generateArtifact({ prompt, type, target = "opencode", syst
   if (quality && quality.failed.length > 0) {
     attempts = 2;
     try {
-      const retry = await genOnce([
+      const retry = await genWithFallback([
         { role: "assistant", content: JSON.stringify(best.object) },
         {
           role: "user",

@@ -21,7 +21,7 @@
   - `SESSION_SECRET` (≥32 chars) — iron-session cookie key
   - `TOKEN_ENCRYPTION_KEY` (64 hex chars / 32 bytes) — AES-256-GCM for GitHub token encryption
   - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` — OAuth App credentials
-  - `ANTHROPIC_API_KEY` (optional, preferred) / `AGNES_API_KEY` (fallback)
+  - `ANTHROPIC_API_KEY` (optional, preferred) / `AGNES_API_KEY` (fallback) / `COHERE_API_KEY` (free trial fallback)
 - GitHub OAuth requires `repo` scope — the app writes artifacts into your repos
 - If `SESSION_SECRET` is missing or <32 chars, the middleware redirects to login with `error=server_misconfigured`
 
@@ -31,7 +31,7 @@
 - **Path alias**: `@/*` → `src/*` (set in `jsconfig.json`)
 - **Data layer**: `src/lib/*.js` holds domain logic; `sql` tagged-template client in `src/utils/db.js` (Neon Postgres via `@neondatabase/serverless`)
 - **Migrations**: Hand-written SQL in `src/db/migrations/*.sql`; applied via `npm run db:migrate`
-- **AI generation**: Vercel AI SDK + Zod schemas via `generateObject`. Provider order: Anthropic (`ANTHROPIC_API_KEY`, default `claude-opus-4-8`) → Agnes 2.0 (`AGNES_API_KEY`, default `agnes-2.0-flash`, gateway at `https://apihub.agnes-ai.com/v1`)
+- **AI generation**: Vercel AI SDK + Zod schemas via `generateObject`. Provider chain with failover: Anthropic (`ANTHROPIC_API_KEY`, default `claude-opus-4-8`) → Agnes 2.0 (`AGNES_API_KEY`, default `agnes-2.0-flash`, gateway at `https://apihub.agnes-ai.com/v1`) → Cohere (`COHERE_API_KEY`, free trial key, default `command-a-03-2025`). If the active provider errors (e.g. rate limit), generation falls back to the next in the chain.
 - **Renderers**: One per target CLI in `src/lib/renderers/{base,claude,cursor,gemini,junie,opencode}.js`; registered in `src/lib/renderers/index.js`
 - **No test runner**: No `test` script in `package.json`; manual verification only
 - **Tailwind CSS 4** with design tokens: `--bg`, `--surface`, `--bark`, `--leaf`, `--sun`, `--clay`, `--cream`, `--line`, `--text`, `--text-muted`
