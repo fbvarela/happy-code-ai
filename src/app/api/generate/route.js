@@ -3,6 +3,18 @@ import { generateArtifact, isConfigured } from "@/lib/generator";
 import { octokitForUser } from "@/lib/github";
 import { ARTIFACT_TYPES } from "@/lib/artifact-types";
 
+/** Rate-limit errors surface as the AI SDK's RetryError wrapping one or more
+ *  provider 429s. Detect them anywhere in the message/chain so the UI gets an
+ *  actionable hint instead of the raw gateway text. */
+function isRateLimit(err) {
+  const parts = [
+    err?.message,
+    err?.cause?.message,
+    ...(Array.isArray(err?.reasons) ? err.reasons.map((e) => e?.message) : []),
+  ].filter(Boolean).join(" ");
+  return /rate limit|429|too many requests/i.test(parts);
+}
+
 /** POST /api/generate — natural language -> structured artifact draft (not saved). */
 export async function POST(request) {
   const { session, error } = await requireAuth();
@@ -10,7 +22,7 @@ export async function POST(request) {
 
   if (!isConfigured()) {
     return Response.json(
-      { error: "Generator not configured (set ANTHROPIC_API_KEY or AGNES_API_KEY)." },
+      { error: "Generator not configured (set ANTHROPIC_API_KEY, AGNES_API_KEY or COHERE_API_KEY)." },
       { status: 503 },
     );
   }
@@ -53,6 +65,18 @@ export async function POST(request) {
     console.error("generate failed:", err.message);
     if (err.text) console.error("generate raw text:", JSON.stringify(err.text).slice(0, 2000));
     if (err.cause) console.error("generate cause:", err.cause);
+    if (isRateLimit(err)) {
+      return Response.json(
+        {
+          error: "Rate limit",
+          message:
+            "The AI provider's key has hit its rate limit (free tier). " +
+            "Set a paid ANTHROPIC_API_KEY in the deployment environment, or " +
+            "upgrade the Agnes key to a Token Plan, then try again in a few minutes.",
+        },
+        { status: 429 },
+      );
+    }
     return Response.json({ error: "Generation failed", message: String(err.message || err) }, { status: 502 });
   }
 }
